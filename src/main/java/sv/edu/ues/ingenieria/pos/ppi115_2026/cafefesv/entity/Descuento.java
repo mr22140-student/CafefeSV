@@ -21,6 +21,7 @@ import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -42,7 +43,7 @@ public class Descuento implements Serializable {
     @NotNull
     @Lob
     @Column(name = "id_descuento")
-    private Object idDescuento;
+    private UUID idDescuento;
     @Lob
     @Column(name = "id_tipo_descuento")
     private Object idTipoDescuento;
@@ -64,15 +65,15 @@ public class Descuento implements Serializable {
     public Descuento() {
     }
 
-    public Descuento(Object idDescuento) {
+    public Descuento(UUID idDescuento) {
         this.idDescuento = idDescuento;
     }
 
-    public Object getIdDescuento() {
+    public UUID getIdDescuento() {
         return idDescuento;
     }
 
-    public void setIdDescuento(Object idDescuento) {
+    public void setIdDescuento(UUID idDescuento) {
         this.idDescuento = idDescuento;
     }
 

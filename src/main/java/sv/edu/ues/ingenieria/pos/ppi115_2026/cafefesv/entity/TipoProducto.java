@@ -18,6 +18,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -38,7 +39,7 @@ public class TipoProducto implements Serializable {
     @NotNull
     @Lob
     @Column(name = "id_tipo_producto")
-    private Object idTipoProducto;
+    private UUID idTipoProducto;
     @Size(max = 155)
     @Column(name = "nombre")
     private String nombre;
@@ -53,15 +54,15 @@ public class TipoProducto implements Serializable {
     public TipoProducto() {
     }
 
-    public TipoProducto(Object idTipoProducto) {
+    public TipoProducto(UUID idTipoProducto) {
         this.idTipoProducto = idTipoProducto;
     }
 
-    public Object getIdTipoProducto() {
+    public UUID getIdTipoProducto() {
         return idTipoProducto;
     }
 
-    public void setIdTipoProducto(Object idTipoProducto) {
+    public void setIdTipoProducto(UUID idTipoProducto) {
         this.idTipoProducto = idTipoProducto;
     }
 

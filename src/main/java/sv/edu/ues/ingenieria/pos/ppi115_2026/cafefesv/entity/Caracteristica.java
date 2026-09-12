@@ -20,6 +20,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -40,7 +41,7 @@ public class Caracteristica implements Serializable {
     @NotNull
     @Lob
     @Column(name = "id_caracteristica")
-    private Object idCaracteristica;
+    private UUID idCaracteristica;
     @Size(max = 155)
     @Column(name = "nombre")
     private String nombre;
@@ -58,15 +59,15 @@ public class Caracteristica implements Serializable {
     public Caracteristica() {
     }
 
-    public Caracteristica(Object idCaracteristica) {
+    public Caracteristica(UUID idCaracteristica) {
         this.idCaracteristica = idCaracteristica;
     }
 
-    public Object getIdCaracteristica() {
+    public UUID getIdCaracteristica() {
         return idCaracteristica;
     }
 
-    public void setIdCaracteristica(Object idCaracteristica) {
+    public void setIdCaracteristica(UUID idCaracteristica) {
         this.idCaracteristica = idCaracteristica;
     }
 

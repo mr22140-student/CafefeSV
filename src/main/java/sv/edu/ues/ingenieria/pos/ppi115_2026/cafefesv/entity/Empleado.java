@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  *
@@ -36,7 +37,7 @@ public class Empleado implements Serializable {
     @NotNull
     @Lob
     @Column(name = "id_empleado")
-    private Object idEmpleado;
+    private UUID idEmpleado;
     @Size(max = 255)
     @Column(name = "nombre")
     private String nombre;
@@ -52,15 +53,15 @@ public class Empleado implements Serializable {
     public Empleado() {
     }
 
-    public Empleado(Object idEmpleado) {
+    public Empleado(UUID idEmpleado) {
         this.idEmpleado = idEmpleado;
     }
 
-    public Object getIdEmpleado() {
+    public UUID getIdEmpleado() {
         return idEmpleado;
     }
 
-    public void setIdEmpleado(Object idEmpleado) {
+    public void setIdEmpleado(UUID idEmpleado) {
         this.idEmpleado = idEmpleado;
     }
 
