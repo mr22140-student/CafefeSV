@@ -1,0 +1,30 @@
+<server description="Cafefe Server">
+
+    <featureManager>
+        <feature>jakartaee-11.0</feature>
+        <feature>webProfile-11.0</feature>
+        <feature>persistence-3.2</feature>
+        <feature>jdbc-4.3</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  httpPort="9080"
+                  httpsPort="9443"/>
+
+    <library id="postgresJDBCLib">
+        <fileset dir="${server.config.dir}/lib" includes="*.jar"/>
+    </library>
+
+    <dataSource id="pgdb" jndiName="jdbc/pgdb">
+        <jdbcDriver libraryRef="postgresJDBCLib"/>
+        <properties.postgresql
+            serverName="localhost"
+            portNumber="5432"
+            databaseName="pos_ppi115"
+            user="admin"
+            password="secretpassword"/>
+    </dataSource>
+
+    <applicationManager autoExpand="true"/>
+
+</server>
