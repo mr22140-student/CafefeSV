@@ -1,4 +1,4 @@
-<server description="Cafefe Server">
+<server description="CafefeSV Server">
 
     <featureManager>
         <feature>jakartaee-11.0</feature>
