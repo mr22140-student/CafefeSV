@@ -41,7 +41,6 @@ public class DescuentoProducto implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_descuento_producto")
     private UUID idDescuentoProducto;
     @Column(name = "fecha_desde")

@@ -38,7 +38,6 @@ public class Pago implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_pago")
     private UUID idPago;
     @Size(max = 20)

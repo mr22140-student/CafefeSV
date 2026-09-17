@@ -35,7 +35,6 @@ public class ProductoCaracteristica implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_producto_caracteristica")
     private UUID idProductoCaracteristica;
     @Size(max = 2147483647)

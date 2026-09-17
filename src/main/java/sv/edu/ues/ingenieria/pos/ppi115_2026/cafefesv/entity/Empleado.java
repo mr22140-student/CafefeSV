@@ -35,7 +35,6 @@ public class Empleado implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_empleado")
     private UUID idEmpleado;
     @Size(max = 255)

@@ -39,7 +39,6 @@ public class PagoDetalle implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_pago_detalle")
     private UUID idPagoDetalle;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation

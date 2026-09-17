@@ -37,7 +37,6 @@ public class Caja implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_caja")
     private UUID idCaja;
     @Size(max = 155)

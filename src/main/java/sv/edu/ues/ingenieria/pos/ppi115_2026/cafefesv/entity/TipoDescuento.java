@@ -35,7 +35,6 @@ public class TipoDescuento implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_tipo_descuento")
     private UUID idTipoDescuento;
     @Size(max = 2147483647)

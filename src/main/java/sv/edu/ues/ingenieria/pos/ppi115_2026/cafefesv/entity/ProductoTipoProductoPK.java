@@ -21,12 +21,10 @@ public class ProductoTipoProductoPK implements Serializable {
 
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_producto_tipo_producto")
     private UUID idProductoTipoProducto;
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_producto")
     private UUID idProducto;
 

@@ -38,10 +38,8 @@ public class EmpleadoRol implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_empleado_rol")
     private UUID idEmpleadoRol;
-    @Lob
     @Column(name = "id_empleado")
     private Object idEmpleado;
     @Column(name = "activo")

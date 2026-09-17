@@ -39,7 +39,6 @@ public class Orden implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_orden")
     private UUID idOrden;
     @Column(name = "fecha_creacion")

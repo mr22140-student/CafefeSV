@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" xmlns="https://jakarta.ee/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+  <!-- Define Persistence Unit -->
+  <persistence-unit name="my_persistence_unit">
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.OrdenProducto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.PagoDetalle</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Factura</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.DescuentoProducto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Pago</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.FacturaOrdenProducto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caja</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoCaracteristica</class>
+    <class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento</class>
+  </persistence-unit>
+</persistence>

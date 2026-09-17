@@ -43,7 +43,6 @@ public class Factura implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_factura")
     private UUID idFactura;
     @Size(max = 155)

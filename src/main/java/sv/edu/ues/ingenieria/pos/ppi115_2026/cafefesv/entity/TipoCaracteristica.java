@@ -38,7 +38,6 @@ public class TipoCaracteristica implements Serializable {
     @Id
     @Basic(optional = false)
     @NotNull
-    @Lob
     @Column(name = "id_tipo_caracteristica")
     private UUID idTipoCaracteristica;
     @Size(max = 155)
