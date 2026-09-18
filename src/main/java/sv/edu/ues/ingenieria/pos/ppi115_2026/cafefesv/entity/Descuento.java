@@ -44,7 +44,7 @@ public class Descuento implements Serializable {
     @Column(name = "id_descuento")
     private UUID idDescuento;
     @Column(name = "id_tipo_descuento")
-    private Object idTipoDescuento;
+    private UUID idTipoDescuento;
     @Size(max = 155)
     @Column(name = "nombre")
     private String nombre;
@@ -75,11 +75,11 @@ public class Descuento implements Serializable {
         this.idDescuento = idDescuento;
     }
 
-    public Object getIdTipoDescuento() {
+    public UUID getIdTipoDescuento() {
         return idTipoDescuento;
     }
 
-    public void setIdTipoDescuento(Object idTipoDescuento) {
+    public void setIdTipoDescuento(UUID idTipoDescuento) {
         this.idTipoDescuento = idTipoDescuento;
     }
 
