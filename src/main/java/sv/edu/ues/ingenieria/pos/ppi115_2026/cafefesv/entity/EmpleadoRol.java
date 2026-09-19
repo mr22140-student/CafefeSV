@@ -41,7 +41,7 @@ public class EmpleadoRol implements Serializable {
     @Column(name = "id_empleado_rol")
     private UUID idEmpleadoRol;
     @Column(name = "id_empleado")
-    private Object idEmpleado;
+    private UUID idEmpleado;
     @Column(name = "activo")
     private Boolean activo;
     @Size(max = 2147483647)
@@ -70,11 +70,11 @@ public class EmpleadoRol implements Serializable {
         this.idEmpleadoRol = idEmpleadoRol;
     }
 
-    public Object getIdEmpleado() {
+    public UUID getIdEmpleado() {
         return idEmpleado;
     }
 
-    public void setIdEmpleado(Object idEmpleado) {
+    public void setIdEmpleado(UUID idEmpleado) {
         this.idEmpleado = idEmpleado;
     }
 
