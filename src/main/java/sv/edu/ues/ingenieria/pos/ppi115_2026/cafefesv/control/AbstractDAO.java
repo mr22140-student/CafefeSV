@@ -10,11 +10,14 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author daniel
  */
+
 /**
  * Implementación base del patrón DAO usando JPA {@link EntityManager}.
  * <p>
@@ -26,78 +29,141 @@ import java.util.List;
  *       {@code @PersistenceContext(unitName = "CafefePU")};</li>
  *   <li>implementar {@link #getEntityManager()} devolviendo ese campo.</li>
  * </ol>
+ * <p>
+ * Cada operación valida sus parámetros antes de tocar la base de datos
+ * (lanzando {@link IllegalArgumentException} si algo requerido viene nulo o
+ * mal formado) y envuelve cualquier falla de JPA en un
+ * {@link IllegalStateException} con un mensaje claro, dejando la excepción
+ * original como causa y registrándola en el {@link Logger} — así cualquier
+ * capa de arriba (por ejemplo un Model de JSF) puede mostrar un mensaje
+ * genérico al usuario sin perder el detalle real del error en el log del
+ * servidor.
  *
  * @param <T>  tipo de la entidad administrada
  * @param <ID> tipo de la clave primaria de la entidad
  */
 public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID> {
-
+ 
     private final Class<T> entityClass;
-
+    private final Logger logger = Logger.getLogger(getClass().getName());
+ 
     protected AbstractDAO(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
-
+ 
     /**
      * Debe devolver el {@link EntityManager} inyectado por el contenedor en
      * la subclase concreta.
      */
     protected abstract EntityManager getEntityManager();
-
+ 
     @Override
     public void save(T entity) {
-        getEntityManager().persist(entity);
+        if (entity == null) {
+            throw new IllegalArgumentException("La entidad a guardar no puede ser nula");
+        }
+        try {
+            getEntityManager().persist(entity);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al crear el registro", e);
+            throw new IllegalStateException("Error al crear el registro", e);
+        }
     }
-
+ 
     @Override
     public T update(T entity) {
-        return getEntityManager().merge(entity);
+        if (entity == null) {
+            throw new IllegalArgumentException("La entidad a actualizar no puede ser nula");
+        }
+        try {
+            return getEntityManager().merge(entity);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al modificar el registro", e);
+            throw new IllegalStateException("Error al modificar el registro", e);
+        }
     }
-
+ 
     @Override
     public void delete(T entity) {
-        EntityManager em = getEntityManager();
-        em.remove(em.contains(entity) ? entity : em.merge(entity));
+        if (entity == null) {
+            throw new IllegalArgumentException("La entidad a eliminar no puede ser nula");
+        }
+        try {
+            EntityManager em = getEntityManager();
+            em.remove(em.contains(entity) ? entity : em.merge(entity));
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al eliminar el registro", e);
+            throw new IllegalStateException("Error al eliminar el registro", e);
+        }
     }
-
+ 
     @Override
     public void deleteById(ID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
         T entity = findById(id);
         if (entity != null) {
             delete(entity);
         }
     }
-
+ 
     @Override
     public T findById(ID id) {
-        return getEntityManager().find(entityClass, id);
+        if (id == null) {
+            throw new IllegalArgumentException("El id no puede ser nulo");
+        }
+        try {
+            return getEntityManager().find(entityClass, id);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al buscar el registro por id", e);
+            throw new IllegalStateException("Error al buscar el registro por id", e);
+        }
     }
-
+ 
     @Override
     public List<T> findAll() {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> cq = cb.createQuery(entityClass);
-        cq.select(cq.from(entityClass));
-        return getEntityManager().createQuery(cq).getResultList();
+        try {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<T> cq = cb.createQuery(entityClass);
+            cq.select(cq.from(entityClass));
+            return getEntityManager().createQuery(cq).getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al listar los registros", e);
+            throw new IllegalStateException("Error al listar los registros", e);
+        }
     }
-
+ 
     @Override
     public List<T> findRange(int start, int end) {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> cq = cb.createQuery(entityClass);
-        cq.select(cq.from(entityClass));
-        TypedQuery<T> query = getEntityManager().createQuery(cq);
-        query.setFirstResult(start);
-        query.setMaxResults(end - start);
-        return query.getResultList();
+        if (start < 0 || end < start) {
+            throw new IllegalArgumentException("Rango inválido: start=" + start + ", end=" + end);
+        }
+        try {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<T> cq = cb.createQuery(entityClass);
+            cq.select(cq.from(entityClass));
+            TypedQuery<T> query = getEntityManager().createQuery(cq);
+            query.setFirstResult(start);
+            query.setMaxResults(end - start);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al listar los registros por rango", e);
+            throw new IllegalStateException("Error al listar los registros por rango", e);
+        }
     }
-
+ 
     @Override
     public long count() {
-        CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-        Root<T> root = cq.from(entityClass);
-        cq.select(cb.count(root));
-        return getEntityManager().createQuery(cq).getSingleResult();
+        try {
+            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+            Root<T> root = cq.from(entityClass);
+            cq.select(cb.count(root));
+            return getEntityManager().createQuery(cq).getSingleResult();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al contar los registros", e);
+            throw new IllegalStateException("Error al contar los registros", e);
+        }
     }
 }
