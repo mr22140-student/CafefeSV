@@ -6,6 +6,8 @@
         <feature>persistence-3.2</feature>
         <feature>jdbc-4.3</feature>
     </featureManager>
+    
+    <include location="${shared.config.dir}/primefaces-lib.xml"/>
 
     <httpEndpoint id="defaultHttpEndpoint"
                   httpPort="9080"
@@ -26,5 +28,9 @@
     </dataSource>
 
     <applicationManager autoExpand="true"/>
+    
+    <webApplication id="CafefeSV" location="CafefeSV-1.0-SNAPSHOT.war" contextRoot="/CafefeSV-1.0-SNAPSHOT">
+        <classloader commonLibraryRef="global"/>
+    </webApplication>
 
 </server>
