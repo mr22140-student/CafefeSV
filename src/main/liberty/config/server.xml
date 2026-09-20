@@ -1,7 +1,6 @@
 <server description="CafefeSV Server">
 
     <featureManager>
-        <feature>jakartaee-11.0</feature>
         <feature>webProfile-11.0</feature>
         <feature>persistence-3.2</feature>
         <feature>jdbc-4.3</feature>

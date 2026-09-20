@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <title>CafefeSV POS</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <!-- Estilos de PrimeFaces Grid CSS -->
+
+    </h:head>
+
+    <h:body>
+        <div class="ui-g">
+            <!-- Encabezado (Fila 1 = 12 columnas) -->
+            <div class="ui-g-12 ui-g-nopad">
+                <div class="ui-g-4">
+                    <p:graphicImage library="imagenes" name="Cafefe.png" alt="Logo Cafefe" style="width:80px; height:auto;" />
+                </div>
+                <div class="ui-g-4">
+                    <h1>
+                        <ui:insert name="leyenda">
+                            LEYENDA POR DEFECTO
+                        </ui:insert>
+                    </h1>
+                </div>
+                <div class="ui-g-4">
+                    <h:form id="frmCambiarIdioma">
+                        <p:selectOneMenu value="#{idiomaModel.locale}">
+                            <f:selectItem itemLabel="Español" itemValue="es" />
+                            <f:selectItem itemLabel="English" itemValue="en" />
+                            <p:ajax event="change" update="@all" />
+                        </p:selectOneMenu>
+                    </h:form>
+                </div>
+            </div>
+
+            <!-- Contenido Principal y Menú (Fila 2 = 12 columnas) -->
+            <div class="ui-g-12">
+                <div class="ui-g-2">
+                    <ui:insert name="menu">
+                        <h3>Menú</h3>
+                    </ui:insert>
+                </div>
+                <div class="ui-g-10">
+                    <ui:insert name="contenido">
+                        <!-- El contenido de las páginas irá aquí -->
+                    </ui:insert>
+                </div>		
+            </div>
+
+            <!-- Pie de página (Fila 3) -->
+            <div class="ui-g-12">
+                <p>Todos los derechos reservados © 2026</p>
+            </div>
+
+            <ui:insert name="extras" />
+        </div>
+    </h:body>
+</html>
