@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 
-/**
- * Implementación EJB de {@link TipoDescuentoDAO}.
- */
 @Stateless
 public class TipoDescuentoDAOImpl extends AbstractDAO<TipoDescuento, UUID> implements TipoDescuentoDAO {
 
