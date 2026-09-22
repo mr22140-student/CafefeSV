@@ -12,9 +12,7 @@
                   httpPort="9080"
                   httpsPort="9443"/>
 
-    <library id="postgresJDBCLib">
-        <fileset dir="${server.config.dir}/lib" includes="*.jar"/>
-    </library>
+    <include location="${shared.config.dir}/postgres-lib.xml"/>
 
     <dataSource id="pgdb" jndiName="jdbc/pgdb">
         <jdbcDriver libraryRef="postgresJDBCLib"/>
