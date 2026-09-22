@@ -111,7 +111,8 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <version>3.12.1</version>
                 <configuration>
-                    <assemblyInstallDirectory>/usr/local/openliberty/wlp_26.0.0.8</assemblyInstallDirectory>
+                    <installDirectory>/usr/local/openliberty/wlp_26.0.0.8</installDirectory>
+                    <serverXmlFile>/usr/local/openliberty/wlp_26.0.0.8/usr/servers/ppi115_server/server.xml</serverXmlFile>
                     <serverName>ppi115_server</serverName>
                 </configuration>
             </plugin>
