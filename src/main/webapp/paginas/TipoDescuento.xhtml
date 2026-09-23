@@ -13,7 +13,7 @@
 
     <ui:define name="contenido">
         <h:form id="frmTipoDescuento">
-            <p:messages id="mensajes" globalOnly="true" showDetail="true" showSummary="true" closable="true" />
+            <p:messages id="mensajes" showDetail="true" showSummary="true" closable="true" />
 
             <!-- Tabla de Registros -->
             <p:dataTable id="tblRegistros" value="#{tipoDescuentoModel.registros}" var="r"
@@ -40,14 +40,6 @@
                 <p:column headerText="Observaciones">
                     <h:outputText value="#{r.observaciones}" />
                 </p:column>
-
-                <!--
-                <p:column headerText="Acciones">
-                    <p:commandButton value="Seleccionar"
-                                     action="#{tipoDescuentoModel.seleccionarRegistro(r)}"
-                                     update=":frmTipoDescuento" />
-                </p:column>
-                -->
             </p:dataTable>
 
             <p:spacer height="10" />
@@ -59,6 +51,8 @@
                              update=":frmTipoDescuento" />
             <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
                              action="#{tipoDescuentoModel.btnCancelarHandler()}"
+                             process="@this"
+                             immediate="true"
                              update=":frmTipoDescuento" />
 
             <p:spacer height="10" />
@@ -71,7 +65,8 @@
                         <p:inputText id="txtId" value="#{tipoDescuentoModel.registro.idTipoDescuento}" readonly="true" />
 
                         <p:outputLabel value="Nombre" for="txtNombre"/>
-                        <p:inputText id="txtNombre" value="#{tipoDescuentoModel.registro.nombre}" />
+                        <p:inputText id="txtNombre" value="#{tipoDescuentoModel.registro.nombre}" maxlength="155"
+                                     required="true" requiredMessage="El nombre es obligatorio." />
 
                         <p:outputLabel value="Activo" for="chkActivo"/>
                         <p:selectBooleanCheckbox id="chkActivo" value="#{tipoDescuentoModel.registro.activo}"/>
@@ -82,16 +77,39 @@
 
                     <p:spacer height="5" />
 
-                    <p:commandButton value="Crear" icon="pi pi-save"
+                    <!-- Botones traducidos -->
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                     icon="pi pi-save"
                                      action="#{tipoDescuentoModel.btnCrearHandler()}"
                                      rendered="#{tipoDescuentoModel.estado == 'CREAR'}"
                                      update=":frmTipoDescuento" />
-                    <p:commandButton value="Modificar" icon="pi pi-save"
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                     icon="pi pi-save"
                                      action="#{tipoDescuentoModel.btnModificarHandler()}"
                                      rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}"
-                                     update=":frmTipoDescuento" />
+                                     update=":frmTipoDescuento"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                     icon="pi pi-trash"
+                                     action="#{tipoDescuentoModel.btnEliminarHandler()}"
+                                     rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update=":frmTipoDescuento">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
                 </p:panel>
             </p:outputPanel>
+
+            <!-- Diálogo de Confirmación traducido -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
         </h:form>
     </ui:define>
 
