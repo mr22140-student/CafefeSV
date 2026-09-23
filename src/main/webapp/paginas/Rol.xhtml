@@ -55,6 +55,7 @@
 
             <p:spacer height="10" />
 
+ <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;" rendered="#{rolModel.estado != 'NINGUNO'}">
                 <p:panel header="Mantenimiento Rol">
                     <p:panelGrid columns="2">
@@ -69,34 +70,43 @@
                         <p:selectBooleanCheckbox id="chkActivo" value="#{rolModel.registro.activo}"/>
 
                         <p:outputLabel value="Observaciones" for="txtObs"/>
-                        <p:inputTextarea id="txtObs" value="#{rolModel.registro.observaciones}" rows="3" cols="40" />
+                        <p:inputTextarea id="txtObs" value="#{rolModel.registro.observaciones}" rows="3" cols="40"/>
                     </p:panelGrid>
 
                     <p:spacer height="5" />
 
-                    <p:commandButton value="Crear" icon="pi pi-save"
+                    <!-- Botones traducidos -->
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                     icon="pi pi-save"
                                      action="#{rolModel.btnCrearHandler()}"
                                      rendered="#{rolModel.estado == 'CREAR'}"
                                      update=":frmRol" />
-                    <p:commandButton value="Modificar" icon="pi pi-save"
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                     icon="pi pi-save"
                                      action="#{rolModel.btnModificarHandler()}"
                                      rendered="#{rolModel.estado == 'MODIFICAR'}"
                                      update=":frmRol"
                                      style="margin-right:10px;" />
-                    <p:commandButton value="Eliminar" icon="pi pi-trash"
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                     icon="pi pi-trash"
                                      action="#{rolModel.btnEliminarHandler()}"
                                      rendered="#{rolModel.estado == 'MODIFICAR'}"
                                      process="@this"
                                      immediate="true"
                                      update=":frmRol">
-                        <p:confirm header="Confirmación" message="¿Seguro que deseas eliminar este registro? Esta acción no se puede deshacer." icon="pi pi-exclamation-triangle" />
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                   icon="pi pi-exclamation-triangle" />
                     </p:commandButton>
                 </p:panel>
             </p:outputPanel>
 
+            <!-- Diálogo de Confirmación traducido -->
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
-                <p:commandButton value="Sí" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
-                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
             </p:confirmDialog>
         </h:form>
     </ui:define>
