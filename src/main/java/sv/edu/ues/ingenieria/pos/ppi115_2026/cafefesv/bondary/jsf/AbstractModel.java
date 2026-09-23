@@ -17,6 +17,7 @@ public abstract class AbstractModel<T, ID> implements Serializable {
 
     protected List<T> registros;
     protected T registro;
+    protected T filaSeleccionada;
     protected String estado = ESTADO_NINGUNO;
 
     protected abstract GenericDAO<T, ID> getDAO();
@@ -30,7 +31,6 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         this.estado = ESTADO_NINGUNO;
     }
 
-    // --- HANDLER NUEVO ---
     public void btnNuevoHandler() {
         this.registro = crearNuevo();
         this.estado = ESTADO_CREAR;
@@ -40,7 +40,6 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         btnNuevoHandler();
     }
 
-    // --- HANDLER CANCELAR ---
     public void btnCancelarHandler() {
         this.registro = null;
         this.estado = ESTADO_NINGUNO;
@@ -50,7 +49,6 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         btnCancelarHandler();
     }
 
-    // --- HANDLER CREAR / GUARDAR ---
     public void btnCrearHandler() {
         FacesMessage mensaje;
         if (this.registro != null) {
@@ -72,7 +70,6 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         btnCrearHandler();
     }
 
-    // --- HANDLER MODIFICAR ---
     public void btnModificarHandler() {
         FacesMessage mensaje;
         if (this.registro != null) {
@@ -94,6 +91,27 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         btnModificarHandler();
     }
 
+    public void btnEliminarHandler() {
+        FacesMessage mensaje;
+        if (this.registro != null) {
+            try {
+                getDAO().delete(this.registro);
+                mensaje = new FacesMessage(FacesMessage.SEVERITY_INFO, "Registro eliminado con éxito", null);
+                this.registro = null;
+                iniciar();
+            } catch (Exception ex) {
+                mensaje = new FacesMessage(FacesMessage.SEVERITY_ERROR, "No se pudo eliminar el registro", null);
+            }
+        } else {
+            mensaje = new FacesMessage(FacesMessage.SEVERITY_WARN, "El registro no existe", null);
+        }
+        FacesContext.getCurrentInstance().addMessage(null, mensaje);
+    }
+
+    public void btnEliminarHandler(ActionEvent ae) {
+        btnEliminarHandler();
+    }
+
     public void seleccionarRegistro(T entidad) {
         this.registro = entidad;
         if (this.registro != null) {
@@ -101,11 +119,12 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         }
     }
 
-    // Getters y Setters
     public List<T> getRegistros() { return registros; }
     public void setRegistros(List<T> registros) { this.registros = registros; }
     public T getRegistro() { return registro; }
     public void setRegistro(T registro) { this.registro = registro; }
+    public T getFilaSeleccionada() { return filaSeleccionada; }
+    public void setFilaSeleccionada(T filaSeleccionada) { this.filaSeleccionada = filaSeleccionada; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 }
