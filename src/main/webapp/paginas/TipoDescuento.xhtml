@@ -16,7 +16,15 @@
             <p:messages id="mensajes" globalOnly="true" showDetail="true" showSummary="true" closable="true" />
 
             <!-- Tabla de Registros -->
-            <p:dataTable id="tblRegistros" value="#{tipoDescuentoModel.registros}" var="r">
+            <p:dataTable id="tblRegistros" value="#{tipoDescuentoModel.registros}" var="r"
+                         selectionMode="single"
+                         selection="#{tipoDescuentoModel.filaSeleccionada}"
+                         rowKey="#{r.idTipoDescuento}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{tipoDescuentoModel.seleccionarRegistro(tipoDescuentoModel.filaSeleccionada)}"
+                        update=":frmTipoDescuento" />
+
                 <p:column headerText="ID">
                     <h:outputText value="#{r.idTipoDescuento}" />
                 </p:column>
@@ -33,22 +41,24 @@
                     <h:outputText value="#{r.observaciones}" />
                 </p:column>
 
+                <!--
                 <p:column headerText="Acciones">
-                    <p:commandButton value="Seleccionar" 
-                                     action="#{tipoDescuentoModel.seleccionarRegistro(r)}" 
+                    <p:commandButton value="Seleccionar"
+                                     action="#{tipoDescuentoModel.seleccionarRegistro(r)}"
                                      update=":frmTipoDescuento" />
                 </p:column>
+                -->
             </p:dataTable>
 
             <p:spacer height="10" />
 
             <!-- Botones globales -->
-            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus" 
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
                              style="margin-right:10px;"
-                             action="#{tipoDescuentoModel.btnNuevoHandler()}" 
+                             action="#{tipoDescuentoModel.btnNuevoHandler()}"
                              update=":frmTipoDescuento" />
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times" 
-                             action="#{tipoDescuentoModel.btnCancelarHandler()}" 
+            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                             action="#{tipoDescuentoModel.btnCancelarHandler()}"
                              update=":frmTipoDescuento" />
 
             <p:spacer height="10" />
@@ -73,12 +83,12 @@
                     <p:spacer height="5" />
 
                     <p:commandButton value="Crear" icon="pi pi-save"
-                                     action="#{tipoDescuentoModel.btnCrearHandler()}" 
-                                     rendered="#{tipoDescuentoModel.estado == 'CREAR'}" 
+                                     action="#{tipoDescuentoModel.btnCrearHandler()}"
+                                     rendered="#{tipoDescuentoModel.estado == 'CREAR'}"
                                      update=":frmTipoDescuento" />
                     <p:commandButton value="Modificar" icon="pi pi-save"
-                                     action="#{tipoDescuentoModel.btnModificarHandler()}" 
-                                     rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}" 
+                                     action="#{tipoDescuentoModel.btnModificarHandler()}"
+                                     rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}"
                                      update=":frmTipoDescuento" />
                 </p:panel>
             </p:outputPanel>
