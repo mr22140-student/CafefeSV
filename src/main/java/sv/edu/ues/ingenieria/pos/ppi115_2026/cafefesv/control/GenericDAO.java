@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ import java.util.List;
  *             {@code UUID}, o {@code ProductoTipoProductoPK} cuando la
  *             entidad usa clave compuesta)
  */
-public interface GenericDAO<T, ID> {
+public interface GenericDAO<T, ID> extends Serializable {
  
     /**
      * Inserta una nueva entidad (equivalente a {@code EntityManager#persist}).

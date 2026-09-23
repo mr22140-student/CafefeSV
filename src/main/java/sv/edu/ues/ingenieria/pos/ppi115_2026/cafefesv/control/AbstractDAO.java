@@ -9,6 +9,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,8 +43,9 @@ import java.util.logging.Logger;
  * @param <T>  tipo de la entidad administrada
  * @param <ID> tipo de la clave primaria de la entidad
  */
-public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID> {
+public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializable {
  
+    private static final long serialVersionUID = 1L;
     private final Class<T> entityClass;
     private final Logger logger = Logger.getLogger(getClass().getName());
  
