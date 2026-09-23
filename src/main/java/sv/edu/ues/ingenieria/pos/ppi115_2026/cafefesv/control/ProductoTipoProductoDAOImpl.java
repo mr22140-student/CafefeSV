@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProductoPK;
+import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 
 /**
@@ -19,7 +19,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
  * @author daniel
  */
 @Stateless
-public class ProductoTipoProductoDAOImpl extends AbstractDAO<ProductoTipoProducto, ProductoTipoProductoPK> implements ProductoTipoProductoDAO {
+public class ProductoTipoProductoDAOImpl extends AbstractDAO<ProductoTipoProducto, UUID> implements ProductoTipoProductoDAO {
 
     @PersistenceContext(unitName = "CafefePU")
     private EntityManager em;
