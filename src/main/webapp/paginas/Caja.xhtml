@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Cajas
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmCaja">
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+
+            <p:dataTable id="dtCaja" 
+                         var="reg" 
+                         value="#{cajaModel.registros}" 
+                         selection="#{cajaModel.filaSeleccionada}" 
+                         selectionMode="single" 
+                         rowKey="#{reg.idCaja}">
+
+                <p:ajax event="rowSelect" 
+                        listener="#{cajaModel.seleccionarRegistro(cajaModel.filaSeleccionada)}" 
+                        resetValues="true"
+                        update=":frmCaja" />
+
+                <p:column headerText="ID">
+                    <h:outputText value="#{reg.idCaja}" />
+                </p:column>
+
+                <p:column headerText="Nombre">
+                    <h:outputText value="#{reg.nombre}" />
+                </p:column>
+
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+
+                <p:column headerText="Estado">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="10" />
+
+            <!-- Botón NUEVO -->
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                             icon="pi pi-plus" 
+                             style="margin-right:10px;"
+                             action="#{cajaModel.btnNuevoHandler()}" 
+                             rendered="#{cajaModel.estado == 'NINGUNO'}"
+                             update=":frmCaja" />
+
+            <!-- Botón CANCELAR -->
+            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                             icon="pi pi-times" 
+                             action="#{cajaModel.btnCancelarHandler()}" 
+                             process="@this"
+                             immediate="true" 
+                             resetValues="true"
+                             update=":frmCaja" />
+
+            <p:spacer height="10" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{cajaModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle de la Caja">
+                    <p:panelGrid columns="2">
+
+                        <p:outputLabel for="txtNombre" value="Nombre:" />
+                        <p:inputText id="txtNombre" 
+                                     value="#{cajaModel.registro.nombre}" 
+                                     required="true" 
+                                     requiredMessage="El nombre es obligatorio." />
+
+                        <p:outputLabel for="chkActivo" value="Activo:" />
+                        <p:selectBooleanCheckbox id="chkActivo" value="#{cajaModel.registro.activo}" />
+
+                        <p:outputLabel for="txtObservaciones" value="Observaciones:" />
+                        <p:inputTextarea id="txtObservaciones" 
+                                         value="#{cajaModel.registro.observaciones}" 
+                                         rows="3" cols="40" />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <!-- Botones según estado -->
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                     icon="pi pi-save" 
+                                     action="#{cajaModel.btnCrearHandler()}" 
+                                     rendered="#{cajaModel.estado == 'CREAR'}" 
+                                     update=":frmCaja" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                     icon="pi pi-save" 
+                                     action="#{cajaModel.btnModificarHandler()}" 
+                                     rendered="#{cajaModel.estado == 'MODIFICAR'}" 
+                                     style="margin-right:10px;"
+                                     update=":frmCaja" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                     icon="pi pi-trash" 
+                                     action="#{cajaModel.btnEliminarHandler()}" 
+                                     rendered="#{cajaModel.estado == 'MODIFICAR'}" 
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmCaja">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>
