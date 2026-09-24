@@ -1,116 +1,147 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="jakarta.faces.html"
-                xmlns:f="jakarta.faces.core"
-                xmlns:ui="jakarta.faces.facelets"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Tipo Descuento
+        Tipos de Descuento
     </ui:define>
 
     <ui:define name="contenido">
         <h:form id="frmTipoDescuento">
-            <p:messages id="mensajes" showDetail="true" showSummary="true" closable="true" />
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
 
             <!-- Tabla de Registros -->
-            <p:dataTable id="tblRegistros" value="#{tipoDescuentoModel.registros}" var="r"
-                         selectionMode="single"
-                         selection="#{tipoDescuentoModel.filaSeleccionada}"
-                         rowKey="#{r.idTipoDescuento}">
+            <p:dataTable id="dtTipoDescuento" 
+                         var="reg" 
+                         value="#{tipoDescuentoModel.registros}" 
+                         selection="#{tipoDescuentoModel.filaSeleccionada}" 
+                         selectionMode="single" 
+                         rowKey="#{reg.idTipoDescuento}">
 
-                <p:ajax event="rowSelect"
-                        listener="#{tipoDescuentoModel.seleccionarRegistro(tipoDescuentoModel.filaSeleccionada)}"
+                <p:ajax event="rowSelect" 
+                        listener="#{tipoDescuentoModel.seleccionarRegistro(tipoDescuentoModel.filaSeleccionada)}" 
+                        resetValues="true"
                         update=":frmTipoDescuento" />
 
-                <p:column headerText="ID">
-                    <h:outputText value="#{r.idTipoDescuento}" />
+                <p:column headerText="ID" style="width: 280px; text-align: center;">
+                    <h:outputText value="#{reg.idTipoDescuento}" />
                 </p:column>
 
                 <p:column headerText="Nombre">
-                    <h:outputText value="#{r.nombre}" />
+                    <h:outputText value="#{reg.nombre}" />
                 </p:column>
 
-                <p:column headerText="Estado">
-                    <h:outputText value="#{r.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="Descuento (%)">
+                    <h:outputText value="#{reg.descuentoMaximo}" />
                 </p:column>
 
                 <p:column headerText="Observaciones">
-                    <h:outputText value="#{r.observaciones}" />
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 100px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
                 </p:column>
             </p:dataTable>
 
-            <p:spacer height="10" />
+            <p:spacer height="15" />
 
-            <!-- Botones globales -->
-            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
-                             style="margin-right:10px;"
-                             action="#{tipoDescuentoModel.btnNuevoHandler()}"
-                             update=":frmTipoDescuento" />
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
-                             action="#{tipoDescuentoModel.btnCancelarHandler()}"
-                             process="@this"
-                             immediate="true"
-                             update=":frmTipoDescuento" />
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                                 icon="pi pi-plus" 
+                                 style="margin-right:10px;"
+                                 action="#{tipoDescuentoModel.btnNuevoHandler()}"
+                                 rendered="#{tipoDescuentoModel.estado == 'NINGUNO'}"
+                                 update=":frmTipoDescuento" />
 
-            <p:spacer height="10" />
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                                 icon="pi pi-times" 
+                                 action="#{tipoDescuentoModel.btnCancelarHandler()}" 
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmTipoDescuento" />
+            </h:panelGroup>
 
-            <!-- Formulario de Mantenimiento -->
-            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;" rendered="#{tipoDescuentoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Tipo Descuento">
-                    <p:panelGrid columns="2">
-                        <p:outputLabel value="ID" for="txtId"/>
-                        <p:inputText id="txtId" value="#{tipoDescuentoModel.registro.idTipoDescuento}" readonly="true" />
+            <!-- Formulario de Detalle con Ancho Completo pero Inputs Compactos -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{tipoDescuentoModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle del Tipo de Descuento">
+                    <p:panelGrid columns="2" 
+                                 columnClasses="ui-grid-col-2, ui-grid-col-10" 
+                                 layout="grid" 
+                                 styleClass="ui-panelgrid-blank">
 
-                        <p:outputLabel value="Nombre" for="txtNombre"/>
-                        <p:inputText id="txtNombre" value="#{tipoDescuentoModel.registro.nombre}" maxlength="155"
-                                     required="true" requiredMessage="El nombre es obligatorio." />
+                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:inputText id="txtNombre" 
+                                     value="#{tipoDescuentoModel.registro.nombre}" 
+                                     required="true" 
+                                     requiredMessage="El nombre es obligatorio." 
+                                     style="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel value="Activo" for="chkActivo"/>
-                        <p:selectBooleanCheckbox id="chkActivo" value="#{tipoDescuentoModel.registro.activo}"/>
+                        <p:outputLabel for="txtDescuentoMaximo" value="Descuento (%):" style="font-weight: bold;" />
+                        <p:inputNumber id="txtDescuentoMaximo" 
+                                       value="#{tipoDescuentoModel.registro.descuentoMaximo}" 
+                                       decimalPlaces="0" 
+                                       inputStyle="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel value="Observaciones" for="txtObs"/>
-                        <p:inputTextarea id="txtObs" value="#{tipoDescuentoModel.registro.observaciones}" rows="3" cols="40"/>
+                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                        <h:panelGroup>
+                            <p:selectBooleanCheckbox id="chkActivo" value="#{tipoDescuentoModel.registro.activo}" />
+                        </h:panelGroup>
+
+                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:inputTextarea id="txtObservaciones" 
+                                         value="#{tipoDescuentoModel.registro.observaciones}" 
+                                         rows="3" 
+                                         style="max-width: 350px; width: 100%;" />
+
                     </p:panelGrid>
 
-                    <p:spacer height="5" />
+                    <p:spacer height="15" />
 
-                    <!-- Botones traducidos -->
-                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
-                                     icon="pi pi-save"
-                                     action="#{tipoDescuentoModel.btnCrearHandler()}"
-                                     rendered="#{tipoDescuentoModel.estado == 'CREAR'}"
-                                     update=":frmTipoDescuento" />
+                    <!-- Botones del Formulario -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                         icon="pi pi-save" 
+                                         action="#{tipoDescuentoModel.btnCrearHandler()}" 
+                                         rendered="#{tipoDescuentoModel.estado == 'CREAR'}" 
+                                         update=":frmTipoDescuento" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
-                                     icon="pi pi-save"
-                                     action="#{tipoDescuentoModel.btnModificarHandler()}"
-                                     rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}"
-                                     update=":frmTipoDescuento"
-                                     style="margin-right:10px;" />
+                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                         icon="pi pi-save" 
+                                         action="#{tipoDescuentoModel.btnModificarHandler()}" 
+                                         rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}" 
+                                         update=":frmTipoDescuento" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
-                                     icon="pi pi-trash"
-                                     action="#{tipoDescuentoModel.btnEliminarHandler()}"
-                                     rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}"
-                                     process="@this"
-                                     immediate="true"
-                                     update=":frmTipoDescuento">
-                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
-                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
-                                   icon="pi pi-exclamation-triangle" />
-                    </p:commandButton>
+                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                         icon="pi pi-trash" 
+                                         styleClass="ui-button-danger"
+                                         action="#{tipoDescuentoModel.btnEliminarHandler()}" 
+                                         rendered="#{tipoDescuentoModel.estado == 'MODIFICAR'}" 
+                                         process="@this"
+                                         immediate="true"
+                                         update=":frmTipoDescuento">
+                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                       icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </div>
                 </p:panel>
             </p:outputPanel>
 
-            <!-- Diálogo de Confirmación traducido -->
+            <!-- Diálogo de Confirmación -->
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
                 <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
                 <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
             </p:confirmDialog>
+
         </h:form>
     </ui:define>
-
 </ui:composition>

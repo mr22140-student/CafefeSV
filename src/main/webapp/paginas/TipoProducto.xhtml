@@ -1,109 +1,124 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-                xmlns:h="jakarta.faces.html"
-                xmlns:f="jakarta.faces.core"
-                xmlns:ui="jakarta.faces.facelets"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
                 xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Tipo Producto
+        Tipos de Producto
     </ui:define>
 
     <ui:define name="contenido">
         <h:form id="frmTipoProducto">
-            <p:messages id="mensajes" showDetail="true" showSummary="true" closable="true" />
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
 
-            <!-- Tabla de Registros -->
-            <p:dataTable id="tblRegistros" value="#{tipoProductoModel.registros}" var="tp"
-                         selectionMode="single"
-                         selection="#{tipoProductoModel.filaSeleccionada}"
-                         rowKey="#{tp.idTipoProducto}">
+            <p:dataTable id="dtTipoProducto" 
+                         var="reg" 
+                         value="#{tipoProductoModel.registros}" 
+                         selection="#{tipoProductoModel.filaSeleccionada}" 
+                         selectionMode="single" 
+                         rowKey="#{reg.idTipoProducto}">
 
-                <p:ajax event="rowSelect"
-                        listener="#{tipoProductoModel.seleccionarRegistro(tipoProductoModel.filaSeleccionada)}"
+                <p:ajax event="rowSelect" 
+                        listener="#{tipoProductoModel.seleccionarRegistro(tipoProductoModel.filaSeleccionada)}" 
+                        resetValues="true"
                         update=":frmTipoProducto" />
 
-                <p:column headerText="ID">
-                    <h:outputText value="#{tp.idTipoProducto}" />
+                <p:column headerText="ID" style="width: 280px; text-align: center;">
+                    <h:outputText value="#{reg.idTipoProducto}" />
                 </p:column>
 
                 <p:column headerText="Nombre">
-                    <h:outputText value="#{tp.nombre}" />
-                </p:column>
-
-                <p:column headerText="Estado">
-                    <h:outputText value="#{tp.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                    <h:outputText value="#{reg.nombre}" />
                 </p:column>
 
                 <p:column headerText="Observaciones">
-                    <h:outputText value="#{tp.observaciones}" />
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 100px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
                 </p:column>
             </p:dataTable>
 
             <p:spacer height="10" />
 
-            <!-- Botones globales -->
-            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                             icon="pi pi-plus" 
                              style="margin-right:10px;"
                              action="#{tipoProductoModel.btnNuevoHandler()}"
+                             rendered="#{tipoProductoModel.estado == 'NINGUNO'}"
                              update=":frmTipoProducto" />
-                             
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
-                             action="#{tipoProductoModel.btnCancelarHandler()}"
+
+            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                             icon="pi pi-times" 
+                             action="#{tipoProductoModel.btnCancelarHandler()}" 
                              process="@this"
                              immediate="true"
+                             resetValues="true"
                              update=":frmTipoProducto" />
 
             <p:spacer height="10" />
 
-            <!-- Formulario de Mantenimiento -->
-            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;" 
-                           rendered="#{tipoProductoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Tipo Producto">
-                    <p:panelGrid columns="2">
-                        <p:outputLabel value="ID" for="txtId"/>
-                        <p:inputText id="txtId" value="#{tipoProductoModel.registro.idTipoProducto}" readonly="true" />
+            <!-- Formulario Compacto Centrado -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{tipoProductoModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle del Tipo de Producto">
+                    <div style="max-width: 600px;">
+                        <p:panelGrid columns="2" 
+                                     layout="grid" 
+                                     columnClasses="ui-grid-col-3, ui-grid-col-9" 
+                                     styleClass="ui-panelgrid-blank ui-fluid">
 
-                        <p:outputLabel value="Nombre" for="txtNombre"/>
-                        <p:inputText id="txtNombre" value="#{tipoProductoModel.registro.nombre}" maxlength="155"
-                                     required="true" requiredMessage="El nombre es obligatorio." />
+                            <p:outputLabel for="txtNombre" value="Nombre:" />
+                            <p:inputText id="txtNombre" 
+                                         value="#{tipoProductoModel.registro.nombre}" 
+                                         required="true" 
+                                         requiredMessage="El nombre es obligatorio." />
 
-                        <p:outputLabel value="Activo" for="chkActivo"/>
-                        <p:selectBooleanCheckbox id="chkActivo" value="#{tipoProductoModel.registro.activo}"/>
+                            <p:outputLabel for="chkActivo" value="Activo:" />
+                            <p:selectBooleanCheckbox id="chkActivo" value="#{tipoProductoModel.registro.activo}" />
 
-                        <p:outputLabel value="Observaciones" for="txtObs"/>
-                        <p:inputTextarea id="txtObs" value="#{tipoProductoModel.registro.observaciones}" rows="3" cols="40"/>
-                    </p:panelGrid>
+                            <p:outputLabel for="txtObservaciones" value="Observaciones:" />
+                            <p:inputTextarea id="txtObservaciones" 
+                                             value="#{tipoProductoModel.registro.observaciones}" 
+                                             rows="3" />
 
-                    <p:spacer height="5" />
+                        </p:panelGrid>
 
-                    <!-- Botones de Acción -->
-                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
-                                     icon="pi pi-save"
-                                     action="#{tipoProductoModel.btnCrearHandler()}"
-                                     rendered="#{tipoProductoModel.estado == 'CREAR'}"
-                                     update=":frmTipoProducto" />
+                        <p:spacer height="15" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
-                                     icon="pi pi-save"
-                                     action="#{tipoProductoModel.btnModificarHandler()}"
-                                     rendered="#{tipoProductoModel.estado == 'MODIFICAR'}"
-                                     update=":frmTipoProducto"
-                                     style="margin-right:10px;" />
+                        <!-- Botones -->
+                        <div style="display: flex; gap: 10px;">
+                            <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                             icon="pi pi-save" 
+                                             action="#{tipoProductoModel.btnCrearHandler()}" 
+                                             rendered="#{tipoProductoModel.estado == 'CREAR'}" 
+                                             update=":frmTipoProducto" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
-                                     icon="pi pi-trash"
-                                     action="#{tipoProductoModel.btnEliminarHandler()}"
-                                     rendered="#{tipoProductoModel.estado == 'MODIFICAR'}"
-                                     process="@this"
-                                     immediate="true"
-                                     update=":frmTipoProducto">
-                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
-                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
-                                   icon="pi pi-exclamation-triangle" />
-                    </p:commandButton>
+                            <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                             icon="pi pi-save" 
+                                             action="#{tipoProductoModel.btnModificarHandler()}" 
+                                             rendered="#{tipoProductoModel.estado == 'MODIFICAR'}" 
+                                             update=":frmTipoProducto" />
+
+                            <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                             icon="pi pi-trash" 
+                                             styleClass="ui-button-danger"
+                                             action="#{tipoProductoModel.btnEliminarHandler()}" 
+                                             rendered="#{tipoProductoModel.estado == 'MODIFICAR'}" 
+                                             process="@this"
+                                             immediate="true"
+                                             update=":frmTipoProducto">
+                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                           message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                           icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
+                        </div>
+                    </div>
                 </p:panel>
             </p:outputPanel>
 
@@ -112,7 +127,7 @@
                 <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
                 <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
             </p:confirmDialog>
+
         </h:form>
     </ui:define>
-
 </ui:composition>
