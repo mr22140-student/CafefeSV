@@ -16,13 +16,14 @@
         <h:form id="frmTipoDescuento">
             <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
 
-            <!-- Tabla de Registros -->
+            <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
             <p:dataTable id="dtTipoDescuento" 
                          var="reg" 
                          value="#{tipoDescuentoModel.registros}" 
                          selection="#{tipoDescuentoModel.filaSeleccionada}" 
                          selectionMode="single" 
-                         rowKey="#{reg.idTipoDescuento}">
+                         rowKey="#{reg.idTipoDescuento}"
+                         rendered="#{tipoDescuentoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect" 
                         listener="#{tipoDescuentoModel.seleccionarRegistro(tipoDescuentoModel.filaSeleccionada)}" 
@@ -54,6 +55,7 @@
 
             <!-- Botones Principales -->
             <h:panelGroup id="pnlAcciones" layout="block">
+                <!-- Botón Nuevo (Solo visible cuando NO se está editando ni creando) -->
                 <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
                                  icon="pi pi-plus" 
                                  style="margin-right:10px;"
@@ -61,16 +63,18 @@
                                  rendered="#{tipoDescuentoModel.estado == 'NINGUNO'}"
                                  update=":frmTipoDescuento" />
 
+                <!-- Botón Cancelar (Visible siempre o cuando se esté en CREAR / MODIFICAR) -->
                 <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
                                  icon="pi pi-times" 
                                  action="#{tipoDescuentoModel.btnCancelarHandler()}" 
+                                 rendered="#{tipoDescuentoModel.estado != 'NINGUNO'}"
                                  process="@this"
                                  immediate="true"
                                  resetValues="true"
                                  update=":frmTipoDescuento" />
             </h:panelGroup>
 
-            <!-- Formulario de Detalle con Ancho Completo pero Inputs Compactos -->
+            <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{tipoDescuentoModel.estado != 'NINGUNO'}">
                 <p:panel header="Detalle del Tipo de Descuento">
                     <p:panelGrid columns="2" 

@@ -16,12 +16,14 @@
         <h:form id="frmTipoCaracteristica">
             <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
 
+            <!-- Tabla de Registros (Solo visible en estado NINGUNO) -->
             <p:dataTable id="dtTipoCaracteristica" 
                          var="reg" 
                          value="#{tipoCaracteristicaModel.registros}" 
                          selection="#{tipoCaracteristicaModel.filaSeleccionada}" 
                          selectionMode="single" 
-                         rowKey="#{reg.idTipoCaracteristica}">
+                         rowKey="#{reg.idTipoCaracteristica}"
+                         rendered="#{tipoCaracteristicaModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect" 
                         listener="#{tipoCaracteristicaModel.seleccionarRegistro(tipoCaracteristicaModel.filaSeleccionada)}" 
@@ -47,20 +49,24 @@
 
             <p:spacer height="10" />
 
-            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
-                             icon="pi pi-plus" 
-                             style="margin-right:10px;"
-                             action="#{tipoCaracteristicaModel.btnNuevoHandler()}"
-                             rendered="#{tipoCaracteristicaModel.estado == 'NINGUNO'}"
-                             update=":frmTipoCaracteristica" />
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                                 icon="pi pi-plus" 
+                                 style="margin-right:10px;"
+                                 action="#{tipoCaracteristicaModel.btnNuevoHandler()}"
+                                 rendered="#{tipoCaracteristicaModel.estado == 'NINGUNO'}"
+                                 update=":frmTipoCaracteristica" />
 
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
-                             icon="pi pi-times" 
-                             action="#{tipoCaracteristicaModel.btnCancelarHandler()}" 
-                             process="@this"
-                             immediate="true"
-                             resetValues="true"
-                             update=":frmTipoCaracteristica" />
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                                 icon="pi pi-times" 
+                                 action="#{tipoCaracteristicaModel.btnCancelarHandler()}" 
+                                 rendered="#{tipoCaracteristicaModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmTipoCaracteristica" />
+            </h:panelGroup>
 
             <p:spacer height="10" />
 
@@ -91,7 +97,7 @@
 
                         <p:spacer height="15" />
 
-                        <!-- Botones -->
+                        <!-- Botones del Formulario -->
                         <div style="display: flex; gap: 10px;">
                             <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
                                              icon="pi pi-save" 

@@ -16,12 +16,14 @@
         <h:form id="frmTipoProducto">
             <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
 
+            <!-- Tabla de Registros (Solo visible en estado NINGUNO) -->
             <p:dataTable id="dtTipoProducto" 
                          var="reg" 
                          value="#{tipoProductoModel.registros}" 
                          selection="#{tipoProductoModel.filaSeleccionada}" 
                          selectionMode="single" 
-                         rowKey="#{reg.idTipoProducto}">
+                         rowKey="#{reg.idTipoProducto}"
+                         rendered="#{tipoProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect" 
                         listener="#{tipoProductoModel.seleccionarRegistro(tipoProductoModel.filaSeleccionada)}" 
@@ -47,20 +49,24 @@
 
             <p:spacer height="10" />
 
-            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
-                             icon="pi pi-plus" 
-                             style="margin-right:10px;"
-                             action="#{tipoProductoModel.btnNuevoHandler()}"
-                             rendered="#{tipoProductoModel.estado == 'NINGUNO'}"
-                             update=":frmTipoProducto" />
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                                 icon="pi pi-plus" 
+                                 style="margin-right:10px;"
+                                 action="#{tipoProductoModel.btnNuevoHandler()}"
+                                 rendered="#{tipoProductoModel.estado == 'NINGUNO'}"
+                                 update=":frmTipoProducto" />
 
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
-                             icon="pi pi-times" 
-                             action="#{tipoProductoModel.btnCancelarHandler()}" 
-                             process="@this"
-                             immediate="true"
-                             resetValues="true"
-                             update=":frmTipoProducto" />
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                                 icon="pi pi-times" 
+                                 action="#{tipoProductoModel.btnCancelarHandler()}" 
+                                 rendered="#{tipoProductoModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmTipoProducto" />
+            </h:panelGroup>
 
             <p:spacer height="10" />
 
@@ -91,7 +97,7 @@
 
                         <p:spacer height="15" />
 
-                        <!-- Botones -->
+                        <!-- Botones del Formulario -->
                         <div style="display: flex; gap: 10px;">
                             <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
                                              icon="pi pi-save" 
