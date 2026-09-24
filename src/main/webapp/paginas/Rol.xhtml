@@ -22,6 +22,7 @@
 
                 <p:ajax event="rowSelect"
                         listener="#{rolModel.seleccionarRegistro(rolModel.filaSeleccionada)}"
+                        resetValues="true"
                         update=":frmRol" />
 
                 <p:column headerText="ID">
@@ -46,11 +47,14 @@
             <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
                              style="margin-right:10px;"
                              action="#{rolModel.btnNuevoHandler()}"
+                             rendered="#{rolModel.estado == 'NINGUNO'}"
                              update=":frmRol" />
+            
             <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
                              action="#{rolModel.btnCancelarHandler()}"
                              process="@this"
                              immediate="true"
+                             resetValues="true"
                              update=":frmRol" />
 
             <p:spacer height="10" />

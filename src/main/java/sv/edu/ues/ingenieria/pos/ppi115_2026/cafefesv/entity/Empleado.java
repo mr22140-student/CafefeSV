@@ -29,6 +29,7 @@ import java.util.UUID;
     @NamedQuery(name = "Empleado.findByApellido", query = "SELECT e FROM Empleado e WHERE e.apellido = :apellido"),
     @NamedQuery(name = "Empleado.findByActivo", query = "SELECT e FROM Empleado e WHERE e.activo = :activo"),
     @NamedQuery(name = "Empleado.findByComentarios", query = "SELECT e FROM Empleado e WHERE e.comentarios = :comentarios")})
+
 public class Empleado implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -120,5 +121,5 @@ public class Empleado implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado[ idEmpleado=" + idEmpleado + " ]";
     }
-    
+
 }

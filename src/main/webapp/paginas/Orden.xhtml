@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Órdenes
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmOrden">
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+
+            <p:dataTable id="dtOrden" 
+                         var="reg" 
+                         value="#{ordenModel.registros}" 
+                         selection="#{ordenModel.filaSeleccionada}" 
+                         selectionMode="single" 
+                         rowKey="#{reg.idOrden}">
+
+                <p:ajax event="rowSelect" 
+                        listener="#{ordenModel.seleccionarRegistro(ordenModel.filaSeleccionada)}" 
+                        resetValues="true"
+                        update=":frmOrden" />
+
+                <p:column headerText="ID">
+                    <h:outputText value="#{reg.idOrden}" />
+                </p:column>
+
+                <p:column headerText="Empleado / Rol">
+                    <h:outputText value="#{reg.idEmpleadoRol != null ? reg.idEmpleadoRol.idRol : 'N/D'}" />
+                </p:column>
+
+                <p:column headerText="Fecha de Creación">
+                    <h:outputText value="#{reg.fechaCreacion}">
+                        <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="10" />
+
+            <!-- Botón NUEVO -->
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                             icon="pi pi-plus" 
+                             style="margin-right:10px;"
+                             action="#{ordenModel.btnNuevoHandler()}" 
+                             rendered="#{ordenModel.estado == 'NINGUNO'}"
+                             update=":frmOrden" />
+
+            <!-- Botón CANCELAR -->
+            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                             icon="pi pi-times" 
+                             action="#{ordenModel.btnCancelarHandler()}" 
+                             process="@this"
+                             immediate="true" 
+                             resetValues="true"
+                             update=":frmOrden" />
+
+            <p:spacer height="10" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{ordenModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle de la Orden">
+                    <p:panelGrid columns="2">
+
+                        <p:outputLabel for="txtFecha" value="Fecha de Creación:" />
+                        <h:outputText id="txtFecha" value="#{ordenModel.registro.fechaCreacion}">
+                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
+                        </h:outputText>
+
+                        <p:outputLabel for="acEmpleadoRol" value="Empleado / Rol:" />
+                        <p:autoComplete id="acEmpleadoRol" value="#{ordenModel.registro.idEmpleadoRol}" 
+                                        completeMethod="#{ordenModel.completarEmpleadoRol}"
+                                        var="er" itemLabel="#{er.idEmpleado.nombre} #{er.idEmpleado.apellido}" itemValue="#{er}"
+                                        forceSelection="true" dropdown="true" required="true" requiredMessage="El empleado con rol es obligatorio." />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <!-- Botones según estado -->
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                     icon="pi pi-save" 
+                                     action="#{ordenModel.btnCrearHandler()}" 
+                                     rendered="#{ordenModel.estado == 'CREAR'}" 
+                                     update=":frmOrden" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                     icon="pi pi-save" 
+                                     action="#{ordenModel.btnModificarHandler()}" 
+                                     rendered="#{ordenModel.estado == 'MODIFICAR'}" 
+                                     style="margin-right:10px;"
+                                     update=":frmOrden" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                     icon="pi pi-trash" 
+                                     action="#{ordenModel.btnEliminarHandler()}" 
+                                     rendered="#{ordenModel.estado == 'MODIFICAR'}" 
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmOrden">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>
