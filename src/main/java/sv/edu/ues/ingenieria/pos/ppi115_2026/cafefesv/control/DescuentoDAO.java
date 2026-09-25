@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 /**
  *
  * @author daniel
@@ -74,5 +75,14 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
         )
         .setParameter("fecha", fecha)
         .getResultList();
+    }
+        public long countByTipoDescuento(TipoDescuento tipoDescuento) {
+        if (tipoDescuento == null) {
+            return 0;
+        }
+        return em.createQuery(
+                "SELECT COUNT(d) FROM Descuento d WHERE d.idTipoDescuento = :tipo", Long.class)
+                .setParameter("tipo", tipoDescuento)
+                .getSingleResult();
     }
 }

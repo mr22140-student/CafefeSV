@@ -20,6 +20,9 @@ import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import java.math.BigDecimal;
 
 /**
  *
@@ -43,6 +46,12 @@ public class Producto implements Serializable {
     @Size(max = 155)
     @Column(name = "nombre")
     private String nombre;
+    @Basic(optional = false)
+    @NotNull
+    @DecimalMin(value = "0.00")
+    @Digits(integer = 6, fraction = 2)
+    @Column(name = "precio_sugerido", precision = 8, scale = 2)
+    private BigDecimal precioSugerido;
     @Column(name = "activo")
     private Boolean activo;
     @Size(max = 2147483647)
@@ -74,6 +83,14 @@ public class Producto implements Serializable {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public BigDecimal getPrecioSugerido() {
+        return precioSugerido;
+    }
+
+    public void setPrecioSugerido(BigDecimal precioSugerido) {
+        this.precioSugerido = precioSugerido;
     }
 
     public void setNombre(String nombre) {
@@ -152,5 +169,5 @@ public class Producto implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto[ idProducto=" + idProducto + " ]";
     }
-    
+
 }
