@@ -1,27 +1,68 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto;
-import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
-
 /**
  *
  * @author daniel
  */
-  public interface ProductoTipoProductoDAO extends GenericDAO<ProductoTipoProducto, UUID> {
+@Stateless
+public class ProductoTipoProductoDAO extends AbstractDAO<ProductoTipoProducto, UUID> {
 
-    List<ProductoTipoProducto> findByFechaCreacion(Date fechaCreacion);
+    @PersistenceContext(unitName = "CafefePU")
+    private EntityManager em;
 
-    List<ProductoTipoProducto> findByObservaciones(String observaciones);
+    public ProductoTipoProductoDAO() {
+        super(ProductoTipoProducto.class);
+    }
 
-    List<ProductoTipoProducto> findByProducto(Producto producto);
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
 
-    List<ProductoTipoProducto> findByTipoProducto(TipoProducto tipoProducto);
+    public List<ProductoTipoProducto> findByFechaCreacion(Date fechaCreacion) {
+        return em.createNamedQuery(
+                "ProductoTipoProducto.findByFechaCreacion",
+                ProductoTipoProducto.class
+        )
+        .setParameter("fechaCreacion", fechaCreacion)
+        .getResultList();
+    }
+
+    public List<ProductoTipoProducto> findByObservaciones(String observaciones) {
+        return em.createNamedQuery(
+                "ProductoTipoProducto.findByObservaciones",
+                ProductoTipoProducto.class
+        )
+        .setParameter("observaciones", observaciones)
+        .getResultList();
+    }
+
+    public List<ProductoTipoProducto> findByProducto(Producto producto) {
+        return em.createQuery(
+                "SELECT x FROM ProductoTipoProducto x "
+                + "WHERE x.producto = :producto",
+                ProductoTipoProducto.class
+        )
+        .setParameter("producto", producto)
+        .getResultList();
+    }
+
+    public List<ProductoTipoProducto> findByTipoProducto(TipoProducto tipoProducto) {
+        return em.createQuery(
+                "SELECT x FROM ProductoTipoProducto x "
+                + "WHERE x.idTipoProducto = :tipoProducto",
+                ProductoTipoProducto.class
+        )
+        .setParameter("tipoProducto", tipoProducto)
+        .getResultList();
+    }
 }

@@ -1,25 +1,63 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
-
 /**
  *
- * @author valen
+ * @author daniel
  */
+@Stateless
+public class TipoDescuentoDAO extends AbstractDAO<TipoDescuento, UUID> {
 
-public interface TipoDescuentoDAO extends GenericDAO<TipoDescuento, UUID> {
+    @PersistenceContext(unitName = "CafefePU")
+    private EntityManager em;
 
-    List<TipoDescuento> findByNombre(String nombre);
+    public TipoDescuentoDAO() {
+        super(TipoDescuento.class);
+    }
 
-    List<TipoDescuento> findByActivo(Boolean activo);
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
 
-    List<TipoDescuento> findByDescuentoMaximo(Integer descuentoMaximo);
+    public List<TipoDescuento> findByNombre(String nombre) {
+        return em.createNamedQuery(
+                "TipoDescuento.findByNombre",
+                TipoDescuento.class
+        )
+        .setParameter("nombre", nombre)
+        .getResultList();
+    }
 
-    List<TipoDescuento> findByObservaciones(String observaciones);
+    public List<TipoDescuento> findByActivo(Boolean activo) {
+        return em.createNamedQuery(
+                "TipoDescuento.findByActivo",
+                TipoDescuento.class
+        )
+        .setParameter("activo", activo)
+        .getResultList();
+    }
+
+    public List<TipoDescuento> findByDescuentoMaximo(Integer descuentoMaximo) {
+        return em.createNamedQuery(
+                "TipoDescuento.findByDescuentoMaximo",
+                TipoDescuento.class
+        )
+        .setParameter("descuentoMaximo", descuentoMaximo)
+        .getResultList();
+    }
+
+    public List<TipoDescuento> findByObservaciones(String observaciones) {
+        return em.createNamedQuery(
+                "TipoDescuento.findByObservaciones",
+                TipoDescuento.class
+        )
+        .setParameter("observaciones", observaciones)
+        .getResultList();
+    }
 }

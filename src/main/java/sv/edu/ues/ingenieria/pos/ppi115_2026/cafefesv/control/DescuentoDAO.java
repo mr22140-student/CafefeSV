@@ -1,31 +1,78 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
-
 /**
  *
  * @author daniel
  */
-public interface DescuentoDAO extends GenericDAO<Descuento, UUID> {
 
-    List<Descuento> findByNombre(String nombre);
+@Stateless
+public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
 
-    List<Descuento> findByFechaDesde(Date fechaDesde);
+    @PersistenceContext(unitName = "CafefePU")
+    private EntityManager em;
 
-    List<Descuento> findByFechaHasta(Date fechaHasta);
+    public DescuentoDAO() {
+        super(Descuento.class);
+    }
 
-    List<Descuento> findByObservaciones(String observaciones);
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
+
+    public List<Descuento> findByNombre(String nombre) {
+        return em.createNamedQuery(
+                "Descuento.findByNombre",
+                Descuento.class
+        )
+        .setParameter("nombre", nombre)
+        .getResultList();
+    }
+
+    public List<Descuento> findByFechaDesde(Date fechaDesde) {
+        return em.createNamedQuery(
+                "Descuento.findByFechaDesde",
+                Descuento.class
+        )
+        .setParameter("fechaDesde", fechaDesde)
+        .getResultList();
+    }
+
+    public List<Descuento> findByFechaHasta(Date fechaHasta) {
+        return em.createNamedQuery(
+                "Descuento.findByFechaHasta",
+                Descuento.class
+        )
+        .setParameter("fechaHasta", fechaHasta)
+        .getResultList();
+    }
+
+    public List<Descuento> findByObservaciones(String observaciones) {
+        return em.createNamedQuery(
+                "Descuento.findByObservaciones",
+                Descuento.class
+        )
+        .setParameter("observaciones", observaciones)
+        .getResultList();
+    }
 
     /**
-     * Descuentos vigentes en la fecha indicada, es decir aquellos donde
-     * {@code fecha} cae entre {@code fechaDesde} y {@code fechaHasta}.
+     * Obtiene los descuentos vigentes en la fecha indicada.
      */
-    List<Descuento> findVigentes(Date fecha);
+    public List<Descuento> findVigentes(Date fecha) {
+        return em.createQuery(
+                "SELECT d FROM Descuento d "
+                + "WHERE :fecha BETWEEN d.fechaDesde AND d.fechaHasta",
+                Descuento.class
+        )
+        .setParameter("fecha", fecha)
+        .getResultList();
+    }
 }
