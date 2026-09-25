@@ -1,31 +1,87 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import jakarta.ejb.Stateless;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.DescuentoProducto;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
-
 /**
  *
  * @author daniel
  */
-public interface DescuentoProductoDAO extends GenericDAO<DescuentoProducto, UUID> {
 
-    List<DescuentoProducto> findByFechaDesde(Date fechaDesde);
+@Stateless
+public class DescuentoProductoDAO extends AbstractDAO<DescuentoProducto, UUID> {
 
-    List<DescuentoProducto> findByFechaHasta(Date fechaHasta);
+    @PersistenceContext(unitName = "CafefePU")
+    private EntityManager em;
 
-    List<DescuentoProducto> findByValor(Integer valor);
+    public DescuentoProductoDAO() {
+        super(DescuentoProducto.class);
+    }
 
-    List<DescuentoProducto> findByObservaciones(String observaciones);
+    @Override
+    protected EntityManager getEntityManager() {
+        return em;
+    }
 
-    List<DescuentoProducto> findByDescuento(Descuento descuento);
+    public List<DescuentoProducto> findByFechaDesde(Date fechaDesde) {
+        return em.createNamedQuery(
+                "DescuentoProducto.findByFechaDesde",
+                DescuentoProducto.class
+        )
+        .setParameter("fechaDesde", fechaDesde)
+        .getResultList();
+    }
 
-    List<DescuentoProducto> findByProducto(Producto producto);
+    public List<DescuentoProducto> findByFechaHasta(Date fechaHasta) {
+        return em.createNamedQuery(
+                "DescuentoProducto.findByFechaHasta",
+                DescuentoProducto.class
+        )
+        .setParameter("fechaHasta", fechaHasta)
+        .getResultList();
+    }
+
+    public List<DescuentoProducto> findByValor(Integer valor) {
+        return em.createNamedQuery(
+                "DescuentoProducto.findByValor",
+                DescuentoProducto.class
+        )
+        .setParameter("valor", valor)
+        .getResultList();
+    }
+
+    public List<DescuentoProducto> findByObservaciones(String observaciones) {
+        return em.createNamedQuery(
+                "DescuentoProducto.findByObservaciones",
+                DescuentoProducto.class
+        )
+        .setParameter("observaciones", observaciones)
+        .getResultList();
+    }
+
+    public List<DescuentoProducto> findByDescuento(Descuento descuento) {
+        return em.createQuery(
+                "SELECT x FROM DescuentoProducto x "
+                + "WHERE x.idDescuento = :descuento",
+                DescuentoProducto.class
+        )
+        .setParameter("descuento", descuento)
+        .getResultList();
+    }
+
+    public List<DescuentoProducto> findByProducto(Producto producto) {
+        return em.createQuery(
+                "SELECT x FROM DescuentoProducto x "
+                + "WHERE x.idProducto = :producto",
+                DescuentoProducto.class
+        )
+        .setParameter("producto", producto)
+        .getResultList();
+    }
 }
