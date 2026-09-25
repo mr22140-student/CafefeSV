@@ -21,4 +21,7 @@ public interface EmpleadoDAO extends GenericDAO<Empleado, UUID> {
     List<Empleado> findByActivo(Boolean activo);
 
     List<Empleado> findByComentarios(String comentarios);
+    
+   Empleado obtenerPorId(UUID id);
+
 }
