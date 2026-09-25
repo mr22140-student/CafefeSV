@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Características por Producto
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmProductoCaracteristica">
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+
+            <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
+            <p:dataTable id="dtProductoCaracteristica"
+                         var="reg"
+                         value="#{productoCaracteristicaModel.registros}"
+                         selection="#{productoCaracteristicaModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idProductoCaracteristica}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{productoCaracteristicaModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{productoCaracteristicaModel.seleccionarRegistro(productoCaracteristicaModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmProductoCaracteristica" />
+
+                <p:column headerText="Producto">
+                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : 'Sin asignación'}" />
+                </p:column>
+                <p:column headerText="Característica">
+                    <h:outputText value="#{reg.idCaracteristica != null ? reg.idCaracteristica.nombre : 'Sin asignación'}" />
+                </p:column>
+                <p:column headerText="Tipo de característica">
+                    <h:outputText value="#{reg.idCaracteristica != null and reg.idCaracteristica.idTipoCaracteristica != null ? reg.idCaracteristica.idTipoCaracteristica.nombre : ''}" />
+                </p:column>
+                <p:column headerText="Valor">
+                    <h:outputText value="#{reg.valor}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="15" />
+
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}"
+                                 icon="pi pi-plus"
+                                 style="margin-right:10px;"
+                                 action="#{productoCaracteristicaModel.btnNuevoHandler()}"
+                                 rendered="#{productoCaracteristicaModel.estado == 'NINGUNO'}"
+                                 update=":frmProductoCaracteristica" />
+
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}"
+                                 icon="pi pi-times"
+                                 action="#{productoCaracteristicaModel.btnCancelarHandler()}"
+                                 rendered="#{productoCaracteristicaModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmProductoCaracteristica" />
+            </h:panelGroup>
+
+            <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{productoCaracteristicaModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle de la Característica del Producto">
+                    <p:panelGrid columns="2"
+                                 columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank">
+
+                        <p:outputLabel for="cboProducto" value="Producto:" style="font-weight: bold;" />
+                        <p:selectOneMenu id="cboProducto" value="#{productoCaracteristicaModel.registro.idProducto}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true"
+                                         requiredMessage="Producto es obligatorio."
+                                         style="max-width: 350px; width: 100%;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{productoCaracteristicaModel.listaProducto}" var="p"
+                                           itemLabel="#{p.nombre}"
+                                           itemValue="#{p}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel for="cboCaracteristica" value="Característica:" style="font-weight: bold;" />
+                        <p:selectOneMenu id="cboCaracteristica" value="#{productoCaracteristicaModel.registro.idCaracteristica}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true"
+                                         requiredMessage="Característica es obligatoria."
+                                         style="max-width: 350px; width: 100%;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{productoCaracteristicaModel.listaCaracteristica}" var="c"
+                                           itemLabel="#{c.nombre}"
+                                           itemValue="#{c}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel for="txtValor" value="Valor:" style="font-weight: bold;" />
+                        <p:inputText id="txtValor" value="#{productoCaracteristicaModel.registro.valor}"
+                                     required="true"
+                                     requiredMessage="Valor es obligatorio."
+                                     style="max-width: 350px; width: 100%;" />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="15" />
+
+                    <!-- Botones del Formulario -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}"
+                                         icon="pi pi-save"
+                                         action="#{productoCaracteristicaModel.btnCrearHandler()}"
+                                         rendered="#{productoCaracteristicaModel.estado == 'CREAR'}"
+                                         update=":frmProductoCaracteristica" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}"
+                                         icon="pi pi-save"
+                                         action="#{productoCaracteristicaModel.btnModificarHandler()}"
+                                         rendered="#{productoCaracteristicaModel.estado == 'MODIFICAR'}"
+                                         update=":frmProductoCaracteristica" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
+                                         icon="pi pi-trash"
+                                         styleClass="ui-button-danger"
+                                         action="#{productoCaracteristicaModel.btnEliminarHandler()}"
+                                         rendered="#{productoCaracteristicaModel.estado == 'MODIFICAR'}"
+                                         process="@this"
+                                         immediate="true"
+                                         update=":frmProductoCaracteristica">
+                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                       icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </div>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>

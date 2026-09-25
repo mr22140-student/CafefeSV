@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Gestión de Descuentos
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmDescuento">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+
+            <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
+            <p:dataTable id="dtDescuento"
+                         var="reg"
+                         value="#{descuentoModel.registros}"
+                         selection="#{descuentoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idDescuento}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{descuentoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{descuentoModel.seleccionarRegistro(descuentoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmDescuento" />
+
+                <p:column headerText="Nombre">
+                    <h:outputText value="#{reg.nombre}" />
+                </p:column>
+                <p:column headerText="Tipo de descuento">
+                    <h:outputText value="#{reg.idTipoDescuento != null ? reg.idTipoDescuento.nombre : 'Sin asignación'}" />
+                </p:column>
+                <p:column headerText="Desde">
+                    <h:outputText value="#{reg.fechaDesde}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="Hasta">
+                    <h:outputText value="#{reg.fechaHasta}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="Vigencia" style="width: 120px; text-align: center;">
+                    <h:outputText value="#{descuentoModel.vigencia(reg)}" />
+                </p:column>
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="15" />
+
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}"
+                                 icon="pi pi-plus"
+                                 style="margin-right:10px;"
+                                 action="#{descuentoModel.btnNuevoHandler()}"
+                                 rendered="#{descuentoModel.estado == 'NINGUNO'}"
+                                 update=":frmDescuento" />
+
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}"
+                                 icon="pi pi-times"
+                                 action="#{descuentoModel.btnCancelarHandler()}"
+                                 rendered="#{descuentoModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmDescuento" />
+            </h:panelGroup>
+
+            <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{descuentoModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle del Descuento">
+                    <p:panelGrid columns="2"
+                                 columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank">
+
+                        <p:outputLabel for="cboTipoDescuento" value="Tipo de descuento:" style="font-weight: bold;" />
+                        <p:selectOneMenu id="cboTipoDescuento" value="#{descuentoModel.registro.idTipoDescuento}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true"
+                                         requiredMessage="El tipo de descuento es obligatorio."
+                                         style="max-width: 350px; width: 100%;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{descuentoModel.listaTipoDescuento}" var="t"
+                                           itemLabel="#{t.nombre}"
+                                           itemValue="#{t}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:inputText id="txtNombre" value="#{descuentoModel.registro.nombre}" maxlength="155"
+                                     required="true"
+                                     requiredMessage="El nombre es obligatorio."
+                                     style="max-width: 350px; width: 100%;" />
+
+
+                        <p:outputLabel for="dpFechaDesde" value="Fecha desde:" style="font-weight: bold;" />
+                        <p:datePicker id="dpFechaDesde" value="#{descuentoModel.registro.fechaDesde}"
+                                      showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true"
+                                      required="true"
+                                      requiredMessage="La fecha desde es obligatoria." />
+
+                        <p:outputLabel for="dpFechaHasta" value="Fecha hasta:" style="font-weight: bold;" />
+                        <p:datePicker id="dpFechaHasta" value="#{descuentoModel.registro.fechaHasta}"
+                                      showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
+
+                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:inputTextarea id="txtObservaciones" value="#{descuentoModel.registro.observaciones}" rows="3"
+                                         style="max-width: 350px; width: 100%;" />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="15" />
+
+                    <!-- Botones del Formulario -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}"
+                                         icon="pi pi-save"
+                                         action="#{descuentoModel.btnCrearHandler()}"
+                                         rendered="#{descuentoModel.estado == 'CREAR'}"
+                                         update=":frmDescuento" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}"
+                                         icon="pi pi-save"
+                                         action="#{descuentoModel.btnModificarHandler()}"
+                                         rendered="#{descuentoModel.estado == 'MODIFICAR'}"
+                                         update=":frmDescuento" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
+                                         icon="pi pi-trash"
+                                         styleClass="ui-button-danger"
+                                         action="#{descuentoModel.btnEliminarHandler()}"
+                                         rendered="#{descuentoModel.estado == 'MODIFICAR'}"
+                                         process="@this"
+                                         immediate="true"
+                                         update=":frmDescuento">
+                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                       icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </div>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>

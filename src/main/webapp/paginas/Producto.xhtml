@@ -1,0 +1,144 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Gestión de Productos
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmProducto">
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+
+            <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
+            <p:dataTable id="dtProducto"
+                         var="reg"
+                         value="#{productoModel.registros}"
+                         selection="#{productoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idProducto}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{productoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{productoModel.seleccionarRegistro(productoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmProducto" />
+
+                <p:column headerText="ID" style="width: 280px; text-align: center;">
+                    <h:outputText value="#{reg.idProducto}" />
+                </p:column>
+                <p:column headerText="Nombre">
+                    <h:outputText value="#{reg.nombre}" />
+                </p:column>
+                <p:column headerText="Precio sugerido">
+                    <h:outputText value="#{reg.precioSugerido}">
+                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="Comentarios">
+                    <h:outputText value="#{reg.comentarios}" />
+                </p:column>
+                <p:column headerText="Estado" style="width: 100px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="15" />
+
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}"
+                                 icon="pi pi-plus"
+                                 style="margin-right:10px;"
+                                 action="#{productoModel.btnNuevoHandler()}"
+                                 rendered="#{productoModel.estado == 'NINGUNO'}"
+                                 update=":frmProducto" />
+
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}"
+                                 icon="pi pi-times"
+                                 action="#{productoModel.btnCancelarHandler()}"
+                                 rendered="#{productoModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmProducto" />
+            </h:panelGroup>
+
+            <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{productoModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle del Producto">
+                    <p:panelGrid columns="2"
+                                 columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                 layout="grid"
+                                 styleClass="ui-panelgrid-blank">
+
+                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:inputText id="txtNombre" value="#{productoModel.registro.nombre}" maxlength="155"
+                                     required="true"
+                                     requiredMessage="Nombre es obligatorio."
+                                     style="max-width: 350px; width: 100%;" />
+
+                        <p:outputLabel for="txtPrecioSugerido" value="Precio sugerido:" style="font-weight: bold;" />
+                        <p:inputNumber id="txtPrecioSugerido" value="#{productoModel.registro.precioSugerido}"
+                                       symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
+                                       required="true"
+                                       requiredMessage="Precio sugerido es obligatorio." />
+
+                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                        <h:panelGroup>
+                            <p:selectBooleanCheckbox id="chkActivo" value="#{productoModel.registro.activo}" />
+                        </h:panelGroup>
+
+                        <p:outputLabel for="txtComentarios" value="Comentarios:" style="font-weight: bold;" />
+                        <p:inputTextarea id="txtComentarios" value="#{productoModel.registro.comentarios}" rows="3"
+                                         style="max-width: 350px; width: 100%;" />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="15" />
+
+                    <!-- Botones del Formulario -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}"
+                                         icon="pi pi-save"
+                                         action="#{productoModel.btnCrearHandler()}"
+                                         rendered="#{productoModel.estado == 'CREAR'}"
+                                         update=":frmProducto" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}"
+                                         icon="pi pi-save"
+                                         action="#{productoModel.btnModificarHandler()}"
+                                         rendered="#{productoModel.estado == 'MODIFICAR'}"
+                                         update=":frmProducto" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
+                                         icon="pi pi-trash"
+                                         styleClass="ui-button-danger"
+                                         action="#{productoModel.btnEliminarHandler()}"
+                                         rendered="#{productoModel.estado == 'MODIFICAR'}"
+                                         process="@this"
+                                         immediate="true"
+                                         update=":frmProducto">
+                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                       icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </div>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>
