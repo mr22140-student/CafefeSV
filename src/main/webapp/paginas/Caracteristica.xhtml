@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Gestión de Características
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmCaracteristica">
+            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+
+            <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
+            <p:dataTable id="dtCaracteristica" 
+                         var="reg" 
+                         value="#{caracteristicaModel.registros}" 
+                         selection="#{caracteristicaModel.filaSeleccionada}" 
+                         selectionMode="single" 
+                         rowKey="#{reg.idCaracteristica}"
+                         rendered="#{caracteristicaModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect" 
+                        listener="#{caracteristicaModel.seleccionarRegistro(caracteristicaModel.filaSeleccionada)}" 
+                        resetValues="true"
+                        update=":frmCaracteristica" />
+
+                <p:column headerText="ID" style="width: 280px; text-align: center;">
+                    <h:outputText value="#{reg.idCaracteristica}" />
+                </p:column>
+
+                <p:column headerText="Nombre">
+                    <h:outputText value="#{reg.nombre}" />
+                </p:column>
+
+                <p:column headerText="Tipo Característica">
+                    <h:outputText value="#{reg.idTipoCaracteristica != null ? reg.idTipoCaracteristica.nombre : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 100px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="15" />
+
+            <!-- Botones Principales -->
+            <h:panelGroup id="pnlAcciones" layout="block">
+                <!-- Botón Nuevo (Solo visible cuando NO se está editando ni creando) -->
+                <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
+                                 icon="pi pi-plus" 
+                                 style="margin-right:10px;"
+                                 action="#{caracteristicaModel.btnNuevoHandler()}"
+                                 rendered="#{caracteristicaModel.estado == 'NINGUNO'}"
+                                 update=":frmCaracteristica" />
+
+                <!-- Botón Cancelar (Visible cuando se esté en CREAR / MODIFICAR) -->
+                <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
+                                 icon="pi pi-times" 
+                                 action="#{caracteristicaModel.btnCancelarHandler()}" 
+                                 rendered="#{caracteristicaModel.estado != 'NINGUNO'}"
+                                 process="@this"
+                                 immediate="true"
+                                 resetValues="true"
+                                 update=":frmCaracteristica" />
+            </h:panelGroup>
+
+            <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
+            <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{caracteristicaModel.estado != 'NINGUNO'}">
+                <p:panel header="Detalle de la Característica">
+                    <p:panelGrid columns="2" 
+                                 columnClasses="ui-grid-col-2, ui-grid-col-10" 
+                                 layout="grid" 
+                                 styleClass="ui-panelgrid-blank">
+
+                        <p:outputLabel for="txtTipoCaracteristica" value="Tipo Característica:" style="font-weight: bold;" />
+                        <p:autoComplete id="txtTipoCaracteristica" 
+                                        value="#{caracteristicaModel.registro.idTipoCaracteristica}" 
+                                        completeMethod="#{caracteristicaModel.completarTipoCaracteristica}"
+                                        var="tipo" 
+                                        itemLabel="#{tipo.nombre}" 
+                                        itemValue="#{tipo}" 
+                                        converter="entityConverter"
+                                        dropdown="true"
+                                        forceSelection="true"
+                                        minQueryLength="1"
+                                        required="true" 
+                                        requiredMessage="El Tipo de Característica es obligatorio." 
+                                        style="max-width: 350px; width: 100%;" />
+
+                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:inputText id="txtNombre" 
+                                     value="#{caracteristicaModel.registro.nombre}" 
+                                     required="true" 
+                                     requiredMessage="El nombre es obligatorio." 
+                                     style="max-width: 350px; width: 100%;" />
+
+                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                        <h:panelGroup>
+                            <p:selectBooleanCheckbox id="chkActivo" value="#{caracteristicaModel.registro.activo}" />
+                        </h:panelGroup>
+
+                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:inputTextarea id="txtObservaciones" 
+                                         value="#{caracteristicaModel.registro.observaciones}" 
+                                         rows="3" 
+                                         style="max-width: 350px; width: 100%;" />
+
+                    </p:panelGrid>
+
+                    <p:spacer height="15" />
+
+                    <!-- Botones del Formulario -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
+                                         icon="pi pi-save" 
+                                         action="#{caracteristicaModel.btnCrearHandler()}" 
+                                         rendered="#{caracteristicaModel.estado == 'CREAR'}" 
+                                         update=":frmCaracteristica" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
+                                         icon="pi pi-save" 
+                                         action="#{caracteristicaModel.btnModificarHandler()}" 
+                                         rendered="#{caracteristicaModel.estado == 'MODIFICAR'}" 
+                                         update=":frmCaracteristica" />
+
+                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" 
+                                         icon="pi pi-trash" 
+                                         styleClass="ui-button-danger"
+                                         action="#{caracteristicaModel.btnEliminarHandler()}" 
+                                         rendered="#{caracteristicaModel.estado == 'MODIFICAR'}" 
+                                         process="@this"
+                                         immediate="true"
+                                         update=":frmCaracteristica">
+                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
+                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
+                                       icon="pi pi-exclamation-triangle" />
+                        </p:commandButton>
+                    </div>
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de Confirmación -->
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+
+        </h:form>
+    </ui:define>
+</ui:composition>
