@@ -56,4 +56,11 @@ public class EmpleadoDAOImpl extends AbstractDAO<Empleado, UUID> implements Empl
                 .setParameter("comentarios", comentarios)
                 .getResultList();
     }
+    
+    public Empleado obtenerPorId(UUID id) {
+        if (id == null) {
+            return null;
+        }
+        return em.find(Empleado.class, id);
+    }
 }

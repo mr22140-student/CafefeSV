@@ -23,42 +23,44 @@
                          selectionMode="single" 
                          rowKey="#{reg.idOrden}">
 
+                <!-- Asegúrate de actualizar todo el formulario para que el panel detecte el cambio de estado -->
                 <p:ajax event="rowSelect" 
                         listener="#{ordenModel.seleccionarRegistro(ordenModel.filaSeleccionada)}" 
                         resetValues="true"
                         update=":frmOrden" />
 
-                <p:column headerText="ID">
+                <p:column headerText="ID Orden">
                     <h:outputText value="#{reg.idOrden}" />
                 </p:column>
 
-                <p:column headerText="Empleado / Rol">
-                    <h:outputText value="#{reg.idEmpleadoRol != null ? reg.idEmpleadoRol.idRol : 'N/D'}" />
+                <p:column headerText="Fecha Creación">
+                    <h:outputText value="#{reg.fechaCreacion}">
+                        <f:convertDateTime pattern="yyyy-MM-dd HH:mm" />
+                    </h:outputText>
                 </p:column>
 
-                <p:column headerText="Fecha de Creación">
-                    <h:outputText value="#{reg.fechaCreacion}">
-                        <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
-                    </h:outputText>
+                <p:column headerText="Empleado y Rol">
+                    <h:outputText value="#{ordenModel.obtenerTextoEmpleadoRol(reg.idEmpleadoRol)}" />
                 </p:column>
             </p:dataTable>
 
             <p:spacer height="10" />
 
-            <!-- Botón NUEVO -->
+            <!-- Permitimos ver el botón Nuevo si estamos en NINGUNO -->
             <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" 
                              icon="pi pi-plus" 
                              style="margin-right:10px;"
-                             action="#{ordenModel.btnNuevoHandler()}" 
+                             action="#{ordenModel.btnNuevoHandler()}"
                              rendered="#{ordenModel.estado == 'NINGUNO'}"
+                             resetValues="true"
                              update=":frmOrden" />
 
-            <!-- Botón CANCELAR -->
+            <!-- El botón cancelar nos regresa al estado NINGUNO y limpia la selección -->
             <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" 
                              icon="pi pi-times" 
                              action="#{ordenModel.btnCancelarHandler()}" 
                              process="@this"
-                             immediate="true" 
+                             immediate="true"
                              resetValues="true"
                              update=":frmOrden" />
 
@@ -69,22 +71,23 @@
                 <p:panel header="Detalle de la Orden">
                     <p:panelGrid columns="2">
 
-                        <p:outputLabel for="txtFecha" value="Fecha de Creación:" />
-                        <h:outputText id="txtFecha" value="#{ordenModel.registro.fechaCreacion}">
-                            <f:convertDateTime pattern="yyyy-MM-dd HH:mm:ss" />
-                        </h:outputText>
-
-                        <p:outputLabel for="acEmpleadoRol" value="Empleado / Rol:" />
-                        <p:autoComplete id="acEmpleadoRol" value="#{ordenModel.registro.idEmpleadoRol}" 
+                        <p:outputLabel for="txtEmpleado" value="Empleado y Rol:" />
+                        <p:autoComplete id="txtEmpleado" 
+                                        value="#{ordenModel.empleadoRolIdSeleccionado}" 
                                         completeMethod="#{ordenModel.completarEmpleadoRol}"
-                                        var="er" itemLabel="#{er.idEmpleado.nombre} #{er.idEmpleado.apellido}" itemValue="#{er}"
-                                        forceSelection="true" dropdown="true" required="true" requiredMessage="El empleado con rol es obligatorio." />
+                                        var="er" 
+                                        itemLabel="#{ordenModel.obtenerTextoEmpleadoRol(er)}" 
+                                        itemValue="#{er.idEmpleadoRol}" 
+                                        forceSelection="true"
+                                        emptyMessage="No se encontraron empleados"
+                                        required="true"
+                                        requiredMessage="Debe seleccionar un empleado y rol válido." />
 
                     </p:panelGrid>
 
                     <p:spacer height="5" />
 
-                    <!-- Botones según estado -->
+                    <!-- Botones -->
                     <p:commandButton value="#{tradcrud['jsf.crud.crear']}" 
                                      icon="pi pi-save" 
                                      action="#{ordenModel.btnCrearHandler()}" 
@@ -104,7 +107,6 @@
                                      rendered="#{ordenModel.estado == 'MODIFICAR'}" 
                                      process="@this"
                                      immediate="true"
-                                     resetValues="true"
                                      update=":frmOrden">
                         <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
                                    message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
