@@ -1,27 +1,25 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJB;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoRolDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.OrdenDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
 
-/**
- *
- * @author valen
- */
 @Named("ordenModel")
 @ViewScoped
 public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializable {
@@ -34,23 +32,14 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
     @Inject
     private EmpleadoRolDAO empleadoRolDAO;
 
-    private List<EmpleadoRol> listaEmpleadoRoles;
+    @EJB
+    private EmpleadoDAO empleadoDAO;
+
+    private UUID empleadoRolIdSeleccionado;
 
     @PostConstruct
     public void init() {
         iniciar();
-        cargarCatalogos();
-    }
-
-    public void cargarCatalogos() {
-        try {
-            if (empleadoRolDAO != null) {
-                this.listaEmpleadoRoles = empleadoRolDAO.findRange(0, 1000);
-            }
-        } catch (Exception e) {
-            // Manejo básico de error de carga si el DAO o la tabla aún no están poblados
-            this.listaEmpleadoRoles = null;
-        }
     }
 
     @Override
@@ -63,38 +52,64 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
         Orden nueva = new Orden();
         nueva.setIdOrden(UUID.randomUUID());
         nueva.setFechaCreacion(new Date());
+        nueva.setIdEmpleadoRol(null);
+        this.empleadoRolIdSeleccionado = null;
         return nueva;
     }
 
-    public List<EmpleadoRol> getListaEmpleadoRoles() {
-        return listaEmpleadoRoles;
+    public UUID getEmpleadoRolIdSeleccionado() {
+        return empleadoRolIdSeleccionado;
     }
 
-    public void setListaEmpleadoRoles(List<EmpleadoRol> listaEmpleadoRoles) {
-        this.listaEmpleadoRoles = listaEmpleadoRoles;
+    public void setEmpleadoRolIdSeleccionado(UUID empleadoRolIdSeleccionado) {
+        this.empleadoRolIdSeleccionado = empleadoRolIdSeleccionado;
     }
 
-    // Método de búsqueda con el AutoComplete// Método de búsqueda con el AutoComplete
+    public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
+        if (er == null || er.getIdEmpleado() == null) {
+            return "";
+        }
+        List<Empleado> todosEmpleados = empleadoDAO.findRange(0, 1000);
+        String nombreEmp = "";
+        String apellidoEmp = "";
+        
+        if (todosEmpleados != null) {
+            for (Empleado e : todosEmpleados) {
+                if (e != null && e.getIdEmpleado().equals(er.getIdEmpleado())) {
+                    nombreEmp = e.getNombre() != null ? e.getNombre() : "";
+                    apellidoEmp = e.getApellido() != null ? e.getApellido() : "";
+                    break;
+                }
+            }
+        }
+        
+        String rolNombre = (er.getIdRol() != null && er.getIdRol().getNombre() != null) ? er.getIdRol().getNombre() : "Sin rol";
+        return nombreEmp + " " + apellidoEmp + " (" + rolNombre + ")";
+    }
+
     public List<EmpleadoRol> completarEmpleadoRol(String query) {
-        String queryLowerCase = query != null ? query.toLowerCase() : "";
-        List<EmpleadoRol> todos = empleadoRolDAO.findRange(0, 1000);
-        List<EmpleadoRol> filtrados = new java.util.ArrayList<>();
+        String queryLowerCase = query != null ? query.toLowerCase().trim() : "";
+        List<EmpleadoRol> todosER = empleadoRolDAO.findRange(0, 1000);
+        List<Empleado> todosEmpleados = empleadoDAO.findRange(0, 1000);
+        List<EmpleadoRol> filtrados = new ArrayList<>();
 
-        if (todos != null) {
-            for (EmpleadoRol er : todos) {
+        if (todosER != null && todosEmpleados != null) {
+            for (EmpleadoRol er : todosER) {
                 if (er != null && er.getIdEmpleado() != null) {
-                    // Obtenemos el objeto empleado asegurando el tipo correcto
-                    Object empObj = er.getIdEmpleado();
+                    Empleado empEncontrado = null;
+                    for (Empleado e : todosEmpleados) {
+                        if (e != null && e.getIdEmpleado().equals(er.getIdEmpleado())) {
+                            empEncontrado = e;
+                            break;
+                        }
+                    }
 
-                    if (empObj instanceof sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado) {
-                        sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado emp
-                                = (sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado) empObj;
-
-                        String nombre = emp.getNombre() != null ? emp.getNombre() : "";
-                        String apellido = emp.getApellido() != null ? emp.getApellido() : "";
+                    if (empEncontrado != null) {
+                        String nombre = empEncontrado.getNombre() != null ? empEncontrado.getNombre() : "";
+                        String apellido = empEncontrado.getApellido() != null ? empEncontrado.getApellido() : "";
                         String nombreCompleto = (nombre + " " + apellido).toLowerCase();
 
-                        if (nombreCompleto.contains(queryLowerCase)) {
+                        if (queryLowerCase.isEmpty() || nombreCompleto.contains(queryLowerCase)) {
                             filtrados.add(er);
                         }
                     }
@@ -102,5 +117,65 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
             }
         }
         return filtrados;
+    }
+
+    @Override
+    public void seleccionarRegistro(Orden registroSeleccionado) {
+        super.seleccionarRegistro(registroSeleccionado);
+        if (this.registro != null && this.registro.getIdEmpleadoRol() != null) {
+            this.empleadoRolIdSeleccionado = this.registro.getIdEmpleadoRol().getIdEmpleadoRol();
+        } else {
+            this.empleadoRolIdSeleccionado = null;
+        }
+    }
+
+    private EmpleadoRol buscarEmpleadoRolPorId(UUID id) {
+        if (id == null) {
+            return null;
+        }
+        List<EmpleadoRol> lista = empleadoRolDAO.findRange(0, 1000);
+        if (lista != null) {
+            for (EmpleadoRol er : lista) {
+                if (er != null && er.getIdEmpleadoRol() != null && er.getIdEmpleadoRol().equals(id)) {
+                    return er;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void btnCrearHandler() {
+        if (this.empleadoRolIdSeleccionado != null) {
+            if (this.registro == null) {
+                this.registro = crearNuevo();
+            }
+            EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
+            this.registro.setIdEmpleadoRol(erEncontrado);
+        }
+        
+        if (this.registro == null || this.registro.getIdEmpleadoRol() == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
+            return;
+        }
+        
+        super.btnCrearHandler();
+    }
+
+    @Override
+    public void btnModificarHandler() {
+        if (this.registro != null && this.empleadoRolIdSeleccionado != null) {
+            EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
+            this.registro.setIdEmpleadoRol(erEncontrado);
+        }
+        
+        if (this.registro == null || this.registro.getIdEmpleadoRol() == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
+            return;
+        }
+        
+        super.btnModificarHandler();
     }
 }
