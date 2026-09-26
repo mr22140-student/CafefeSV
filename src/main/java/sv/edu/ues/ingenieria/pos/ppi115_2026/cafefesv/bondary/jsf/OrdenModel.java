@@ -72,7 +72,7 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
         List<Empleado> todosEmpleados = empleadoDAO.findRange(0, 1000);
         String nombreEmp = "";
         String apellidoEmp = "";
-        
+
         if (todosEmpleados != null) {
             for (Empleado e : todosEmpleados) {
                 if (e != null && e.getIdEmpleado().equals(er.getIdEmpleado())) {
@@ -82,7 +82,7 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
                 }
             }
         }
-        
+
         String rolNombre = (er.getIdRol() != null && er.getIdRol().getNombre() != null) ? er.getIdRol().getNombre() : "Sin rol";
         return nombreEmp + " " + apellidoEmp + " (" + rolNombre + ")";
     }
@@ -121,14 +121,27 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
 
     @Override
     public void seleccionarRegistro(Orden registroSeleccionado) {
-        super.seleccionarRegistro(registroSeleccionado);
-        if (this.registro != null && this.registro.getIdEmpleadoRol() != null) {
-            this.empleadoRolIdSeleccionado = this.registro.getIdEmpleadoRol().getIdEmpleadoRol();
+        if (registroSeleccionado != null) {
+            this.registro = registroSeleccionado;
+            this.filaSeleccionada = registroSeleccionado;
+            this.empleadoRolIdSeleccionado = (this.registro.getIdEmpleadoRol() != null) 
+                ? this.registro.getIdEmpleadoRol().getIdEmpleadoRol() 
+                : null;
+            this.setEstado("MODIFICAR");
         } else {
+            this.registro = null;
+            this.filaSeleccionada = null;
             this.empleadoRolIdSeleccionado = null;
+            this.setEstado("NINGUNO");
         }
     }
 
+    public void seleccionarRegistro() {
+        if (this.filaSeleccionada != null) {
+            seleccionarRegistro(this.filaSeleccionada);
+        }
+    }
+    
     private EmpleadoRol buscarEmpleadoRolPorId(UUID id) {
         if (id == null) {
             return null;
@@ -144,22 +157,31 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
         return null;
     }
 
-    @Override
+  @Override
     public void btnCrearHandler() {
-        if (this.empleadoRolIdSeleccionado != null) {
-            if (this.registro == null) {
-                this.registro = crearNuevo();
-            }
-            EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
-            this.registro.setIdEmpleadoRol(erEncontrado);
-        }
-        
-        if (this.registro == null || this.registro.getIdEmpleadoRol() == null) {
+        // 1. Validar que se haya seleccionado un empleado y rol en la interfaz
+        if (this.empleadoRolIdSeleccionado == null) {
             FacesContext.getCurrentInstance().addMessage(null,
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
             return;
         }
+
+        // 2. Asegurar que estamos trabajando con una instancia NUEVA y limpia para la inserción
+        if (this.registro == null || this.estado.equals("MODIFICAR")) {
+            this.registro = crearNuevo();
+        }
+
+        // 3. Asignar el empleado y rol encontrado
+        EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
+        if (erEncontrado == null) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "El empleado y rol seleccionado no es válido."));
+            return;
+        }
         
+        this.registro.setIdEmpleadoRol(erEncontrado);
+
+        // 4. Ejecutar la lógica de creación de la clase base
         super.btnCrearHandler();
     }
 
@@ -169,13 +191,13 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
             EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
             this.registro.setIdEmpleadoRol(erEncontrado);
         }
-        
+
         if (this.registro == null || this.registro.getIdEmpleadoRol() == null) {
             FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
             return;
         }
-        
+
         super.btnModificarHandler();
     }
 }
