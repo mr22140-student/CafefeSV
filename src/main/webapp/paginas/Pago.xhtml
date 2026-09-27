@@ -1,0 +1,146 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Pagos
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmPago">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+
+            <p:dataTable id="dtPago" var="reg"
+                         value="#{pagoModel.registros}"
+                         selection="#{pagoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idPago}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{pagoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{pagoModel.seleccionarRegistro(pagoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmPago" />
+
+                <p:column headerText="Factura">
+                    <h:outputText value="#{pagoModel.etiquetaFactura(reg.idFactura)}" />
+                </p:column>
+
+                <p:column headerText="Total factura" style="width: 130px; text-align: right;">
+                    <h:outputText value="#{pagoModel.totalFactura(reg.idFactura)}">
+                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Pagado" style="width: 130px; text-align: right;">
+                    <h:outputText value="#{pagoModel.pagado(reg)}">
+                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 130px; text-align: center;">
+                    <p:tag value="#{reg.estado}" severity="#{pagoModel.severidadEstado(reg.estado)}" />
+                </p:column>
+
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{empty reg.observaciones ? '—' : reg.observaciones}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="10" />
+
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+                             action="#{pagoModel.btnNuevoHandler()}"
+                             rendered="#{pagoModel.estado == 'NINGUNO'}"
+                             update=":frmPago" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
+                           rendered="#{pagoModel.estado != 'NINGUNO'}">
+                <p:panel header="Mantenimiento Pago">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="Factura" for="cboFactura" />
+                        <p:selectOneMenu id="cboFactura" value="#{pagoModel.registro.idFactura}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="La factura es obligatoria."
+                                         disabled="#{pagoModel.estado == 'MODIFICAR'}"
+                                         style="width: 400px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{pagoModel.listaFacturaPendiente}" var="x"
+                                           itemLabel="#{pagoModel.etiquetaFactura(x)}" itemValue="#{x}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Total factura" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
+                        <h:outputText value="#{pagoModel.totalFactura(pagoModel.registro.idFactura)}"
+                                      rendered="#{pagoModel.estado == 'MODIFICAR'}">
+                            <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                        </h:outputText>
+
+                        <p:outputLabel value="Pagado" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
+                        <h:outputText value="#{pagoModel.pagado(pagoModel.registro)}"
+                                      rendered="#{pagoModel.estado == 'MODIFICAR'}">
+                            <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                        </h:outputText>
+
+                        <p:outputLabel value="Estado" for="cboEstado" />
+                        <p:selectOneMenu id="cboEstado" value="#{pagoModel.registro.estado}"
+                                         disabled="#{pagoModel.estado == 'CREAR'}"
+                                         style="width: 200px;">
+                            <f:selectItems value="#{pagoModel.estados}" var="e"
+                                           itemLabel="#{e}" itemValue="#{e}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Observaciones" for="txtObs" />
+                        <p:inputTextarea id="txtObs" value="#{pagoModel.registro.observaciones}"
+                                         rows="3" cols="40" />
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                     action="#{pagoModel.btnCrearHandler()}"
+                                     rendered="#{pagoModel.estado == 'CREAR'}"
+                                     update=":frmPago"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                     action="#{pagoModel.btnModificarHandler()}"
+                                     rendered="#{pagoModel.estado == 'MODIFICAR'}"
+                                     update=":frmPago"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                     action="#{pagoModel.btnEliminarHandler()}"
+                                     rendered="#{pagoModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update=":frmPago"
+                                     style="margin-right:10px;">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{pagoModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmPago" />
+                </p:panel>
+            </p:outputPanel>
+
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

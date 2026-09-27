@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Productos por factura
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmFacturaOrdenProducto">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+
+            <!-- Filtro por factura -->
+            <p:panelGrid columns="2" rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO'}">
+                <p:outputLabel value="Factura" for="cboFiltro" />
+                <p:selectOneMenu id="cboFiltro" value="#{facturaOrdenProductoModel.facturaFiltro}"
+                                 converter="entityConverter"
+                                 filter="true" filterMatchMode="contains"
+                                 style="width: 400px;">
+                    <f:selectItem itemLabel="Todas las facturas" itemValue="#{null}" noSelectionOption="true" />
+                    <f:selectItems value="#{facturaOrdenProductoModel.listaFactura}" var="x"
+                                   itemLabel="#{facturaOrdenProductoModel.etiquetaFactura(x)}" itemValue="#{x}" />
+                    <p:ajax event="change" listener="#{facturaOrdenProductoModel.filtrarHandler}"
+                            process="@this" update=":frmFacturaOrdenProducto" />
+                </p:selectOneMenu>
+            </p:panelGrid>
+
+            <p:spacer height="10" />
+
+            <p:dataTable id="dtFacturaOrdenProducto" var="reg"
+                         value="#{facturaOrdenProductoModel.registros}"
+                         selection="#{facturaOrdenProductoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idFacturaOrdenProducto}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{facturaOrdenProductoModel.seleccionarRegistro(facturaOrdenProductoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmFacturaOrdenProducto" />
+
+                <p:column headerText="Factura" rendered="#{facturaOrdenProductoModel.facturaFiltro == null}">
+                    <h:outputText value="#{facturaOrdenProductoModel.etiquetaFactura(reg.idFactura)}" />
+                </p:column>
+
+                <p:column headerText="Producto">
+                    <h:outputText value="#{reg.idOrdenProducto != null and reg.idOrdenProducto.idProducto != null ? reg.idOrdenProducto.idProducto.nombre : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Orden">
+                    <h:outputText value="#{reg.idOrdenProducto != null ? facturaOrdenProductoModel.etiquetaOrden(reg.idOrdenProducto.idOrden) : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Precio" style="width: 120px; text-align: right;">
+                    <h:outputText value="#{reg.precio}">
+                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{empty reg.observaciones ? '—' : reg.observaciones}" />
+                </p:column>
+            </p:dataTable>
+
+            <!-- Total visible cuando se filtra una factura -->
+            <h:panelGroup rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO' and facturaOrdenProductoModel.facturaFiltro != null}"
+                          style="display: block; text-align: right; margin-top: 10px; font-weight: bold;">
+                Total de la factura:
+                <h:outputText value="#{facturaOrdenProductoModel.total}">
+                    <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                </h:outputText>
+            </h:panelGroup>
+
+            <p:spacer height="10" />
+
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+                             action="#{facturaOrdenProductoModel.btnNuevoHandler()}"
+                             rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO'}"
+                             update=":frmFacturaOrdenProducto" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
+                           rendered="#{facturaOrdenProductoModel.estado != 'NINGUNO'}">
+                <p:panel header="Mantenimiento Producto de Factura">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="Factura" for="cboFactura" />
+                        <p:selectOneMenu id="cboFactura" value="#{facturaOrdenProductoModel.registro.idFactura}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="La factura es obligatoria."
+                                         style="width: 400px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{facturaOrdenProductoModel.listaFacturaPendiente}" var="x"
+                                           itemLabel="#{facturaOrdenProductoModel.etiquetaFactura(x)}" itemValue="#{x}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Producto de orden" for="cboOrdenProducto" />
+                        <p:selectOneMenu id="cboOrdenProducto" value="#{facturaOrdenProductoModel.registro.idOrdenProducto}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="El producto de la orden es obligatorio."
+                                         style="width: 400px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{facturaOrdenProductoModel.listaOrdenProducto}" var="x"
+                                           itemLabel="#{facturaOrdenProductoModel.etiquetaOrdenProducto(x)}" itemValue="#{x}" />
+                            <p:ajax event="change" listener="#{facturaOrdenProductoModel.ordenProductoSeleccionadoHandler}"
+                                    process="@this" update="txtPrecio" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Precio" for="txtPrecio" />
+                        <p:inputNumber id="txtPrecio" value="#{facturaOrdenProductoModel.registro.precio}"
+                                       symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
+                                       required="true" requiredMessage="El precio es obligatorio." />
+
+                        <p:outputLabel value="Observaciones" for="txtObs" />
+                        <p:inputTextarea id="txtObs" value="#{facturaOrdenProductoModel.registro.observaciones}"
+                                         rows="3" cols="40" />
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                     action="#{facturaOrdenProductoModel.btnCrearHandler()}"
+                                     rendered="#{facturaOrdenProductoModel.estado == 'CREAR'}"
+                                     update=":frmFacturaOrdenProducto"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                     action="#{facturaOrdenProductoModel.btnModificarHandler()}"
+                                     rendered="#{facturaOrdenProductoModel.estado == 'MODIFICAR'}"
+                                     update=":frmFacturaOrdenProducto"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                     action="#{facturaOrdenProductoModel.btnEliminarHandler()}"
+                                     rendered="#{facturaOrdenProductoModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update=":frmFacturaOrdenProducto"
+                                     style="margin-right:10px;">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{facturaOrdenProductoModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmFacturaOrdenProducto" />
+                </p:panel>
+            </p:outputPanel>
+
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
