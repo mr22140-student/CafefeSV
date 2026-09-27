@@ -1,16 +1,19 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.EJB;
 import jakarta.faces.application.FacesMessage;
+import jakarta.faces.component.UIComponent;
 import jakarta.faces.context.FacesContext;
+import jakarta.faces.convert.Converter;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import java.io.Serializable;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoRolDAO;
@@ -22,9 +25,10 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
 
 @Named("ordenModel")
 @ViewScoped
-public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializable {
+public class OrdenModel extends AbstractModel<Orden, UUID> {
 
     private static final long serialVersionUID = 1L;
+    private static final int MAX_SUGERENCIAS = 10;
 
     @Inject
     private OrdenDAO ordenDAO;
@@ -32,14 +36,28 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
     @Inject
     private EmpleadoRolDAO empleadoRolDAO;
 
-    @EJB
+    @Inject
     private EmpleadoDAO empleadoDAO;
 
-    private UUID empleadoRolIdSeleccionado;
+    // Se cargan una sola vez al abrir la pagina (antes se consultaban en cada fila)
+    private Map<UUID, Empleado> empleados = new HashMap<>();
+    private Map<UUID, EmpleadoRol> empleadosRol = new HashMap<>();
 
     @PostConstruct
     public void init() {
         iniciar();
+        List<Empleado> listaEmp = empleadoDAO.findRange(0, 1000);
+        if (listaEmp != null) {
+            for (Empleado e : listaEmp) {
+                empleados.put(e.getIdEmpleado(), e);
+            }
+        }
+        List<EmpleadoRol> listaER = empleadoRolDAO.findRange(0, 1000);
+        if (listaER != null) {
+            for (EmpleadoRol er : listaER) {
+                empleadosRol.put(er.getIdEmpleadoRol(), er);
+            }
+        }
     }
 
     @Override
@@ -52,152 +70,122 @@ public class OrdenModel extends AbstractModel<Orden, UUID> implements Serializab
         Orden nueva = new Orden();
         nueva.setIdOrden(UUID.randomUUID());
         nueva.setFechaCreacion(new Date());
-        nueva.setIdEmpleadoRol(null);
-        this.empleadoRolIdSeleccionado = null;
         return nueva;
     }
 
-    public UUID getEmpleadoRolIdSeleccionado() {
-        return empleadoRolIdSeleccionado;
-    }
-
-    public void setEmpleadoRolIdSeleccionado(UUID empleadoRolIdSeleccionado) {
-        this.empleadoRolIdSeleccionado = empleadoRolIdSeleccionado;
-    }
-
-    public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
-        if (er == null || er.getIdEmpleado() == null) {
-            return "";
-        }
-        List<Empleado> todosEmpleados = empleadoDAO.findRange(0, 1000);
-        String nombreEmp = "";
-        String apellidoEmp = "";
-
-        if (todosEmpleados != null) {
-            for (Empleado e : todosEmpleados) {
-                if (e != null && e.getIdEmpleado().equals(er.getIdEmpleado())) {
-                    nombreEmp = e.getNombre() != null ? e.getNombre() : "";
-                    apellidoEmp = e.getApellido() != null ? e.getApellido() : "";
-                    break;
-                }
-            }
-        }
-
-        String rolNombre = (er.getIdRol() != null && er.getIdRol().getNombre() != null) ? er.getIdRol().getNombre() : "Sin rol";
-        return nombreEmp + " " + apellidoEmp + " (" + rolNombre + ")";
-    }
-
-    public List<EmpleadoRol> completarEmpleadoRol(String query) {
-        String queryLowerCase = query != null ? query.toLowerCase().trim() : "";
-        List<EmpleadoRol> todosER = empleadoRolDAO.findRange(0, 1000);
-        List<Empleado> todosEmpleados = empleadoDAO.findRange(0, 1000);
-        List<EmpleadoRol> filtrados = new ArrayList<>();
-
-        if (todosER != null && todosEmpleados != null) {
-            for (EmpleadoRol er : todosER) {
-                if (er != null && er.getIdEmpleado() != null) {
-                    Empleado empEncontrado = null;
-                    for (Empleado e : todosEmpleados) {
-                        if (e != null && e.getIdEmpleado().equals(er.getIdEmpleado())) {
-                            empEncontrado = e;
-                            break;
-                        }
-                    }
-
-                    if (empEncontrado != null) {
-                        String nombre = empEncontrado.getNombre() != null ? empEncontrado.getNombre() : "";
-                        String apellido = empEncontrado.getApellido() != null ? empEncontrado.getApellido() : "";
-                        String nombreCompleto = (nombre + " " + apellido).toLowerCase();
-
-                        if (queryLowerCase.isEmpty() || nombreCompleto.contains(queryLowerCase)) {
-                            filtrados.add(er);
-                        }
-                    }
-                }
-            }
-        }
-        return filtrados;
-    }
+    // ================= Validaciones =================
 
     @Override
-    public void seleccionarRegistro(Orden registroSeleccionado) {
-        if (registroSeleccionado != null) {
-            this.registro = registroSeleccionado;
-            this.filaSeleccionada = registroSeleccionado;
-            this.empleadoRolIdSeleccionado = (this.registro.getIdEmpleadoRol() != null) 
-                ? this.registro.getIdEmpleadoRol().getIdEmpleadoRol() 
-                : null;
-            this.setEstado("MODIFICAR");
-        } else {
-            this.registro = null;
-            this.filaSeleccionada = null;
-            this.empleadoRolIdSeleccionado = null;
-            this.setEstado("NINGUNO");
-        }
-    }
-
-    public void seleccionarRegistro() {
-        if (this.filaSeleccionada != null) {
-            seleccionarRegistro(this.filaSeleccionada);
-        }
-    }
-    
-    private EmpleadoRol buscarEmpleadoRolPorId(UUID id) {
-        if (id == null) {
-            return null;
-        }
-        List<EmpleadoRol> lista = empleadoRolDAO.findRange(0, 1000);
-        if (lista != null) {
-            for (EmpleadoRol er : lista) {
-                if (er != null && er.getIdEmpleadoRol() != null && er.getIdEmpleadoRol().equals(id)) {
-                    return er;
-                }
-            }
-        }
-        return null;
-    }
-
-  @Override
     public void btnCrearHandler() {
-        // 1. Validar que se haya seleccionado un empleado y rol en la interfaz
-        if (this.empleadoRolIdSeleccionado == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
-            return;
+        if (esValida()) {
+            super.btnCrearHandler();
         }
-
-        // 2. Asegurar que estamos trabajando con una instancia NUEVA y limpia para la inserción
-        if (this.registro == null || this.estado.equals("MODIFICAR")) {
-            this.registro = crearNuevo();
-        }
-
-        // 3. Asignar el empleado y rol encontrado
-        EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
-        if (erEncontrado == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "El empleado y rol seleccionado no es válido."));
-            return;
-        }
-        
-        this.registro.setIdEmpleadoRol(erEncontrado);
-
-        // 4. Ejecutar la lógica de creación de la clase base
-        super.btnCrearHandler();
     }
 
     @Override
     public void btnModificarHandler() {
-        if (this.registro != null && this.empleadoRolIdSeleccionado != null) {
-            EmpleadoRol erEncontrado = buscarEmpleadoRolPorId(this.empleadoRolIdSeleccionado);
-            this.registro.setIdEmpleadoRol(erEncontrado);
+        if (esValida()) {
+            super.btnModificarHandler();
         }
+    }
 
-        if (this.registro == null || this.registro.getIdEmpleadoRol() == null) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", "Debe seleccionar un empleado y rol válido."));
-            return;
+    private boolean esValida() {
+        if (registro != null && registro.getIdEmpleadoRol() == null) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
+                    FacesMessage.SEVERITY_WARN, "Debe seleccionar un empleado y rol válido.", null));
+            return false;
         }
+        return true;
+    }
 
-        super.btnModificarHandler();
+    // ================= AutoComplete =================
+
+    /**
+     * Busca por nombre, apellido o rol; acepta varias palabras en cualquier
+     * orden e ignora tildes. Solo sugiere asignaciones y empleados activos.
+     */
+    public List<EmpleadoRol> completarEmpleadoRol(String consulta) {
+        String[] palabras = normalizar(consulta).split("\\s+");
+        List<EmpleadoRol> resultado = new ArrayList<>();
+
+        for (EmpleadoRol er : empleadosRol.values()) {
+            if (!estaDisponible(er)) {
+                continue;
+            }
+            String texto = normalizar(obtenerTextoEmpleadoRol(er));
+            boolean coincide = true;
+            for (String p : palabras) {
+                if (!texto.contains(p)) {
+                    coincide = false;
+                    break;
+                }
+            }
+            if (coincide) {
+                resultado.add(er);
+            }
+        }
+        resultado.sort((a, b) -> obtenerTextoEmpleadoRol(a).compareToIgnoreCase(obtenerTextoEmpleadoRol(b)));
+        return resultado.size() > MAX_SUGERENCIAS ? resultado.subList(0, MAX_SUGERENCIAS) : resultado;
+    }
+
+    /** "Nombre Apellido (Rol)" para la tabla y el AutoComplete. */
+    public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
+        if (er == null) {
+            return "";
+        }
+        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
+        String nombre = (e != null)
+                ? (texto(e.getNombre()) + " " + texto(e.getApellido())).trim()
+                : "Empleado no encontrado";
+        String rol = (er.getIdRol() != null && er.getIdRol().getNombre() != null)
+                ? er.getIdRol().getNombre()
+                : "Sin rol";
+        return nombre + " (" + rol + ")";
+    }
+
+    /** Convierte EmpleadoRol <-> texto (UUID) para el AutoComplete. */
+    public Converter<EmpleadoRol> getEmpleadoRolConverter() {
+        return new Converter<EmpleadoRol>() {
+            @Override
+            public EmpleadoRol getAsObject(FacesContext ctx, UIComponent comp, String valor) {
+                if (valor == null || valor.isBlank()) {
+                    return null;
+                }
+                try {
+                    return empleadosRol.get(UUID.fromString(valor));
+                } catch (IllegalArgumentException ex) {
+                    return null;
+                }
+            }
+
+            @Override
+            public String getAsString(FacesContext ctx, UIComponent comp, EmpleadoRol er) {
+                return (er == null || er.getIdEmpleadoRol() == null) ? "" : er.getIdEmpleadoRol().toString();
+            }
+        };
+    }
+
+    // ================= Utilidades =================
+
+    private boolean estaDisponible(EmpleadoRol er) {
+        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
+        return Boolean.TRUE.equals(er.getActivo())
+                && e != null
+                && Boolean.TRUE.equals(e.getActivo());
+    }
+
+    private static String texto(String s) {
+        return s != null ? s : "";
+    }
+
+    /** Minusculas y sin tildes: "José" -> "jose". */
+    private static String normalizar(String s) {
+        if (s == null) {
+            return "";
+        }
+        return Normalizer.normalize(s, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase()
+                .trim();
     }
 }
