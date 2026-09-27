@@ -1,13 +1,158 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
+
+import jakarta.annotation.PostConstruct;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.view.ViewScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import java.util.List;
+import java.util.Date;
+import java.util.UUID;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.DescuentoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.DescuentoProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.DescuentoProducto;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 
 /**
  *
  * @author valen
  */
-public class DescuentoProductoModel {
-    
+@Named("descuentoProductoModel")
+@ViewScoped
+public class DescuentoProductoModel extends AbstractModel<DescuentoProducto, UUID> {
+
+    private static final long serialVersionUID = 1L;
+
+    @Inject
+    private DescuentoProductoDAO dpDAO;
+
+    @Inject
+    private DescuentoDAO descuentoDAO;
+
+    @Inject
+    private ProductoDAO productoDAO;
+
+    private List<Descuento> listaDescuento;
+    private List<Producto> listaProducto;
+
+    @PostConstruct
+    public void init() {
+        iniciar();
+        listaDescuento = descuentoDAO.findAll();
+        listaProducto = productoDAO.findAll();
+    }
+
+    @Override
+    protected GenericDAO<DescuentoProducto, UUID> getDAO() {
+        return dpDAO;
+    }
+
+    @Override
+    protected DescuentoProducto crearNuevo() {
+        DescuentoProducto nuevo = new DescuentoProducto(UUID.randomUUID());
+        nuevo.setValor(0);
+        nuevo.setFechaDesde(new Date());
+        return nuevo;
+    }
+
+    /**
+     * Al elegir un descuento: - fecha desde: hoy, salvo que el descuento
+     * empiece más adelante. - fecha hasta: la del descuento. - si el descuento
+     * ya venció, avisa.
+     */
+    public void onDescuentoChange() {
+        if (registro == null || registro.getIdDescuento() == null) {
+            return;
+        }
+        Descuento d = registro.getIdDescuento();
+        Date ahora = new Date();
+
+        if (d.getFechaDesde() != null && d.getFechaDesde().after(ahora)) {
+            registro.setFechaDesde(d.getFechaDesde());
+        } else if (registro.getFechaDesde() == null) {
+            registro.setFechaDesde(ahora);
+        }
+
+        registro.setFechaHasta(d.getFechaHasta());
+
+        if (d.getFechaHasta() != null && d.getFechaHasta().before(ahora)) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
+                    "Descuento vencido",
+                    "El descuento seleccionado ya terminó. Elige otro o cambia sus fechas en Descuentos."));
+        }
+    }
+
+    /**
+     * Porcentaje máximo según el tipo del descuento elegido (null = sin
+     * límite).
+     */
+    public Integer getDescuentoMaximo() {
+        if (registro == null || registro.getIdDescuento() == null
+                || registro.getIdDescuento().getIdTipoDescuento() == null) {
+            return null;
+        }
+        return registro.getIdDescuento().getIdTipoDescuento().getDescuentoMaximo();
+    }
+
+    @Override
+    public void btnCrearHandler() {
+        if (valido()) {
+            super.btnCrearHandler();
+        }
+    }
+
+    @Override
+    public void btnModificarHandler() {
+        if (valido()) {
+            super.btnModificarHandler();
+        }
+    }
+
+    private boolean valido() {
+        if (registro == null) {
+            return true;
+        }
+        FacesContext ctx = FacesContext.getCurrentInstance();
+
+        // 1. Fecha hasta no puede ser anterior a fecha desde
+        if (registro.getFechaDesde() != null && registro.getFechaHasta() != null
+                && registro.getFechaHasta().before(registro.getFechaDesde())) {
+            ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Fechas inválidas", "La fecha hasta no puede ser anterior a la fecha desde."));
+            return false;
+        }
+
+        // 2. El valor no puede superar el máximo del tipo de descuento
+        Integer maximo = getDescuentoMaximo();
+        if (maximo != null && registro.getValor() != null && registro.getValor() > maximo) {
+            ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Valor inválido", "El valor no puede superar el máximo del tipo de descuento (" + maximo + " %)."));
+            return false;
+        }
+
+        // 3. Un producto no puede tener el mismo descuento dos veces
+        if (registro.getIdProducto() != null && registro.getIdDescuento() != null) {
+            boolean duplicado = dpDAO.findByProducto(registro.getIdProducto()).stream()
+                    .anyMatch(x -> !x.getIdDescuentoProducto().equals(registro.getIdDescuentoProducto())
+                            && registro.getIdDescuento().equals(x.getIdDescuento()));
+            if (duplicado) {
+                ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
+                        "Registro duplicado", "El producto ya tiene asignado ese descuento."));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public List<Descuento> getListaDescuento() {
+        return listaDescuento;
+    }
+
+    public List<Producto> getListaProducto() {
+        return listaProducto;
+    }
 }

@@ -12,7 +12,7 @@
 
     <ui:define name="contenido">
         <h:form id="frmProductoCaracteristica">
-            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
 
             <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
             <p:dataTable id="dtProductoCaracteristica"
