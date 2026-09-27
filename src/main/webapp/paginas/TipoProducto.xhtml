@@ -21,16 +21,14 @@
                          selection="#{tipoProductoModel.filaSeleccionada}" 
                          selectionMode="single" 
                          rowKey="#{reg.idTipoProducto}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
                          rendered="#{tipoProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect" 
                         listener="#{tipoProductoModel.seleccionarRegistro(tipoProductoModel.filaSeleccionada)}" 
                         resetValues="true"
                         update=":frmTipoProducto" />
-
-                <p:column headerText="ID" style="width: 280px; text-align: center;">
-                    <h:outputText value="#{reg.idTipoProducto}" />
-                </p:column>
 
                 <p:column headerText="Nombre">
                     <h:outputText value="#{reg.nombre}" />

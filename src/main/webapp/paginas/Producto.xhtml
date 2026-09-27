@@ -12,7 +12,7 @@
 
     <ui:define name="contenido">
         <h:form id="frmProducto">
-            <p:messages id="messages" showDetail="true" showSummary="true" closable="true" />
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
 
             <!-- Tabla de Registros (Solo visible cuando el estado es NINGUNO) -->
             <p:dataTable id="dtProducto"
@@ -30,9 +30,6 @@
                         resetValues="true"
                         update=":frmProducto" />
 
-                <p:column headerText="ID" style="width: 280px; text-align: center;">
-                    <h:outputText value="#{reg.idProducto}" />
-                </p:column>
                 <p:column headerText="Nombre">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
