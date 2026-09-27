@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Facturas
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmFactura">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+
+            <p:dataTable id="dtFactura" var="reg"
+                         value="#{facturaModel.registros}"
+                         selection="#{facturaModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idFactura}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{facturaModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{facturaModel.seleccionarRegistro(facturaModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmFactura" />
+
+             
+
+                <p:column headerText="Fecha" style="width: 140px;">
+                    <h:outputText value="#{reg.fechaFacturacion}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Cliente">
+                    <h:outputText value="#{reg.cliente}" />
+                </p:column>
+
+                <p:column headerText="Caja" style="width: 110px;">
+                    <h:outputText value="#{reg.idCaja != null ? reg.idCaja.nombre : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Cajero">
+                    <h:outputText value="#{reg.idEmpleadoRol != null ? facturaModel.obtenerTextoEmpleadoRol(reg.idEmpleadoRol) : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 120px; text-align: center;">
+                    <p:tag value="#{reg.estado}" severity="#{facturaModel.severidadEstado(reg.estado)}" />
+                </p:column>
+                
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{empty reg.observaciones ? '—' : reg.observaciones}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="10" />
+
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+                             action="#{facturaModel.btnNuevoHandler()}"
+                             rendered="#{facturaModel.estado == 'NINGUNO'}"
+                             update=":frmFactura" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
+                           rendered="#{facturaModel.estado != 'NINGUNO'}">
+                <p:panel header="Mantenimiento Factura">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="ID" for="txtId" />
+                        <p:inputText id="txtId" value="#{facturaModel.registro.idFactura}"
+                                     readonly="true" size="40" />
+
+                        <p:outputLabel value="Fecha" />
+                        <h:outputText value="#{facturaModel.registro.fechaFacturacion}">
+                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                        </h:outputText>
+
+                        <p:outputLabel value="Caja" for="cboCaja" />
+                        <p:selectOneMenu id="cboCaja" value="#{facturaModel.registro.idCaja}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="La caja es obligatoria."
+                                         style="width: 350px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{facturaModel.listaCaja}" var="x"
+                                           itemLabel="#{x.nombre}" itemValue="#{x}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Cajero" for="acEmpleadoRol" />
+                        <p:autoComplete id="acEmpleadoRol"
+                                        value="#{facturaModel.registro.idEmpleadoRol}"
+                                        completeMethod="#{facturaModel.completarEmpleadoRol}"
+                                        var="er"
+                                        itemLabel="#{facturaModel.obtenerTextoEmpleadoRol(er)}"
+                                        itemValue="#{er}"
+                                        converter="#{facturaModel.empleadoRolConverter}"
+                                        forceSelection="true"
+                                        dropdown="true"
+                                        queryDelay="300"
+                                        scrollHeight="250"
+                                        size="40"
+                                        placeholder="Escriba nombre, apellido o rol..."
+                                        emptyMessage="No se encontraron empleados activos"
+                                        required="true"
+                                        requiredMessage="Debe seleccionar el cajero." />
+
+                        <p:outputLabel value="Cliente" for="txtCliente" />
+                        <p:inputText id="txtCliente" value="#{facturaModel.registro.cliente}"
+                                     maxlength="155" size="40"
+                                     placeholder="Consumidor final" />
+
+                        <p:outputLabel value="Estado" for="cboEstado" />
+                        <p:selectOneMenu id="cboEstado" value="#{facturaModel.registro.estado}"
+                                         disabled="#{facturaModel.estado == 'CREAR'}"
+                                         style="width: 200px;">
+                            <f:selectItems value="#{facturaModel.estados}" var="e"
+                                           itemLabel="#{e}" itemValue="#{e}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Observaciones" for="txtObs" />
+                        <p:inputTextarea id="txtObs" value="#{facturaModel.registro.observaciones}"
+                                         rows="3" cols="40" />
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                     action="#{facturaModel.btnCrearHandler()}"
+                                     rendered="#{facturaModel.estado == 'CREAR'}"
+                                     update=":frmFactura"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                     action="#{facturaModel.btnModificarHandler()}"
+                                     rendered="#{facturaModel.estado == 'MODIFICAR'}"
+                                     update=":frmFactura"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                     action="#{facturaModel.btnEliminarHandler()}"
+                                     rendered="#{facturaModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update=":frmFactura"
+                                     style="margin-right:10px;">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{facturaModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmFactura" />
+                </p:panel>
+            </p:outputPanel>
+
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
