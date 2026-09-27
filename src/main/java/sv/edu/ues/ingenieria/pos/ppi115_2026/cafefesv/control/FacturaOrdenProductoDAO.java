@@ -66,4 +66,19 @@ public class FacturaOrdenProductoDAO extends AbstractDAO<FacturaOrdenProducto, U
         .setParameter("ordenProducto", ordenProducto)
         .getResultList();
     }
+    
+        /**
+     * Productos de ordenes que todavia NO estan en ninguna factura.
+     * Trae el producto y la orden en la misma consulta.
+     */
+    public List<OrdenProducto> findOrdenProductoDisponibles() {
+        return em.createQuery(
+                "SELECT op FROM OrdenProducto op "
+                + "LEFT JOIN FETCH op.idProducto "
+                + "LEFT JOIN FETCH op.idOrden "
+                + "WHERE NOT EXISTS ("
+                + "   SELECT f FROM FacturaOrdenProducto f WHERE f.idOrdenProducto = op)",
+                OrdenProducto.class)
+                .getResultList();
+    }
 }
