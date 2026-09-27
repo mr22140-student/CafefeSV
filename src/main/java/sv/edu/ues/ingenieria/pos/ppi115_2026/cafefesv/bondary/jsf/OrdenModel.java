@@ -19,6 +19,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoRolDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.OrdenDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.OrdenProductoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
@@ -74,7 +75,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Validaciones =================
-
     @Override
     public void btnCrearHandler() {
         if (esValida()) {
@@ -98,8 +98,11 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return true;
     }
 
-    // ================= AutoComplete =================
+    @Inject
+    private OrdenProductoDAO ordenProductoDAO;
 
+ 
+    // ================= AutoComplete =================
     /**
      * Busca por nombre, apellido o rol; acepta varias palabras en cualquier
      * orden e ignora tildes. Solo sugiere asignaciones y empleados activos.
@@ -128,7 +131,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return resultado.size() > MAX_SUGERENCIAS ? resultado.subList(0, MAX_SUGERENCIAS) : resultado;
     }
 
-    /** "Nombre Apellido (Rol)" para la tabla y el AutoComplete. */
+    /**
+     * "Nombre Apellido (Rol)" para la tabla y el AutoComplete.
+     */
     public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
         if (er == null) {
             return "";
@@ -143,7 +148,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return nombre + " (" + rol + ")";
     }
 
-    /** Convierte EmpleadoRol <-> texto (UUID) para el AutoComplete. */
+    /**
+     * Convierte EmpleadoRol <-> texto (UUID) para el AutoComplete.
+     */
     public Converter<EmpleadoRol> getEmpleadoRolConverter() {
         return new Converter<EmpleadoRol>() {
             @Override
@@ -166,7 +173,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Utilidades =================
-
     private boolean estaDisponible(EmpleadoRol er) {
         Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
         return Boolean.TRUE.equals(er.getActivo())
@@ -178,7 +184,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return s != null ? s : "";
     }
 
-    /** Minusculas y sin tildes: "José" -> "jose". */
+    /**
+     * Minusculas y sin tildes: "José" -> "jose".
+     */
     private static String normalizar(String s) {
         if (s == null) {
             return "";

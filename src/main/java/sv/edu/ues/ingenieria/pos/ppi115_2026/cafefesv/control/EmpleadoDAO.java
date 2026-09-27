@@ -69,4 +69,6 @@ public class EmpleadoDAO extends AbstractDAO<Empleado, UUID> {
 
         return em.find(Empleado.class, id);
     }
+    
+    
 }

@@ -26,40 +26,49 @@ public class OrdenProductoDAO extends AbstractDAO<OrdenProducto, UUID> {
     }
 
     public List<OrdenProducto> findByPrecio(BigDecimal precio) {
-        return em.createNamedQuery(
-                "OrdenProducto.findByPrecio",
-                OrdenProducto.class
-        )
-        .setParameter("precio", precio)
-        .getResultList();
+        return em.createNamedQuery("OrdenProducto.findByPrecio", OrdenProducto.class)
+                .setParameter("precio", precio)
+                .getResultList();
     }
 
     public List<OrdenProducto> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "OrdenProducto.findByObservaciones",
-                OrdenProducto.class
-        )
-        .setParameter("observaciones", observaciones)
-        .getResultList();
+        return em.createNamedQuery("OrdenProducto.findByObservaciones", OrdenProducto.class)
+                .setParameter("observaciones", observaciones)
+                .getResultList();
     }
 
+    /** Productos de una orden; trae el producto en la misma consulta. */
     public List<OrdenProducto> findByOrden(Orden orden) {
         return em.createQuery(
                 "SELECT x FROM OrdenProducto x "
+                + "LEFT JOIN FETCH x.idProducto "
                 + "WHERE x.idOrden = :orden",
-                OrdenProducto.class
-        )
-        .setParameter("orden", orden)
-        .getResultList();
+                OrdenProducto.class)
+                .setParameter("orden", orden)
+                .getResultList();
     }
 
     public List<OrdenProducto> findByProducto(Producto producto) {
         return em.createQuery(
-                "SELECT x FROM OrdenProducto x "
-                + "WHERE x.idProducto = :producto",
-                OrdenProducto.class
-        )
-        .setParameter("producto", producto)
-        .getResultList();
+                "SELECT x FROM OrdenProducto x WHERE x.idProducto = :producto",
+                OrdenProducto.class)
+                .setParameter("producto", producto)
+                .getResultList();
+    }
+
+    /** Cuantos productos tiene una orden (para no eliminar ordenes con productos). */
+    public long countByOrden(Orden orden) {
+        return em.createQuery(
+                "SELECT COUNT(x) FROM OrdenProducto x WHERE x.idOrden = :orden", Long.class)
+                .setParameter("orden", orden)
+                .getSingleResult();
+    }
+
+    /** Cuantas veces esta facturado este producto de la orden. */
+    public long countFacturas(OrdenProducto ordenProducto) {
+        return em.createQuery(
+                "SELECT COUNT(f) FROM FacturaOrdenProducto f WHERE f.idOrdenProducto = :op", Long.class)
+                .setParameter("op", ordenProducto)
+                .getSingleResult();
     }
 }

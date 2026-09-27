@@ -1,0 +1,177 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/plantillas/general.xhtml">
+
+    <ui:define name="leyenda">
+        Productos por orden
+    </ui:define>
+
+    <ui:define name="contenido">
+        <h:form id="frmOrdenProducto">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+
+            <!-- Filtro por orden -->
+            <p:panelGrid columns="2" rendered="#{ordenProductoModel.estado == 'NINGUNO'}">
+                <p:outputLabel value="Orden" for="cboFiltro" />
+                <p:selectOneMenu id="cboFiltro" value="#{ordenProductoModel.ordenFiltro}"
+                                 converter="entityConverter"
+                                 filter="true" filterMatchMode="contains"
+                                 style="width: 350px;">
+                    <f:selectItem itemLabel="Todas las órdenes" itemValue="#{null}" noSelectionOption="true" />
+                    <f:selectItems value="#{ordenProductoModel.listaOrden}" var="o"
+                                   itemLabel="#{ordenProductoModel.etiquetaOrden(o)}" itemValue="#{o}" />
+                    <p:ajax event="change" listener="#{ordenProductoModel.filtrarHandler}"
+                            process="@this" update=":frmOrdenProducto" />
+                </p:selectOneMenu>
+            </p:panelGrid>
+
+            <p:spacer height="10" />
+
+            <p:dataTable id="dtOrdenProducto" var="reg"
+                         value="#{ordenProductoModel.registros}"
+                         selection="#{ordenProductoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idOrdenProducto}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{ordenProductoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{ordenProductoModel.seleccionarRegistro(ordenProductoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update=":frmOrdenProducto" />
+
+                <p:column headerText="ID" style="width: 280px; text-align: center;">
+                    <h:outputText value="#{reg.idOrdenProducto}" />
+                </p:column>
+
+                <p:column headerText="Orden" rendered="#{ordenProductoModel.ordenFiltro == null}">
+                    <h:outputText value="#{ordenProductoModel.etiquetaOrden(reg.idOrden)}" />
+                </p:column>
+
+                <p:column headerText="Producto">
+                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : 'Sin asignación'}" />
+                </p:column>
+
+                <p:column headerText="Precio" style="width: 120px; text-align: right;">
+                    <h:outputText value="#{reg.precio}">
+                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Observaciones">
+                    <h:outputText value="#{reg.observaciones}" />
+                </p:column>
+            </p:dataTable>
+
+            <!-- Total visible cuando se filtra una orden -->
+            <h:panelGroup rendered="#{ordenProductoModel.estado == 'NINGUNO' and ordenProductoModel.ordenFiltro != null}"
+                          style="display: block; text-align: right; margin-top: 10px; font-weight: bold;">
+                Total de la orden:
+                <h:outputText value="#{ordenProductoModel.total}">
+                    <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                </h:outputText>
+            </h:panelGroup>
+
+            <p:spacer height="10" />
+
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+                             action="#{ordenProductoModel.btnNuevoHandler()}"
+                             rendered="#{ordenProductoModel.estado == 'NINGUNO'}"
+                             update=":frmOrdenProducto" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
+                           rendered="#{ordenProductoModel.estado != 'NINGUNO'}">
+                <p:panel header="Mantenimiento Producto de Orden">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="ID" for="txtId" />
+                        <p:inputText id="txtId" value="#{ordenProductoModel.registro.idOrdenProducto}"
+                                     readonly="true" size="40" />
+
+                        <p:outputLabel value="Orden" for="cboOrden" />
+                        <p:selectOneMenu id="cboOrden" value="#{ordenProductoModel.registro.idOrden}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="La orden es obligatoria."
+                                         style="width: 350px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{ordenProductoModel.listaOrden}" var="o"
+                                           itemLabel="#{ordenProductoModel.etiquetaOrden(o)}" itemValue="#{o}" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Producto" for="cboProducto" />
+                        <p:selectOneMenu id="cboProducto" value="#{ordenProductoModel.registro.idProducto}"
+                                         converter="entityConverter"
+                                         filter="true" filterMatchMode="contains"
+                                         required="true" requiredMessage="El producto es obligatorio."
+                                         style="width: 350px;">
+                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItems value="#{ordenProductoModel.listaProducto}" var="x"
+                                           itemLabel="#{x.nombre}" itemValue="#{x}" />
+                            <p:ajax event="change" listener="#{ordenProductoModel.productoSeleccionadoHandler}"
+                                    process="@this" update="txtPrecio" />
+                        </p:selectOneMenu>
+
+                        <p:outputLabel value="Cantidad" for="spnCantidad"
+                                       rendered="#{ordenProductoModel.estado == 'CREAR'}" />
+                        <p:spinner id="spnCantidad" value="#{ordenProductoModel.cantidad}"
+                                   min="1" max="20"
+                                   rendered="#{ordenProductoModel.estado == 'CREAR'}" />
+
+                        <p:outputLabel value="Precio" for="txtPrecio" />
+                        <p:inputNumber id="txtPrecio" value="#{ordenProductoModel.registro.precio}"
+                                       symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
+                                       required="true" requiredMessage="El precio es obligatorio." />
+
+                        <p:outputLabel value="Observaciones" for="txtObs" />
+                        <p:inputTextarea id="txtObs" value="#{ordenProductoModel.registro.observaciones}"
+                                         rows="3" cols="40" placeholder="Ej. sin azúcar, leche deslactosada" />
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                     action="#{ordenProductoModel.btnCrearHandler()}"
+                                     rendered="#{ordenProductoModel.estado == 'CREAR'}"
+                                     update=":frmOrdenProducto"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                     action="#{ordenProductoModel.btnModificarHandler()}"
+                                     rendered="#{ordenProductoModel.estado == 'MODIFICAR'}"
+                                     update=":frmOrdenProducto"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                     action="#{ordenProductoModel.btnEliminarHandler()}"
+                                     rendered="#{ordenProductoModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update=":frmOrdenProducto"
+                                     style="margin-right:10px;">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{ordenProductoModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmOrdenProducto" />
+                </p:panel>
+            </p:outputPanel>
+
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>
