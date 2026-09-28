@@ -11,7 +11,7 @@
     <ui:define name="contenido">
         <p:tabView id="tabsPersonal">
             <p:tab title="Empleados">
-                Aquí irá la pantalla de Empleados
+                <ui:include src="/WEB-INF/Formularios/empleado.xhtml"/>
             </p:tab>
             <p:tab title="Roles">
                 Aquí irá la pantalla de Roles
@@ -20,5 +20,12 @@
                 Aquí irá la pantalla de EmpleadoRol
             </p:tab>
         </p:tabView>
+          <!-- Un solo diálogo de confirmación por página -->
+            <h:form id="frmConfirmacion">
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+                    <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
+                    <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
+                </p:confirmDialog>
+            </h:form>
     </ui:define>
 </ui:composition>
