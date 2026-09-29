@@ -11,10 +11,110 @@
     </ui:define>
 
     <ui:define name="contenido">
-        <ui:include src="/WEB-INF/formularios/empleado.xhtml" />
+        <h:form id="frmEmpleado">
+            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
 
-        <!-- Un solo diálogo de confirmación por página -->
-        <h:form id="frmConfirmacion">
+            <p:dataTable id="dtEmpleado" var="reg"
+                         value="#{empleadoModel.registros}"
+                         selection="#{empleadoModel.filaSeleccionada}"
+                         selectionMode="single"
+                         rowKey="#{reg.idEmpleado}"
+                         paginator="true" rows="10"
+                         emptyMessage="No hay registros"
+                         rendered="#{empleadoModel.estado == 'NINGUNO'}">
+
+                <p:ajax event="rowSelect"
+                        listener="#{empleadoModel.seleccionarRegistro(empleadoModel.filaSeleccionada)}"
+                        resetValues="true"
+                        update="@form" />
+
+                <p:column headerText="Nombre">
+                    <h:outputText value="#{reg.nombre}" />
+                </p:column>
+
+                <p:column headerText="Apellido">
+                    <h:outputText value="#{reg.apellido}" />
+                </p:column>
+
+                <p:column headerText="Estado" style="width: 110px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                </p:column>
+
+                <p:column headerText="Comentarios">
+                    <h:outputText value="#{empty reg.comentarios ? '—' : reg.comentarios}" />
+                </p:column>
+            </p:dataTable>
+
+            <p:spacer height="10" />
+
+            <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
+                             action="#{empleadoModel.btnNuevoHandler()}"
+                             rendered="#{empleadoModel.estado == 'NINGUNO'}"
+                             update="@form" />
+
+            <!-- Formulario de Mantenimiento -->
+            <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
+                           rendered="#{empleadoModel.estado != 'NINGUNO'}">
+                <p:panel header="Mantenimiento Empleado">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="ID" for="txtId" />
+                        <p:inputText id="txtId" value="#{empleadoModel.registro.idEmpleado}"
+                                     readonly="true" size="40" />
+
+                        <p:outputLabel value="Nombre" for="txtNombre" />
+                        <p:inputText id="txtNombre" value="#{empleadoModel.registro.nombre}"
+                                     maxlength="255" size="40"
+                                     required="true" requiredMessage="El nombre es obligatorio." />
+
+                        <p:outputLabel value="Apellido" for="txtApellido" />
+                        <p:inputText id="txtApellido" value="#{empleadoModel.registro.apellido}"
+                                     maxlength="255" size="40"
+                                     required="true" requiredMessage="El apellido es obligatorio." />
+
+                        <p:outputLabel value="Activo" for="chkActivo" />
+                        <p:selectBooleanCheckbox id="chkActivo" value="#{empleadoModel.registro.activo}" />
+
+                        <p:outputLabel value="Comentarios" for="txtComentarios" />
+                        <p:inputTextarea id="txtComentarios" value="#{empleadoModel.registro.comentarios}"
+                                         rows="3" cols="40" />
+                    </p:panelGrid>
+
+                    <p:spacer height="5" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                     action="#{empleadoModel.btnCrearHandler()}"
+                                     rendered="#{empleadoModel.estado == 'CREAR'}"
+                                     update="@form"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                     action="#{empleadoModel.btnModificarHandler()}"
+                                     rendered="#{empleadoModel.estado == 'MODIFICAR'}"
+                                     update="@form"
+                                     style="margin-right:10px;" />
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                     action="#{empleadoModel.btnEliminarHandler()}"
+                                     rendered="#{empleadoModel.estado == 'MODIFICAR'}"
+                                     process="@this"
+                                     immediate="true"
+                                     update="@form"
+                                     style="margin-right:10px;">
+                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                   icon="pi pi-exclamation-triangle" />
+                    </p:commandButton>
+
+                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{empleadoModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update="@form" />
+                </p:panel>
+            </p:outputPanel>
+
+            <!-- Diálogo de confirmación -->
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
                 <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
                 <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
