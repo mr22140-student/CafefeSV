@@ -99,4 +99,13 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
                 .getSingleResult();
     }
     
+        /** Roles asignados a un empleado; trae el rol en la misma consulta. */
+    public List<EmpleadoRol> findByEmpleado(UUID idEmpleado) {
+        return em.createQuery(
+                "SELECT x FROM EmpleadoRol x "
+                + "LEFT JOIN FETCH x.idRol "
+                + "WHERE x.idEmpleado = :emp", EmpleadoRol.class)
+                .setParameter("emp", idEmpleado)
+                .getResultList();
+    }
 }

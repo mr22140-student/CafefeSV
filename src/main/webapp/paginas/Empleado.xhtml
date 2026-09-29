@@ -14,6 +14,7 @@
         <h:form id="frmEmpleado">
             <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
 
+            <!-- ================= Tabla de empleados ================= -->
             <p:dataTable id="dtEmpleado" var="reg"
                          value="#{empleadoModel.registros}"
                          selection="#{empleadoModel.filaSeleccionada}"
@@ -52,66 +53,133 @@
                              rendered="#{empleadoModel.estado == 'NINGUNO'}"
                              update="@form" />
 
-            <!-- Formulario de Mantenimiento -->
+            <!-- ================= Panel de edición con pestañas ================= -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{empleadoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Empleado">
-                    <p:panelGrid columns="2">
-                        <p:outputLabel value="ID" for="txtId" />
-                        <p:inputText id="txtId" value="#{empleadoModel.registro.idEmpleado}"
-                                     readonly="true" size="40" />
 
-                        <p:outputLabel value="Nombre" for="txtNombre" />
-                        <p:inputText id="txtNombre" value="#{empleadoModel.registro.nombre}"
-                                     maxlength="255" size="40"
-                                     required="true" requiredMessage="El nombre es obligatorio." />
+                <p:tabView id="tabsEmpleado">
 
-                        <p:outputLabel value="Apellido" for="txtApellido" />
-                        <p:inputText id="txtApellido" value="#{empleadoModel.registro.apellido}"
-                                     maxlength="255" size="40"
-                                     required="true" requiredMessage="El apellido es obligatorio." />
+                    <!-- ============ Pestaña 1: datos del empleado ============ -->
+                    <p:tab title="Datos del empleado">
+                        <p:panelGrid columns="2">
+                            <p:outputLabel value="ID" for="txtId" />
+                            <p:inputText id="txtId" value="#{empleadoModel.registro.idEmpleado}"
+                                         readonly="true" size="40" />
 
-                        <p:outputLabel value="Activo" for="chkActivo" />
-                        <p:selectBooleanCheckbox id="chkActivo" value="#{empleadoModel.registro.activo}" />
+                            <p:outputLabel value="Nombre" for="txtNombre" />
+                            <p:inputText id="txtNombre" value="#{empleadoModel.registro.nombre}"
+                                         maxlength="255" size="40"
+                                         required="true" requiredMessage="El nombre es obligatorio." />
 
-                        <p:outputLabel value="Comentarios" for="txtComentarios" />
-                        <p:inputTextarea id="txtComentarios" value="#{empleadoModel.registro.comentarios}"
-                                         rows="3" cols="40" />
-                    </p:panelGrid>
+                            <p:outputLabel value="Apellido" for="txtApellido" />
+                            <p:inputText id="txtApellido" value="#{empleadoModel.registro.apellido}"
+                                         maxlength="255" size="40"
+                                         required="true" requiredMessage="El apellido es obligatorio." />
 
-                    <p:spacer height="5" />
+                            <p:outputLabel value="Activo" for="chkActivo" />
+                            <p:selectBooleanCheckbox id="chkActivo" value="#{empleadoModel.registro.activo}" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
-                                     action="#{empleadoModel.btnCrearHandler()}"
-                                     rendered="#{empleadoModel.estado == 'CREAR'}"
-                                     update="@form"
-                                     style="margin-right:10px;" />
+                            <p:outputLabel value="Comentarios" for="txtComentarios" />
+                            <p:inputTextarea id="txtComentarios" value="#{empleadoModel.registro.comentarios}"
+                                             rows="3" cols="40" />
+                        </p:panelGrid>
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
-                                     action="#{empleadoModel.btnModificarHandler()}"
-                                     rendered="#{empleadoModel.estado == 'MODIFICAR'}"
-                                     update="@form"
-                                     style="margin-right:10px;" />
+                        <!-- Botones del empleado -->
+                        <div style="margin-top: 10px;">
+                            <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                             action="#{empleadoModel.btnCrearHandler()}"
+                                             rendered="#{empleadoModel.estado == 'CREAR'}"
+                                             update="@form"
+                                             style="margin-right:10px;" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
-                                     action="#{empleadoModel.btnEliminarHandler()}"
-                                     rendered="#{empleadoModel.estado == 'MODIFICAR'}"
-                                     process="@this"
-                                     immediate="true"
-                                     update="@form"
-                                     style="margin-right:10px;">
-                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
-                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
-                                   icon="pi pi-exclamation-triangle" />
-                    </p:commandButton>
+                            <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                             action="#{empleadoModel.btnModificarHandler()}"
+                                             rendered="#{empleadoModel.estado == 'MODIFICAR'}"
+                                             update="@form"
+                                             style="margin-right:10px;" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
-                                     action="#{empleadoModel.btnCancelarHandler()}"
-                                     process="@this"
-                                     immediate="true"
-                                     resetValues="true"
-                                     update="@form" />
-                </p:panel>
+                            <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                             action="#{empleadoModel.btnEliminarHandler()}"
+                                             rendered="#{empleadoModel.estado == 'MODIFICAR'}"
+                                             process="@this"
+                                             immediate="true"
+                                             update="@form"
+                                             style="margin-right:10px;">
+                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                           message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                           icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
+
+                            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                             action="#{empleadoModel.btnCancelarHandler()}"
+                                             process="@this"
+                                             immediate="true"
+                                             resetValues="true"
+                                             update="@form" />
+                        </div>
+                    </p:tab>
+
+                    <!-- ============ Pestaña 2: EmpleadoRol (solo al seleccionar un empleado) ============ -->
+                    <p:tab title="EmpleadoRol" rendered="#{empleadoModel.estado == 'MODIFICAR'}">
+
+                        <!-- Asignar un rol -->
+                        <p:panelGrid columns="3">
+                            <p:outputLabel value="Rol" for="cboRol" />
+                            <p:selectOneMenu id="cboRol" value="#{empleadoModel.rolSeleccionado}"
+                                             converter="entityConverter"
+                                             style="width: 250px;">
+                                <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{empleadoModel.listaRol}" var="x"
+                                               itemLabel="#{x.nombre}" itemValue="#{x}" />
+                            </p:selectOneMenu>
+                            <p:commandButton value="Asignar" icon="pi pi-plus"
+                                             action="#{empleadoModel.btnAgregarRolHandler()}"
+                                             process="@this cboRol"
+                                             update="@form" />
+                        </p:panelGrid>
+
+                        <!-- Roles del empleado (se selecciona una fila para quitarla) -->
+                        <p:dataTable id="dtRolesEmpleado" var="er"
+                                     value="#{empleadoModel.rolesEmpleado}"
+                                     selection="#{empleadoModel.rolEmpleadoSeleccionado}"
+                                     selectionMode="single"
+                                     rowKey="#{er.idEmpleadoRol}"
+                                     emptyMessage="Este empleado no tiene roles asignados"
+                                     style="margin-top: 10px;">
+                            <p:ajax event="rowSelect" process="@this" update="btnQuitarRol" />
+
+                            <p:column headerText="Rol">
+                                <h:outputText value="#{er.idRol != null ? er.idRol.nombre : 'Sin asignación'}" />
+                            </p:column>
+                            <p:column headerText="Estado" style="width: 110px; text-align: center;">
+                                <h:outputText value="#{er.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                            </p:column>
+                        </p:dataTable>
+
+                        <!-- Botones de la pestaña EmpleadoRol -->
+                        <div style="margin-top: 10px;">
+                            <p:commandButton id="btnQuitarRol" value="Quitar rol" icon="pi pi-trash"
+                                             styleClass="ui-button-danger"
+                                             action="#{empleadoModel.btnQuitarRolHandler()}"
+                                             disabled="#{empleadoModel.rolEmpleadoSeleccionado == null}"
+                                             process="@this"
+                                             update="@form"
+                                             style="margin-right:10px;">
+                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                           message="¿Quitar el rol seleccionado a este empleado?"
+                                           icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
+
+                            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                             action="#{empleadoModel.btnCancelarHandler()}"
+                                             process="@this"
+                                             immediate="true"
+                                             resetValues="true"
+                                             update="@form" />
+                        </div>
+                    </p:tab>
+
+                </p:tabView>
             </p:outputPanel>
 
             <!-- Diálogo de confirmación -->
