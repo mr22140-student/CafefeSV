@@ -122,8 +122,7 @@
                     <!-- ============ Pestaña 2: EmpleadoRol (solo al seleccionar un empleado) ============ -->
                     <p:tab title="EmpleadoRol" rendered="#{empleadoModel.estado == 'MODIFICAR'}">
 
-                        <!-- Asignar un rol -->
-                        <p:panelGrid columns="3">
+                        <p:panelGrid columns="2">
                             <p:outputLabel value="Rol" for="cboRol" />
                             <p:selectOneMenu id="cboRol" value="#{empleadoModel.rolSeleccionado}"
                                              converter="entityConverter"
@@ -132,23 +131,14 @@
                                 <f:selectItems value="#{empleadoModel.listaRol}" var="x"
                                                itemLabel="#{x.nombre}" itemValue="#{x}" />
                             </p:selectOneMenu>
-                            <p:commandButton value="Asignar" icon="pi pi-plus"
-                                             action="#{empleadoModel.btnAgregarRolHandler()}"
-                                             process="@this cboRol"
-                                             update="@form" />
                         </p:panelGrid>
 
-                        <!-- Roles del empleado (se selecciona una fila para quitarla) -->
+                        <!-- Rol actual del empleado (solo lectura) -->
                         <p:dataTable id="dtRolesEmpleado" var="er"
                                      value="#{empleadoModel.rolesEmpleado}"
-                                     selection="#{empleadoModel.rolEmpleadoSeleccionado}"
-                                     selectionMode="single"
-                                     rowKey="#{er.idEmpleadoRol}"
-                                     emptyMessage="Este empleado no tiene roles asignados"
+                                     emptyMessage="Este empleado todavía no tiene rol asignado"
                                      style="margin-top: 10px;">
-                            <p:ajax event="rowSelect" process="@this" update="btnQuitarRol" />
-
-                            <p:column headerText="Rol">
+                            <p:column headerText="Rol actual">
                                 <h:outputText value="#{er.idRol != null ? er.idRol.nombre : 'Sin asignación'}" />
                             </p:column>
                             <p:column headerText="Estado" style="width: 110px; text-align: center;">
@@ -158,17 +148,21 @@
 
                         <!-- Botones de la pestaña EmpleadoRol -->
                         <div style="margin-top: 10px;">
-                            <p:commandButton id="btnQuitarRol" value="Quitar rol" icon="pi pi-trash"
-                                             styleClass="ui-button-danger"
-                                             action="#{empleadoModel.btnQuitarRolHandler()}"
-                                             disabled="#{empleadoModel.rolEmpleadoSeleccionado == null}"
-                                             process="@this"
+                            <!-- Si NO tiene rol: Asignar -->
+                            <p:commandButton value="Asignar" icon="pi pi-plus"
+                                             action="#{empleadoModel.btnAgregarRolHandler()}"
+                                             rendered="#{empty empleadoModel.rolesEmpleado}"
+                                             process="@this cboRol"
                                              update="@form"
-                                             style="margin-right:10px;">
-                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
-                                           message="¿Quitar el rol seleccionado a este empleado?"
-                                           icon="pi pi-exclamation-triangle" />
-                            </p:commandButton>
+                                             style="margin-right:10px;" />
+
+                            <!-- Si YA tiene rol: Modificar -->
+                            <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                             action="#{empleadoModel.btnModificarRolHandler()}"
+                                             rendered="#{not empty empleadoModel.rolesEmpleado}"
+                                             process="@this cboRol"
+                                             update="@form"
+                                             style="margin-right:10px;" />
 
                             <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
                                              action="#{empleadoModel.btnCancelarHandler()}"
