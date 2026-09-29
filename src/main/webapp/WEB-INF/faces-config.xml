@@ -17,5 +17,12 @@
             <var>tradcrud</var>
         </resource-bundle>
     </application>
+    
+
+    <!-- Registro explícito del converter: evita que se pierda al recargar la app en modo dev -->  
+    <converter>
+        <converter-id>entityConverter</converter-id>
+        <converter-class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf.EntityConverter</converter-class>
+    </converter>
 
 </faces-config>
