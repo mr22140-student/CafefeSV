@@ -33,6 +33,9 @@
                 <p:column headerText="Nombre">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
+                <p:column headerText="Expresión regular">
+                    <h:outputText value="#{reg.expresionRegular}" style="font-family: monospace;" />
+                </p:column>
                 <p:column headerText="Observaciones">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
@@ -78,6 +81,17 @@
                                          value="#{tipoCaracteristicaModel.registro.nombre}" 
                                          required="true" 
                                          requiredMessage="El nombre es obligatorio." />
+
+                            <p:outputLabel for="txtExpresionRegular" value="Expresión regular:" />
+                            <h:panelGroup layout="block">
+                                <p:inputText id="txtExpresionRegular"
+                                             value="#{tipoCaracteristicaModel.registro.expresionRegular}"
+                                             placeholder="Ej: ^\d+(\.\d{1,2})?$"
+                                             style="font-family: monospace;" />
+                                <small style="display:block; margin-top:4px; color:#6c757d;">
+                                    Expresión regular de Java para validar el valor. Déjala vacía para aceptar cualquier valor.
+                                </small>
+                            </h:panelGroup>
 
                             <p:outputLabel for="chkActivo" value="Activo:" />
                             <p:selectBooleanCheckbox id="chkActivo" value="#{tipoCaracteristicaModel.registro.activo}" />

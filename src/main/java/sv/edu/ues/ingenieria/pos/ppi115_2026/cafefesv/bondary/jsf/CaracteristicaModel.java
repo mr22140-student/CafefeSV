@@ -1,11 +1,12 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,6 +55,20 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
         return nuevo;
     }
 
+    @Override
+    public void btnCrearHandler() {
+        if (tipoActivo()) {
+            super.btnCrearHandler();
+        }
+    }
+
+    @Override
+    public void btnModificarHandler() {
+        if (tipoActivo()) {
+            super.btnModificarHandler();
+        }
+    }
+
     public List<TipoCaracteristica> getListaTipoCaracteristica() {
         return listaTipoCaracteristica;
     }
@@ -61,15 +76,33 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
     public void setListaTipoCaracteristica(List<TipoCaracteristica> listaTipoCaracteristica) {
         this.listaTipoCaracteristica = listaTipoCaracteristica;
     }
+
+    /**
+     * Buscador del autoComplete: solo muestra tipos ACTIVOS.
+     */
     public List<TipoCaracteristica> completarTipoCaracteristica(String query) {
-    if (this.listaTipoCaracteristica == null) {
-        return Collections.emptyList();
+        this.listaTipoCaracteristica = tipoCaracteristicaDAO.findAll();
+        String queryLower = query == null ? "" : query.toLowerCase().trim();
+        return this.listaTipoCaracteristica.stream()
+                .filter(tipo -> Boolean.TRUE.equals(tipo.getActivo()))
+                .filter(tipo -> tipo.getNombre() != null
+                        && tipo.getNombre().toLowerCase().contains(queryLower))
+                .collect(Collectors.toList());
     }
-    
-    String queryLower = query.toLowerCase().trim();
-    return this.listaTipoCaracteristica.stream()
-            .filter(tipo -> tipo.getNombre() != null && 
-                            tipo.getNombre().toLowerCase().contains(queryLower))
-            .collect(Collectors.toList());
-}
+
+    /**
+     * No se puede guardar una característica con un tipo inactivo.
+     */
+    private boolean tipoActivo() {
+        if (registro != null && registro.getIdTipoCaracteristica() != null
+                && !Boolean.TRUE.equals(registro.getIdTipoCaracteristica().getActivo())) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Tipo inactivo",
+                    "El tipo \"" + registro.getIdTipoCaracteristica().getNombre()
+                    + "\" está inactivo. Seleccione un tipo activo."));
+            return false;
+        }
+        return true;
+    }
+
 }
