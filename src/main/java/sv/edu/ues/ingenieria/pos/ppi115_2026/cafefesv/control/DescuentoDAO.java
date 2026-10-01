@@ -3,11 +3,13 @@ package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TemporalType;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
+
 /**
  *
  * @author daniel
@@ -33,8 +35,8 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 "Descuento.findByNombre",
                 Descuento.class
         )
-        .setParameter("nombre", nombre)
-        .getResultList();
+                .setParameter("nombre", nombre)
+                .getResultList();
     }
 
     public List<Descuento> findByFechaDesde(Date fechaDesde) {
@@ -42,8 +44,8 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 "Descuento.findByFechaDesde",
                 Descuento.class
         )
-        .setParameter("fechaDesde", fechaDesde)
-        .getResultList();
+                .setParameter("fechaDesde", fechaDesde)
+                .getResultList();
     }
 
     public List<Descuento> findByFechaHasta(Date fechaHasta) {
@@ -51,8 +53,8 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 "Descuento.findByFechaHasta",
                 Descuento.class
         )
-        .setParameter("fechaHasta", fechaHasta)
-        .getResultList();
+                .setParameter("fechaHasta", fechaHasta)
+                .getResultList();
     }
 
     public List<Descuento> findByObservaciones(String observaciones) {
@@ -60,8 +62,8 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 "Descuento.findByObservaciones",
                 Descuento.class
         )
-        .setParameter("observaciones", observaciones)
-        .getResultList();
+                .setParameter("observaciones", observaciones)
+                .getResultList();
     }
 
     /**
@@ -73,16 +75,33 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 + "WHERE :fecha BETWEEN d.fechaDesde AND d.fechaHasta",
                 Descuento.class
         )
-        .setParameter("fecha", fecha)
-        .getResultList();
+                .setParameter("fecha", fecha)
+                .getResultList();
     }
-        public long countByTipoDescuento(TipoDescuento tipoDescuento) {
+
+    public long countByTipoDescuento(TipoDescuento tipoDescuento) {
         if (tipoDescuento == null) {
             return 0;
         }
         return em.createQuery(
                 "SELECT COUNT(d) FROM Descuento d WHERE d.idTipoDescuento = :tipo", Long.class)
                 .setParameter("tipo", tipoDescuento)
+                .getSingleResult();
+    }
+
+    /**
+     * Cuenta los descuentos de un tipo que todavía no vencen (sin fecha fin o
+     * con fecha fin futura).
+     */
+    public long countVigentesByTipoDescuento(TipoDescuento tipoDescuento) {
+        if (tipoDescuento == null) {
+            return 0;
+        }
+        return em.createQuery(
+                "SELECT COUNT(d) FROM Descuento d WHERE d.idTipoDescuento = :tipo "
+                + "AND (d.fechaHasta IS NULL OR d.fechaHasta >= :ahora)", Long.class)
+                .setParameter("tipo", tipoDescuento)
+                .setParameter("ahora", new Date(), TemporalType.TIMESTAMP)
                 .getSingleResult();
     }
 }
