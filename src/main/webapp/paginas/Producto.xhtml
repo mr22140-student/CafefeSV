@@ -233,6 +233,106 @@
 
                         </h:panelGroup>
                     </p:tab>
+                    <!-- ===== PESTAÑA 3: CARACTERÍSTICAS ===== -->
+                    <p:tab title="Características" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                        <h:panelGroup id="pnlCaracteristicas" layout="block">
+
+                            <!-- Tabla de características del producto -->
+                            <p:dataTable id="dtCaracteristicas"
+                                         var="pc"
+                                         value="#{productoModel.caracteristicasDelProducto}"
+                                         selection="#{productoModel.caracteristicaFila}"
+                                         selectionMode="single"
+                                         rowKey="#{pc.idProductoCaracteristica}"
+                                         paginator="true" rows="5"
+                                         emptyMessage="Este producto aún no tiene características"
+                                         rendered="#{productoModel.estadoCaracteristica == 'NINGUNO'}">
+
+                                <p:ajax event="rowSelect"
+                                        listener="#{productoModel.seleccionarCaracteristica()}"
+                                        process="@this"
+                                        update="pnlCaracteristicas" />
+
+                                <p:column headerText="Característica">
+                                    <h:outputText value="#{pc.idCaracteristica != null ? pc.idCaracteristica.nombre : 'Sin asignación'}" />
+                                </p:column>
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{pc.idCaracteristica != null and pc.idCaracteristica.idTipoCaracteristica != null ? pc.idCaracteristica.idTipoCaracteristica.nombre : ''}" />
+                                </p:column>
+                                <p:column headerText="Valor">
+                                    <h:outputText value="#{pc.valor}" />
+                                </p:column>
+                            </p:dataTable>
+
+                            <p:commandButton value="Nueva Característica"
+                                             icon="pi pi-plus"
+                                             style="margin-top: 10px;"
+                                             action="#{productoModel.nuevaCaracteristica()}"
+                                             rendered="#{productoModel.estadoCaracteristica == 'NINGUNO'}"
+                                             process="@this"
+                                             update="pnlCaracteristicas" />
+
+                            <!-- Formulario de la característica -->
+                            <h:panelGroup layout="block" rendered="#{productoModel.estadoCaracteristica != 'NINGUNO'}">
+                                <p:panelGrid columns="2"
+                                             columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank">
+
+                                    <p:outputLabel value="Característica:" style="font-weight: bold;" />
+                                    <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
+                                        <p:inputText id="txtCaracteristica"
+                                                     value="#{productoModel.registroCaracteristica.idCaracteristica != null ? productoModel.registroCaracteristica.idCaracteristica.nombre : ''}"
+                                                     readonly="true"
+                                                     placeholder="Ninguna seleccionada"
+                                                     style="max-width: 250px; width: 100%;" />
+                                        <p:commandButton value="Seleccionar característica"
+                                                         icon="pi pi-search"
+                                                         action="#{productoModel.abrirDialogoCaracteristica()}"
+                                                         process="@this"
+                                                         update=":frmDlgCaracteristica"
+                                                         oncomplete="PF('dlgCaracteristica').show()" />
+                                    </h:panelGroup>
+
+                                    <p:outputLabel for="txtValorCaract" value="Valor:" style="font-weight: bold;" />
+                                    <h:panelGroup layout="block">
+                                        <p:inputText id="txtValorCaract" value="#{productoModel.registroCaracteristica.valor}"
+                                                     style="max-width: 350px; width: 100%;" />
+                                        <h:outputText id="lblFormatoCaract" value="#{productoModel.formatoValorCaracteristica}"
+                                                      style="display:block; margin-top:4px; font-family: monospace; color:#6c757d;" />
+                                    </h:panelGroup>
+                                </p:panelGrid>
+
+                                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                    <p:commandButton value="Guardar Característica"
+                                                     icon="pi pi-save"
+                                                     action="#{productoModel.guardarCaracteristica()}"
+                                                     process="@this txtValorCaract"
+                                                     update="pnlCaracteristicas :frmProducto:messages" />
+
+                                    <p:commandButton value="Eliminar"
+                                                     icon="pi pi-trash"
+                                                     styleClass="ui-button-danger"
+                                                     action="#{productoModel.eliminarCaracteristica()}"
+                                                     rendered="#{productoModel.estadoCaracteristica == 'MODIFICAR'}"
+                                                     process="@this"
+                                                     update="pnlCaracteristicas :frmProducto:messages">
+                                        <p:confirm header="Eliminar característica"
+                                                   message="¿Quitar esta característica del producto?"
+                                                   icon="pi pi-exclamation-triangle" />
+                                    </p:commandButton>
+
+                                    <p:commandButton value="Cancelar Característica"
+                                                     icon="pi pi-times"
+                                                     styleClass="ui-button-secondary"
+                                                     action="#{productoModel.cancelarCaracteristica()}"
+                                                     process="@this"
+                                                     update="pnlCaracteristicas" />
+                                </div>
+                            </h:panelGroup>
+
+                        </h:panelGroup>
+                    </p:tab>
                 </p:tabView>
             </p:outputPanel>
 
@@ -265,6 +365,42 @@
                                  process="@form"
                                  update=":frmProducto:tvProducto:txtTipoProducto"
                                  oncomplete="PF('dlgTipo').hide()" />
+            </h:form>
+        </p:dialog>
+
+        <!-- ========== DIÁLOGO: SELECCIONAR CARACTERÍSTICA (en cascada) ========== -->
+        <p:dialog id="dlgCaracteristica" widgetVar="dlgCaracteristica" header="Seleccionar característica"
+                  modal="true" resizable="false" appendTo="@(body)">
+            <h:form id="frmDlgCaracteristica">
+                <p:panelGrid columns="2" styleClass="ui-panelgrid-blank" style="margin-bottom:10px;">
+
+                    <p:outputLabel for="cboTipoCaractDialogo" value="Tipo de Característica:" />
+                    <p:selectOneMenu id="cboTipoCaractDialogo" value="#{productoModel.tipoCaracteristicaElegido}"
+                                     converter="entityConverter" style="min-width: 220px;">
+                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{productoModel.listaTiposCaracteristicaActivos}" var="tc"
+                                       itemLabel="#{tc.nombre}" itemValue="#{tc}" />
+                        <p:ajax event="change"
+                                listener="#{productoModel.onTipoCaracteristicaChange()}"
+                                process="@this"
+                                update="cboCaractDialogo" />
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="cboCaractDialogo" value="Característica:" />
+                    <p:selectOneMenu id="cboCaractDialogo" value="#{productoModel.caracteristicaElegida}"
+                                     converter="entityConverter" style="min-width: 220px;">
+                        <f:selectItem itemLabel="Seleccione una característica" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{productoModel.listaCaracteristicasDelTipo}" var="ca"
+                                       itemLabel="#{ca.nombre}" itemValue="#{ca}" />
+                    </p:selectOneMenu>
+                </p:panelGrid>
+
+                <p:commandButton value="Seleccionar"
+                                 icon="pi pi-check"
+                                 action="#{productoModel.confirmarCaracteristica()}"
+                                 process="@form"
+                                 update=":frmProducto:tvProducto:txtCaracteristica :frmProducto:tvProducto:lblFormatoCaract"
+                                 oncomplete="PF('dlgCaracteristica').hide()" />
             </h:form>
         </p:dialog>
     </ui:define>
