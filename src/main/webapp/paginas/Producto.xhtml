@@ -35,7 +35,7 @@
                 </p:column>
                 <p:column headerText="Precio sugerido">
                     <h:outputText value="#{reg.precioSugerido}">
-                        <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                        <f:convertNumber type="currency" currencySymbol="$" locale="en_US" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
                 <p:column headerText="Comentarios">
@@ -69,65 +69,171 @@
 
             <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{productoModel.estado != 'NINGUNO'}">
-                <p:panel header="Detalle del Producto">
-                    <p:panelGrid columns="2"
-                                 columnClasses="ui-grid-col-2, ui-grid-col-10"
-                                 layout="grid"
-                                 styleClass="ui-panelgrid-blank">
+                <p:tabView id="tvProducto" activeIndex="#{productoModel.tabActiva}">
+                    <p:tab title="Generalidades">
+                        <p:panelGrid columns="2"
+                                     columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                     layout="grid"
+                                     styleClass="ui-panelgrid-blank">
 
-                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
-                        <p:inputText id="txtNombre" value="#{productoModel.registro.nombre}" maxlength="155"
-                                     required="true"
-                                     requiredMessage="Nombre es obligatorio."
-                                     style="max-width: 350px; width: 100%;" />
-
-                        <p:outputLabel for="txtPrecioSugerido" value="Precio sugerido:" style="font-weight: bold;" />
-                        <p:inputNumber id="txtPrecioSugerido" value="#{productoModel.registro.precioSugerido}"
-                                       symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
-                                       required="true"
-                                       requiredMessage="Precio sugerido es obligatorio." />
-
-                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
-                        <h:panelGroup>
-                            <p:selectBooleanCheckbox id="chkActivo" value="#{productoModel.registro.activo}" />
-                        </h:panelGroup>
-
-                        <p:outputLabel for="txtComentarios" value="Comentarios:" style="font-weight: bold;" />
-                        <p:inputTextarea id="txtComentarios" value="#{productoModel.registro.comentarios}" rows="3"
+                            <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                            <p:inputText id="txtNombre" value="#{productoModel.registro.nombre}" maxlength="155"
+                                         required="true"
+                                         requiredMessage="Nombre es obligatorio."
                                          style="max-width: 350px; width: 100%;" />
 
-                    </p:panelGrid>
+                            <p:outputLabel for="txtPrecioSugerido" value="Precio sugerido:" style="font-weight: bold;" />
+                            <p:inputNumber id="txtPrecioSugerido" value="#{productoModel.registro.precioSugerido}"
+                                           symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
+                                           required="true"
+                                           requiredMessage="Precio sugerido es obligatorio." />
 
-                    <p:spacer height="15" />
+                            <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                            <h:panelGroup>
+                                <p:selectBooleanCheckbox id="chkActivo" value="#{productoModel.registro.activo}" />
+                            </h:panelGroup>
 
-                    <!-- Botones del Formulario -->
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <p:commandButton value="#{tradcrud['jsf.crud.crear']}"
-                                         icon="pi pi-save"
-                                         action="#{productoModel.btnCrearHandler()}"
-                                         rendered="#{productoModel.estado == 'CREAR'}"
-                                         update=":frmProducto" />
+                            <p:outputLabel for="txtComentarios" value="Comentarios:" style="font-weight: bold;" />
+                            <p:inputTextarea id="txtComentarios" value="#{productoModel.registro.comentarios}" rows="3"
+                                             style="max-width: 350px; width: 100%;" />
 
-                        <p:commandButton value="#{tradcrud['jsf.crud.modificar']}"
-                                         icon="pi pi-save"
-                                         action="#{productoModel.btnModificarHandler()}"
-                                         rendered="#{productoModel.estado == 'MODIFICAR'}"
-                                         update=":frmProducto" />
+                        </p:panelGrid>
 
-                        <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
-                                         icon="pi pi-trash"
-                                         styleClass="ui-button-danger"
-                                         action="#{productoModel.btnEliminarHandler()}"
-                                         rendered="#{productoModel.estado == 'MODIFICAR'}"
-                                         process="@this"
-                                         immediate="true"
-                                         update=":frmProducto">
-                            <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
-                                       message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
-                                       icon="pi pi-exclamation-triangle" />
-                        </p:commandButton>
-                    </div>
-                </p:panel>
+                        <p:spacer height="15" />
+
+                        <!-- Botones del Formulario -->
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <p:commandButton value="#{tradcrud['jsf.crud.crear']}"
+                                             icon="pi pi-save"
+                                             action="#{productoModel.btnCrearHandler()}"
+                                             rendered="#{productoModel.estado == 'CREAR'}"
+                                             update=":frmProducto" />
+
+                            <p:commandButton value="#{tradcrud['jsf.crud.modificar']}"
+                                             icon="pi pi-save"
+                                             action="#{productoModel.btnModificarHandler()}"
+                                             rendered="#{productoModel.estado == 'MODIFICAR'}"
+                                             update=":frmProducto" />
+
+                            <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
+                                             icon="pi pi-trash"
+                                             styleClass="ui-button-danger"
+                                             action="#{productoModel.btnEliminarHandler()}"
+                                             rendered="#{productoModel.estado == 'MODIFICAR'}"
+                                             process="@this"
+                                             immediate="true"
+                                             update=":frmProducto">
+                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                           message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                           icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
+                        </div>
+                    </p:tab>
+
+                    <!-- ===== PESTAÑA 2: TIPOS DE PRODUCTO ===== -->
+                    <p:tab title="Tipos de Producto" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                        <h:panelGroup id="pnlTipos" layout="block">
+
+                            <!-- Tabla de tipos del producto -->
+                            <p:dataTable id="dtTipos"
+                                         var="t"
+                                         value="#{productoModel.tiposDelProducto}"
+                                         selection="#{productoModel.tipoFila}"
+                                         selectionMode="single"
+                                         rowKey="#{t.idProductoTipoProducto}"
+                                         paginator="true" rows="5"
+                                         emptyMessage="Este producto aún no tiene tipos asignados"
+                                         rendered="#{productoModel.estadoTipo == 'NINGUNO'}">
+
+                                <p:ajax event="rowSelect"
+                                        listener="#{productoModel.seleccionarTipo()}"
+                                        process="@this"
+                                        update="pnlTipos" />
+
+                                <p:column headerText="Tipo de Producto">
+                                    <h:outputText value="#{t.idTipoProducto != null ? t.idTipoProducto.nombre : 'Sin asignación'}" />
+                                </p:column>
+                                <p:column headerText="Fecha de creación">
+                                    <h:outputText value="#{t.fechaCreacion}">
+                                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Observaciones">
+                                    <h:outputText value="#{t.observaciones}" />
+                                </p:column>
+                            </p:dataTable>
+
+                            <p:commandButton value="Nuevo Tipo de Producto"
+                                             icon="pi pi-plus"
+                                             style="margin-top: 10px;"
+                                             action="#{productoModel.nuevoTipo()}"
+                                             rendered="#{productoModel.estadoTipo == 'NINGUNO'}"
+                                             process="@this"
+                                             update="pnlTipos" />
+
+                            <!-- Formulario del tipo -->
+                            <h:panelGroup layout="block" rendered="#{productoModel.estadoTipo != 'NINGUNO'}">
+                                <p:panelGrid columns="2"
+                                             columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank">
+
+                                    <p:outputLabel value="Tipo de Producto:" style="font-weight: bold;" />
+                                    <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
+                                        <p:inputText id="txtTipoProducto"
+                                                     value="#{productoModel.registroTipo.idTipoProducto != null ? productoModel.registroTipo.idTipoProducto.nombre : ''}"
+                                                     readonly="true"
+                                                     placeholder="Ninguno seleccionado"
+                                                     style="max-width: 250px; width: 100%;" />
+                                        <p:commandButton value="Seleccionar tipo"
+                                                         icon="pi pi-search"
+                                                         action="#{productoModel.abrirDialogoTipo()}"
+                                                         process="@this"
+                                                         update=":frmDlgTipo"
+                                                         oncomplete="PF('dlgTipo').show()" />
+                                    </h:panelGroup>
+
+                                    <p:outputLabel value="Fecha de creación:" style="font-weight: bold;" />
+                                    <h:outputText value="#{productoModel.registroTipo.fechaCreacion}">
+                                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                                    </h:outputText>
+
+                                    <p:outputLabel for="txtObsTipo" value="Observaciones:" style="font-weight: bold;" />
+                                    <p:inputTextarea id="txtObsTipo" value="#{productoModel.registroTipo.observaciones}" rows="3"
+                                                     style="max-width: 350px; width: 100%;" />
+                                </p:panelGrid>
+
+                                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                    <p:commandButton value="Guardar Tipo de Producto"
+                                                     icon="pi pi-save"
+                                                     action="#{productoModel.guardarTipo()}"
+                                                     process="@this txtObsTipo"
+                                                     update="pnlTipos :frmProducto:messages" />
+
+                                    <p:commandButton value="Eliminar"
+                                                     icon="pi pi-trash"
+                                                     styleClass="ui-button-danger"
+                                                     action="#{productoModel.eliminarTipo()}"
+                                                     rendered="#{productoModel.estadoTipo == 'MODIFICAR'}"
+                                                     process="@this"
+                                                     update="pnlTipos :frmProducto:messages">
+                                        <p:confirm header="Eliminar tipo"
+                                                   message="¿Quitar este tipo del producto?"
+                                                   icon="pi pi-exclamation-triangle" />
+                                    </p:commandButton>
+
+                                    <p:commandButton value="Cancelar Tipo de Producto"
+                                                     icon="pi pi-times"
+                                                     styleClass="ui-button-secondary"
+                                                     action="#{productoModel.cancelarTipo()}"
+                                                     process="@this"
+                                                     update="pnlTipos" />
+                                </div>
+                            </h:panelGroup>
+
+                        </h:panelGroup>
+                    </p:tab>
+                </p:tabView>
             </p:outputPanel>
 
             <!-- Diálogo de Confirmación -->
@@ -137,5 +243,29 @@
             </p:confirmDialog>
 
         </h:form>
+
+        <!-- ========== DIÁLOGO: SELECCIONAR TIPO (fuera de frmProducto, con su propio form) ========== -->
+        <p:dialog id="dlgTipo" widgetVar="dlgTipo" header="Seleccionar tipo de producto"
+                  modal="true" resizable="false" appendTo="@(body)">
+            <h:form id="frmDlgTipo">
+                <div style="display:flex; gap:10px; align-items:center; padding: 10px 0;">
+                    <p:outputLabel for="cboTipoDialogo" value="Tipo de Producto:" />
+                    <p:selectOneMenu id="cboTipoDialogo" value="#{productoModel.tipoElegido}"
+                                     converter="entityConverter"
+                                     filter="true" filterMatchMode="contains"
+                                     style="min-width: 220px;">
+                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{productoModel.listaTiposActivos}" var="tp"
+                                       itemLabel="#{tp.nombre}" itemValue="#{tp}" />
+                    </p:selectOneMenu>
+                </div>
+                <p:commandButton value="Seleccionar"
+                                 icon="pi pi-check"
+                                 action="#{productoModel.confirmarTipo()}"
+                                 process="@form"
+                                 update=":frmProducto:tvProducto:txtTipoProducto"
+                                 oncomplete="PF('dlgTipo').hide()" />
+            </h:form>
+        </p:dialog>
     </ui:define>
 </ui:composition>
