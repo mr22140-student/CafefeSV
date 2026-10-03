@@ -83,15 +83,22 @@
                                      requiredMessage="El nombre es obligatorio." 
                                      style="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel for="txtDescuentoMaximo" value="Descuento (%):" style="font-weight: bold;" />
-                        <p:inputNumber id="txtDescuentoMaximo"
-                                       value="#{tipoDescuentoModel.registro.descuentoMaximo}"
-                                       symbol=" %" symbolPosition="s"
-                                       decimalPlaces="0"
-                                       minValue="0" maxValue="100"
-                                       required="true"
-                                       requiredMessage="El descuento máximo es obligatorio."
-                                       inputStyle="max-width: 350px; width: 100%;" />
+                        <p:outputLabel for="txtDescuentoMaximo" value="Descuento máximo:" />
+                        <h:panelGroup layout="block" style="width: 90px;">
+                            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                <p:inputText id="txtDescuentoMaximo"
+                                             value="#{tipoDescuentoModel.registro.descuentoMaximo}"
+                                             required="true"
+                                             requiredMessage="El descuento máximo es obligatorio."
+                                             validatorMessage="El descuento máximo debe estar entre 0 y 100 %."
+                                             style="width: 60px; text-align: center;">
+                                    <f:validateLongRange minimum="0" maximum="100" />
+                                </p:inputText>
+                                <h:outputText value="%" />
+                            </div>
+                            <p:slider for="txtDescuentoMaximo" minValue="0" maxValue="100" step="1"
+                                      style="width: 60px;" />
+                        </h:panelGroup>
 
                         <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
                         <h:panelGroup>

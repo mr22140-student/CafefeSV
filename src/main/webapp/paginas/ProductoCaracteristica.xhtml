@@ -97,14 +97,18 @@
                             <f:selectItems value="#{productoCaracteristicaModel.listaCaracteristica}" var="c"
                                            itemLabel="#{c.nombre}"
                                            itemValue="#{c}" />
+                            <p:ajax event="change" process="@this" update="lblFormato" />
                         </p:selectOneMenu>
 
                         <p:outputLabel for="txtValor" value="Valor:" style="font-weight: bold;" />
-                        <p:inputText id="txtValor" value="#{productoCaracteristicaModel.registro.valor}"
-                                     required="true"
-                                     requiredMessage="Valor es obligatorio."
-                                     style="max-width: 350px; width: 100%;" />
-
+                        <h:panelGroup layout="block">
+                            <p:inputText id="txtValor" value="#{productoCaracteristicaModel.registro.valor}"
+                                         required="true"
+                                         requiredMessage="Valor es obligatorio."
+                                         style="max-width: 350px; width: 100%;" />
+                            <h:outputText id="lblFormato" value="#{productoCaracteristicaModel.formatoValor}"
+                                          style="display:block; margin-top:4px; font-family: monospace; color:#6c757d;" />
+                        </h:panelGroup>
                     </p:panelGrid>
 
                     <p:spacer height="15" />

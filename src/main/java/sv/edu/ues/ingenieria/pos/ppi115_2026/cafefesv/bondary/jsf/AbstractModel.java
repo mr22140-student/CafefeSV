@@ -21,6 +21,7 @@ public abstract class AbstractModel<T, ID> implements Serializable {
     protected String estado = ESTADO_NINGUNO;
 
     protected abstract GenericDAO<T, ID> getDAO();
+
     protected abstract T crearNuevo();
 
     public void iniciar() {
@@ -42,7 +43,7 @@ public abstract class AbstractModel<T, ID> implements Serializable {
 
     public void btnCancelarHandler() {
         this.registro = null;
-        this.estado = ESTADO_NINGUNO;
+        iniciar();
     }
 
     public void btnCancelarHandler(ActionEvent ae) {
@@ -119,12 +120,35 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         }
     }
 
-    public List<T> getRegistros() { return registros; }
-    public void setRegistros(List<T> registros) { this.registros = registros; }
-    public T getRegistro() { return registro; }
-    public void setRegistro(T registro) { this.registro = registro; }
-    public T getFilaSeleccionada() { return filaSeleccionada; }
-    public void setFilaSeleccionada(T filaSeleccionada) { this.filaSeleccionada = filaSeleccionada; }
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public List<T> getRegistros() {
+        return registros;
+    }
+
+    public void setRegistros(List<T> registros) {
+        this.registros = registros;
+    }
+
+    public T getRegistro() {
+        return registro;
+    }
+
+    public void setRegistro(T registro) {
+        this.registro = registro;
+    }
+
+    public T getFilaSeleccionada() {
+        return filaSeleccionada;
+    }
+
+    public void setFilaSeleccionada(T filaSeleccionada) {
+        this.filaSeleccionada = filaSeleccionada;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
 }
