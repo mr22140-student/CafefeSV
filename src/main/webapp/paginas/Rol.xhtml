@@ -18,16 +18,13 @@
             <p:dataTable id="tblRegistros" value="#{rolModel.registros}" var="r"
                          selectionMode="single"
                          selection="#{rolModel.filaSeleccionada}"
-                         rowKey="#{r.idRol}">
+                         rowKey="#{r.idRol}"
+                         rendered="#{rolModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
                         listener="#{rolModel.seleccionarRegistro(rolModel.filaSeleccionada)}"
                         resetValues="true"
-                        update=":frmRol" />
-
-                <p:column headerText="ID">
-                    <h:outputText value="#{r.idRol}" />
-                </p:column>
+                        update=":frmRol" />            
 
                 <p:column headerText="Nombre">
                     <h:outputText value="#{r.nombre}" />
@@ -50,13 +47,6 @@
                              rendered="#{rolModel.estado == 'NINGUNO'}"
                              update=":frmRol" />
             
-            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
-                             action="#{rolModel.btnCancelarHandler()}"
-                             process="@this"
-                             immediate="true"
-                             resetValues="true"
-                             update=":frmRol" />
-
             <p:spacer height="10" />
 
  <!-- Formulario de Mantenimiento -->
@@ -84,7 +74,8 @@
                                      icon="pi pi-save"
                                      action="#{rolModel.btnCrearHandler()}"
                                      rendered="#{rolModel.estado == 'CREAR'}"
-                                     update=":frmRol" />
+                                     update=":frmRol"
+                                     style="margin-right:10px;" />
 
                     <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" 
                                      icon="pi pi-save"
@@ -99,7 +90,9 @@
                                      rendered="#{rolModel.estado == 'MODIFICAR'}"
                                      process="@this"
                                      immediate="true"
-                                     update=":frmRol">
+                                     update=":frmRol"
+                                     style="margin-right:10px;" >
+                        
                         <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
                                    message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
                                    icon="pi pi-exclamation-triangle" />

@@ -5,13 +5,17 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.faces.application.FacesMessage;
+import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.UUID;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoRolDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.RolDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
+
 /**
  *
  * @author valen
@@ -24,6 +28,9 @@ public class RolModel extends AbstractModel<Rol, UUID> {
 
     @Inject
     private RolDAO rolDAO;
+
+    @Inject
+    private EmpleadoRolDAO empleadoRolDAO;
 
     @PostConstruct
     public void init() {
@@ -40,5 +47,32 @@ public class RolModel extends AbstractModel<Rol, UUID> {
         Rol nuevo = new Rol(UUID.randomUUID());
         nuevo.setActivo(Boolean.TRUE);
         return nuevo;
+    }
+
+    @Override
+    public void btnEliminarHandler() {
+        if (registro != null && !empleadoRolDAO.findByRol(registro).isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
+                    FacesMessage.SEVERITY_WARN,
+                    "No se puede eliminar: el rol está asignado a uno o más empleados. Puede desmarcar 'Activo'.", null));
+            return;
+        }
+        super.btnEliminarHandler();
+    }
+    
+        @Override
+    public void btnModificarHandler() {
+        if (registro != null && !Boolean.TRUE.equals(registro.getActivo())) {
+            int empleados = empleadoRolDAO.findByRol(registro).size();
+            if (empleados > 0) {
+                registro.setActivo(Boolean.TRUE); // se regresa el check para que no quede desmarcado
+                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
+                        FacesMessage.SEVERITY_WARN,
+                        "No se puede desactivar: el rol está asignado a " + empleados
+                        + " empleado(s). Primero cámbieles el rol.", null));
+                return;
+            }
+        }
+        super.btnModificarHandler();
     }
 }
