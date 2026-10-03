@@ -1,4 +1,4 @@
-package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
+package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.converter;
 
 import jakarta.faces.component.UIComponent;
 import jakarta.faces.context.FacesContext;
