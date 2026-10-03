@@ -96,9 +96,9 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
     }
 
     // ================= Pestaña EmpleadoRol =================
-    
-     
-      /** Al seleccionar un empleado, carga su rol y lo muestra en el combo. */
+    /**
+     * Al seleccionar un empleado, carga su rol y lo muestra en el combo.
+     */
     @Override
     public void seleccionarRegistro(Empleado entidad) {
         super.seleccionarRegistro(entidad);
@@ -125,6 +125,11 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
                     FacesMessage.SEVERITY_WARN, "Seleccione un rol.", null));
             return;
         }
+        if (!Boolean.TRUE.equals(rolSeleccionado.getActivo())) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
+                    FacesMessage.SEVERITY_WARN, "El rol " + rolSeleccionado.getNombre() + " está inactivo.", null));
+            return;
+        }
         EmpleadoRol nuevo = new EmpleadoRol(UUID.randomUUID());
         nuevo.setIdEmpleado(registro.getIdEmpleado());
         nuevo.setIdRol(rolSeleccionado);
@@ -134,8 +139,10 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
                 FacesMessage.SEVERITY_INFO, "Rol " + rolSeleccionado.getNombre() + " asignado.", null));
         rolesEmpleado = empleadoRolDAO.findByEmpleado(registro.getIdEmpleado());
     }
-    
-        /** Cambia el rol actual del empleado por el elegido en el combo. */
+
+    /**
+     * Cambia el rol actual del empleado por el elegido en el combo.
+     */
     public void btnModificarRolHandler() {
         if (rolesEmpleado.isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
@@ -147,6 +154,12 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
                     FacesMessage.SEVERITY_WARN, "Seleccione un rol.", null));
             return;
         }
+        if (!Boolean.TRUE.equals(rolSeleccionado.getActivo())) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
+                    FacesMessage.SEVERITY_WARN, "El rol " + rolSeleccionado.getNombre() + " está inactivo.", null));
+            return;
+        }
+
         EmpleadoRol actual = rolesEmpleado.get(0);
         if (rolSeleccionado.equals(actual.getIdRol())) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
@@ -164,10 +177,20 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
      * Quita el rol seleccionado en la tabla, si no se ha usado en órdenes o
      * facturas.
      */
-
     // ================= Getters / Setters =================
+    /**
+     * Roles activos para el combo (más el rol actual del empleado, aunque esté
+     * inactivo).
+     */
     public List<Rol> getListaRol() {
-        return rolDAO.findRange(0, 1000);
+        Rol rolActual = rolesEmpleado.isEmpty() ? null : rolesEmpleado.get(0).getIdRol();
+        List<Rol> lista = new ArrayList<>();
+        for (Rol r : rolDAO.findRange(0, 1000)) {
+            if (Boolean.TRUE.equals(r.getActivo()) || r.equals(rolActual)) {
+                lista.add(r);
+            }
+        }
+        return lista;
     }
 
     public List<EmpleadoRol> getRolesEmpleado() {
@@ -182,4 +205,4 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
         this.rolSeleccionado = rolSeleccionado;
     }
 
-  }
+}
