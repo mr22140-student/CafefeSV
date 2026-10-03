@@ -88,6 +88,7 @@
                         <p:selectOneMenu id="cboTipoDescuento" value="#{descuentoModel.registro.idTipoDescuento}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
+                                         disabled="#{descuentoModel.estado == 'MODIFICAR'}"
                                          required="true"
                                          requiredMessage="El tipo de descuento es obligatorio."
                                          style="max-width: 350px; width: 100%;">

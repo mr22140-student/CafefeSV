@@ -187,6 +187,7 @@
                                                      style="max-width: 250px; width: 100%;" />
                                         <p:commandButton value="Seleccionar tipo"
                                                          icon="pi pi-search"
+                                                         disabled="#{productoModel.estadoTipo == 'MODIFICAR'}"
                                                          action="#{productoModel.abrirDialogoTipo()}"
                                                          process="@this"
                                                          update=":frmDlgTipo"
@@ -288,6 +289,7 @@
                                                      style="max-width: 250px; width: 100%;" />
                                         <p:commandButton value="Seleccionar característica"
                                                          icon="pi pi-search"
+                                                         disabled="#{productoModel.estadoCaracteristica == 'MODIFICAR'}"
                                                          action="#{productoModel.abrirDialogoCaracteristica()}"
                                                          process="@this"
                                                          update=":frmDlgCaracteristica"
@@ -328,6 +330,133 @@
                                                      action="#{productoModel.cancelarCaracteristica()}"
                                                      process="@this"
                                                      update="pnlCaracteristicas" />
+                                </div>
+                            </h:panelGroup>
+
+                        </h:panelGroup>
+                    </p:tab>
+                    <!-- ===== PESTAÑA 4: DESCUENTOS ===== -->
+                    <p:tab title="Descuentos" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                        <h:panelGroup id="pnlDescuentos" layout="block">
+
+                            <!-- Tabla de descuentos del producto -->
+                            <p:dataTable id="dtDescuentos"
+                                         var="dp"
+                                         value="#{productoModel.descuentosDelProducto}"
+                                         selection="#{productoModel.descuentoFila}"
+                                         selectionMode="single"
+                                         rowKey="#{dp.idDescuentoProducto}"
+                                         paginator="true" rows="5"
+                                         emptyMessage="Este producto aún no tiene descuentos"
+                                         rendered="#{productoModel.estadoDescuento == 'NINGUNO'}">
+
+                                <p:ajax event="rowSelect"
+                                        listener="#{productoModel.seleccionarDescuento()}"
+                                        process="@this"
+                                        update="pnlDescuentos" />
+
+                                <p:column headerText="Descuento">
+                                    <h:outputText value="#{dp.idDescuento != null ? dp.idDescuento.nombre : 'Sin asignación'}" />
+                                </p:column>
+                                <p:column headerText="Tipo">
+                                    <h:outputText value="#{dp.idDescuento != null and dp.idDescuento.idTipoDescuento != null ? dp.idDescuento.idTipoDescuento.nombre : ''}" />
+                                </p:column>
+                                <p:column headerText="Porcentaje" style="width: 110px; text-align: center;">
+                                    <h:outputText value="#{dp.valor != null ? dp.valor += ' %' : ''}" />
+                                </p:column>
+                                <p:column headerText="Inicio">
+                                    <h:outputText value="#{dp.fechaDesde}">
+                                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                                    </h:outputText>
+                                </p:column>
+                                <p:column headerText="Fin">
+                                    <h:outputText value="#{dp.fechaHasta}" rendered="#{dp.fechaHasta != null}">
+                                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
+                                    </h:outputText>
+                                    <h:outputText value="Sin fin" rendered="#{dp.fechaHasta == null}" />
+                                </p:column>
+                            </p:dataTable>
+
+                            <p:commandButton value="Nuevo Descuento"
+                                             icon="pi pi-plus"
+                                             style="margin-top: 10px;"
+                                             action="#{productoModel.nuevoDescuento()}"
+                                             rendered="#{productoModel.estadoDescuento == 'NINGUNO'}"
+                                             process="@this"
+                                             update="pnlDescuentos" />
+
+                            <!-- Formulario del descuento -->
+                            <h:panelGroup layout="block" rendered="#{productoModel.estadoDescuento != 'NINGUNO'}">
+                                <p:panelGrid columns="2"
+                                             columnClasses="ui-grid-col-2, ui-grid-col-10"
+                                             layout="grid"
+                                             styleClass="ui-panelgrid-blank">
+
+                                    <p:outputLabel value="Descuento:" style="font-weight: bold;" />
+                                    <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
+                                        <p:inputText id="txtDescuento"
+                                                     value="#{productoModel.registroDescuento.idDescuento != null ? productoModel.registroDescuento.idDescuento.nombre : ''}"
+                                                     readonly="true"
+                                                     placeholder="Ninguno seleccionado"
+                                                     style="max-width: 250px; width: 100%;" />
+                                        <p:commandButton value="Seleccionar descuento"
+                                                         icon="pi pi-search"
+                                                         disabled="#{productoModel.estadoDescuento == 'MODIFICAR'}"
+                                                         action="#{productoModel.abrirDialogoDescuento()}"
+                                                         process="@this"
+                                                         update=":frmDlgDescuento"
+                                                         oncomplete="PF('dlgDescuento').show()" />
+                                    </h:panelGroup>
+
+                                    <p:outputLabel for="txtValorDesc" value="Porcentaje:" style="font-weight: bold;" />
+                                    <h:panelGroup layout="block" style="display:flex; gap:10px; align-items:center;">
+                                        <p:inputNumber id="txtValorDesc"
+                                                       value="#{productoModel.registroDescuento.valor}"
+                                                       symbol=" %" symbolPosition="s"
+                                                       decimalPlaces="0" minValue="0" maxValue="100"
+                                                       inputStyle="width: 100px;" />
+                                        <h:outputText id="lblMaximoDesc" value="#{productoModel.textoMaximoDescuento}"
+                                                      style="font-style: italic; color:#6c757d;" />
+                                    </h:panelGroup>
+
+                                    <p:outputLabel for="dpDesdeDesc" value="Fecha de inicio:" style="font-weight: bold;" />
+                                    <p:datePicker id="dpDesdeDesc" value="#{productoModel.registroDescuento.fechaDesde}"
+                                                  showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
+
+                                    <p:outputLabel for="dpHastaDesc" value="Fecha de finalización:" style="font-weight: bold;" />
+                                    <p:datePicker id="dpHastaDesc" value="#{productoModel.registroDescuento.fechaHasta}"
+                                                  showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
+
+                                    <p:outputLabel for="txtObsDesc" value="Observaciones:" style="font-weight: bold;" />
+                                    <p:inputTextarea id="txtObsDesc" value="#{productoModel.registroDescuento.observaciones}" rows="3"
+                                                     style="max-width: 350px; width: 100%;" />
+                                </p:panelGrid>
+
+                                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                    <p:commandButton value="Guardar Descuento"
+                                                     icon="pi pi-save"
+                                                     action="#{productoModel.guardarDescuento()}"
+                                                     process="@this txtValorDesc dpDesdeDesc dpHastaDesc txtObsDesc"
+                                                     update="pnlDescuentos :frmProducto:messages" />
+
+                                    <p:commandButton value="Eliminar"
+                                                     icon="pi pi-trash"
+                                                     styleClass="ui-button-danger"
+                                                     action="#{productoModel.eliminarDescuento()}"
+                                                     rendered="#{productoModel.estadoDescuento == 'MODIFICAR'}"
+                                                     process="@this"
+                                                     update="pnlDescuentos :frmProducto:messages">
+                                        <p:confirm header="Eliminar descuento"
+                                                   message="¿Quitar este descuento del producto?"
+                                                   icon="pi pi-exclamation-triangle" />
+                                    </p:commandButton>
+
+                                    <p:commandButton value="Cancelar Descuento"
+                                                     icon="pi pi-times"
+                                                     styleClass="ui-button-secondary"
+                                                     action="#{productoModel.cancelarDescuento()}"
+                                                     process="@this"
+                                                     update="pnlDescuentos" />
                                 </div>
                             </h:panelGroup>
 
@@ -401,6 +530,42 @@
                                  process="@form"
                                  update=":frmProducto:tvProducto:txtCaracteristica :frmProducto:tvProducto:lblFormatoCaract"
                                  oncomplete="PF('dlgCaracteristica').hide()" />
+            </h:form>
+        </p:dialog>
+
+        <!-- ========== DIÁLOGO: SELECCIONAR DESCUENTO (en cascada) ========== -->
+        <p:dialog id="dlgDescuento" widgetVar="dlgDescuento" header="Seleccionar descuento"
+                  modal="true" resizable="false" appendTo="@(body)">
+            <h:form id="frmDlgDescuento">
+                <p:panelGrid columns="2" styleClass="ui-panelgrid-blank" style="margin-bottom:10px;">
+
+                    <p:outputLabel for="cboTipoDescDialogo" value="Tipo de Descuento:" />
+                    <p:selectOneMenu id="cboTipoDescDialogo" value="#{productoModel.tipoDescuentoElegido}"
+                                     converter="entityConverter" style="min-width: 220px;">
+                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{productoModel.listaTiposDescuentoActivos}" var="td"
+                                       itemLabel="#{td.nombre}" itemValue="#{td}" />
+                        <p:ajax event="change"
+                                listener="#{productoModel.onTipoDescuentoChange()}"
+                                process="@this"
+                                update="cboDescDialogo" />
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="cboDescDialogo" value="Descuento:" />
+                    <p:selectOneMenu id="cboDescDialogo" value="#{productoModel.descuentoElegido}"
+                                     converter="entityConverter" style="min-width: 220px;">
+                        <f:selectItem itemLabel="Seleccione un descuento" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItems value="#{productoModel.listaDescuentosDelTipo}" var="de"
+                                       itemLabel="#{de.nombre}" itemValue="#{de}" />
+                    </p:selectOneMenu>
+                </p:panelGrid>
+
+                <p:commandButton value="Seleccionar"
+                                 icon="pi pi-check"
+                                 action="#{productoModel.confirmarDescuento()}"
+                                 process="@form"
+                                 update=":frmProducto:tvProducto:txtDescuento :frmProducto:tvProducto:lblMaximoDesc :frmProducto:tvProducto:dpDesdeDesc :frmProducto:tvProducto:dpHastaDesc"
+                                 oncomplete="PF('dlgDescuento').hide()" />
             </h:form>
         </p:dialog>
     </ui:define>

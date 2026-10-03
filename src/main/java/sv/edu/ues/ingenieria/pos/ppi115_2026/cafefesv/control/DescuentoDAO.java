@@ -14,7 +14,6 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
  *
  * @author daniel
  */
-
 @Stateless
 public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
 
@@ -103,5 +102,21 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
                 .setParameter("tipo", tipoDescuento)
                 .setParameter("ahora", new Date(), TemporalType.TIMESTAMP)
                 .getSingleResult();
+    }
+
+    /**
+     * Descuentos de un tipo que todavía no vencen (sin fecha fin o con fecha
+     * fin futura).
+     */
+    public List<Descuento> findVigentesByTipoDescuento(TipoDescuento tipoDescuento) {
+        if (tipoDescuento == null) {
+            return List.of();
+        }
+        return em.createQuery(
+                "SELECT d FROM Descuento d WHERE d.idTipoDescuento = :tipo "
+                + "AND (d.fechaHasta IS NULL OR d.fechaHasta >= :ahora) ORDER BY d.nombre", Descuento.class)
+                .setParameter("tipo", tipoDescuento)
+                .setParameter("ahora", new Date(), TemporalType.TIMESTAMP)
+                .getResultList();
     }
 }
