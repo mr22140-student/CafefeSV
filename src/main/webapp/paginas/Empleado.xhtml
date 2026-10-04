@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Empleados
+       #{trad['pagina.empleado']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -21,7 +21,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idEmpleado}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{empleadoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -29,19 +29,19 @@
                         resetValues="true"
                         update="@form" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
 
-                <p:column headerText="Apellido">
+                <p:column headerText="#{trad['empleado.apellido']}">
                     <h:outputText value="#{reg.apellido}" />
                 </p:column>
 
-                <p:column headerText="Estado" style="width: 110px; text-align: center;">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}" style="width: 110px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
 
-                <p:column headerText="Comentarios">
+                <p:column headerText="#{trad['comun.comentarios']}">
                     <h:outputText value="#{empty reg.comentarios ? '—' : reg.comentarios}" />
                 </p:column>
             </p:dataTable>
@@ -60,26 +60,26 @@
                 <p:tabView id="tabsEmpleado">
 
                     <!-- ============ Pestaña 1: datos del empleado ============ -->
-                    <p:tab title="Datos del empleado">
+                    <p:tab title="#{trad['empleado.tab.datos']}">
                         <p:panelGrid columns="2">
                             <p:outputLabel value="ID" for="txtId" />
                             <p:inputText id="txtId" value="#{empleadoModel.registro.idEmpleado}"
                                          readonly="true" size="40" />
 
-                            <p:outputLabel value="Nombre" for="txtNombre" />
+                            <p:outputLabel value="#{trad['comun.nombre']}" for="txtNombre" />
                             <p:inputText id="txtNombre" value="#{empleadoModel.registro.nombre}"
                                          maxlength="255" size="40"
-                                         required="true" requiredMessage="El nombre es obligatorio." />
+                                         required="true" requiredMessage="#{trad['comun.nombreObligatorio']}" />
 
-                            <p:outputLabel value="Apellido" for="txtApellido" />
+                            <p:outputLabel value="#{trad['empleado.apellido']}" for="txtApellido" />
                             <p:inputText id="txtApellido" value="#{empleadoModel.registro.apellido}"
                                          maxlength="255" size="40"
-                                         required="true" requiredMessage="El apellido es obligatorio." />
+                                         required="true" requiredMessage="#{trad['empleado.apellidoObligatorio']}" />
 
-                            <p:outputLabel value="Activo" for="chkActivo" />
+                            <p:outputLabel value="#{trad['comun.activo']}" for="chkActivo" />
                             <p:selectBooleanCheckbox id="chkActivo" value="#{empleadoModel.registro.activo}" />
 
-                            <p:outputLabel value="Comentarios" for="txtComentarios" />
+                            <p:outputLabel value="#{trad['comun.comentarios']}" for="txtComentarios" />
                             <p:inputTextarea id="txtComentarios" value="#{empleadoModel.registro.comentarios}"
                                              rows="3" cols="40" />
                         </p:panelGrid>
@@ -120,14 +120,14 @@
                     </p:tab>
 
                     <!-- ============ Pestaña 2: EmpleadoRol (solo al seleccionar un empleado) ============ -->
-                    <p:tab title="EmpleadoRol" rendered="#{empleadoModel.estado == 'MODIFICAR'}">
+                    <p:tab title="#{trad['empleado.tab.rol']}" rendered="#{empleadoModel.estado == 'MODIFICAR'}">
 
                         <p:panelGrid columns="2">
-                            <p:outputLabel value="Rol" for="cboRol" />
+                            <p:outputLabel value="#{trad['comun.rol']}" for="cboRol" />
                             <p:selectOneMenu id="cboRol" value="#{empleadoModel.rolSeleccionado}"
                                              converter="entityConverter"
                                              style="width: 250px;">
-                                <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                                 <f:selectItems value="#{empleadoModel.listaRol}" var="x"
                                                itemLabel="#{x.nombre}" itemValue="#{x}" />
                             </p:selectOneMenu>
@@ -136,20 +136,20 @@
                         <!-- Rol actual del empleado (solo lectura) -->
                         <p:dataTable id="dtRolesEmpleado" var="er"
                                      value="#{empleadoModel.rolesEmpleado}"
-                                     emptyMessage="Este empleado todavía no tiene rol asignado"
+                                     emptyMessage="#{trad['empleado.sinRol']}"
                                      style="margin-top: 10px;">
-                            <p:column headerText="Rol actual">
-                                <h:outputText value="#{er.idRol != null ? er.idRol.nombre : 'Sin asignación'}" />
+                            <p:column headerText="#{trad['empleado.rolActual']}">
+                                <h:outputText value="#{er.idRol != null ? er.idRol.nombre : trad['comun.sinAsignacion']}" />
                             </p:column>
-                            <p:column headerText="Estado" style="width: 110px; text-align: center;">
-                                <h:outputText value="#{er.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                            <p:column headerText="#{trad['comun.estado']}" style="width: 110px; text-align: center;">
+                                <h:outputText value="#{er.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                             </p:column>
                         </p:dataTable>
 
                         <!-- Botones de la pestaña EmpleadoRol -->
                         <div style="margin-top: 10px;">
                             <!-- Si NO tiene rol: Asignar -->
-                            <p:commandButton value="Asignar" icon="pi pi-plus"
+                            <p:commandButton value="#{trad['empleado.asignar']}" icon="pi pi-plus"
                                              action="#{empleadoModel.btnAgregarRolHandler()}"
                                              rendered="#{empty empleadoModel.rolesEmpleado}"
                                              process="@this cboRol"

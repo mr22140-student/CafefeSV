@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Productos por orden
+       #{trad['pagina.ordenProducto']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -16,12 +16,12 @@
 
             <!-- Filtro por orden -->
             <p:panelGrid columns="2" rendered="#{ordenProductoModel.estado == 'NINGUNO'}">
-                <p:outputLabel value="Orden" for="cboFiltro" />
+                <p:outputLabel value="#{trad['comun.orden']}" for="cboFiltro" />
                 <p:selectOneMenu id="cboFiltro" value="#{ordenProductoModel.ordenFiltro}"
                                  converter="entityConverter"
                                  filter="true" filterMatchMode="contains"
                                  style="width: 350px;">
-                    <f:selectItem itemLabel="Todas las órdenes" itemValue="#{null}" noSelectionOption="true" />
+                    <f:selectItem itemLabel="#{trad['ordenProducto.todasOrdenes']}" itemValue="#{null}" noSelectionOption="true" />
                     <f:selectItems value="#{ordenProductoModel.listaOrden}" var="o"
                                    itemLabel="#{ordenProductoModel.etiquetaOrden(o)}" itemValue="#{o}" />
                     <p:ajax event="change" listener="#{ordenProductoModel.filtrarHandler}"
@@ -37,7 +37,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idOrdenProducto}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{ordenProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -49,21 +49,21 @@
                     <h:outputText value="#{reg.idOrdenProducto}" />
                 </p:column>
 
-                <p:column headerText="Orden" rendered="#{ordenProductoModel.ordenFiltro == null}">
+                <p:column headerText="#{trad['comun.orden']}" rendered="#{ordenProductoModel.ordenFiltro == null}">
                     <h:outputText value="#{ordenProductoModel.etiquetaOrden(reg.idOrden)}" />
                 </p:column>
 
-                <p:column headerText="Producto">
-                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.producto']}">
+                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
 
-                <p:column headerText="Precio" style="width: 120px; text-align: right;">
+                <p:column headerText="#{trad['comun.precio']}" style="width: 120px; text-align: right;">
                     <h:outputText value="#{reg.precio}">
                         <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
             </p:dataTable>
@@ -87,50 +87,50 @@
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{ordenProductoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Producto de Orden">
+                <p:panel header="#{trad['ordenProducto.detalle']}">
                     <p:panelGrid columns="2">
                         <p:outputLabel value="ID" for="txtId" />
                         <p:inputText id="txtId" value="#{ordenProductoModel.registro.idOrdenProducto}"
                                      readonly="true" size="40" />
 
-                        <p:outputLabel value="Orden" for="cboOrden" />
+                        <p:outputLabel value="#{trad['comun.orden']}" for="cboOrden" />
                         <p:selectOneMenu id="cboOrden" value="#{ordenProductoModel.registro.idOrden}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="La orden es obligatoria."
+                                         required="true" requiredMessage="#{trad['ordenProducto.ordenObligatoria']}"
                                          style="width: 350px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{ordenProductoModel.listaOrden}" var="o"
                                            itemLabel="#{ordenProductoModel.etiquetaOrden(o)}" itemValue="#{o}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Producto" for="cboProducto" />
+                        <p:outputLabel value="#{trad['comun.producto']}" for="cboProducto" />
                         <p:selectOneMenu id="cboProducto" value="#{ordenProductoModel.registro.idProducto}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="El producto es obligatorio."
+                                         required="true" requiredMessage="#{trad['ordenProducto.productoObligatorio']}"
                                          style="width: 350px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{ordenProductoModel.listaProducto}" var="x"
                                            itemLabel="#{x.nombre}" itemValue="#{x}" />
                             <p:ajax event="change" listener="#{ordenProductoModel.productoSeleccionadoHandler}"
                                     process="@this" update="txtPrecio" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Cantidad" for="spnCantidad"
+                        <p:outputLabel value="#{trad['ordenProducto.cantidad']}" for="spnCantidad"
                                        rendered="#{ordenProductoModel.estado == 'CREAR'}" />
                         <p:spinner id="spnCantidad" value="#{ordenProductoModel.cantidad}"
                                    min="1" max="20"
                                    rendered="#{ordenProductoModel.estado == 'CREAR'}" />
 
-                        <p:outputLabel value="Precio" for="txtPrecio" />
+                        <p:outputLabel value="#{trad['comun.precio']}" for="txtPrecio" />
                         <p:inputNumber id="txtPrecio" value="#{ordenProductoModel.registro.precio}"
                                        symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
-                                       required="true" requiredMessage="El precio es obligatorio." />
+                                       required="true" requiredMessage="#{trad['comun.precioObligatorio']}" />
 
                         <p:outputLabel value="Observaciones" for="txtObs" />
                         <p:inputTextarea id="txtObs" value="#{ordenProductoModel.registro.observaciones}"
-                                         rows="3" cols="40" placeholder="Ej. sin azúcar, leche deslactosada" />
+                                         rows="3" cols="40" placeholder="#{trad['ordenProducto.ejemploObservaciones']}" />
                     </p:panelGrid>
 
                     <p:spacer height="5" />

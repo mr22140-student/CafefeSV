@@ -5,10 +5,9 @@
                 xmlns:f="jakarta.faces.core"
                 xmlns:p="http://primefaces.org/ui"
                 template="/WEB-INF/plantillas/general.xhtml">
-    template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Tipos de Descuento
+        #{trad['pagina.tipoDescuento']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -23,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idTipoDescuento}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{tipoDescuentoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -31,17 +30,17 @@
                         resetValues="true"
                         update=":frmTipoDescuento" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
-                <p:column headerText="Descuento máximo (%)" style="width: 180px; text-align: center;">
+                <p:column headerText="#{trad['tipoDescuento.maximo']} (%)" style="width: 180px; text-align: center;">
                     <h:outputText value="#{reg.descuentoMaximo != null ? reg.descuentoMaximo += ' %' : ''}" />
                 </p:column>
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
-                <p:column headerText="Estado" style="width: 120px; text-align: center;">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}" style="width: 120px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
             </p:dataTable>
 
@@ -70,27 +69,27 @@
 
             <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{tipoDescuentoModel.estado != 'NINGUNO'}">
-                <p:panel header="Detalle del Tipo de Descuento">
+                <p:panel header="#{trad['tipoDescuento.detalle']}">
                     <p:panelGrid columns="2" 
                                  columnClasses="ui-grid-col-2, ui-grid-col-10" 
                                  layout="grid" 
                                  styleClass="ui-panelgrid-blank">
 
-                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" style="font-weight: bold;" />
                         <p:inputText id="txtNombre" 
                                      value="#{tipoDescuentoModel.registro.nombre}" 
                                      required="true" 
-                                     requiredMessage="El nombre es obligatorio." 
+                                     requiredMessage="#{trad['comun.nombreObligatorio']}" 
                                      style="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel for="txtDescuentoMaximo" value="Descuento máximo:" />
+                        <p:outputLabel for="txtDescuentoMaximo" value="#{trad['tipoDescuento.maximo']}:" />
                         <h:panelGroup layout="block" style="width: 90px;">
                             <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
                                 <p:inputText id="txtDescuentoMaximo"
                                              value="#{tipoDescuentoModel.registro.descuentoMaximo}"
                                              required="true"
-                                             requiredMessage="El descuento máximo es obligatorio."
-                                             validatorMessage="El descuento máximo debe estar entre 0 y 100 %."
+                                             requiredMessage="#{trad['tipoDescuento.maximoObligatorio']}"
+                                             validatorMessage="#{trad['tipoDescuento.maximoRango']}"
                                              style="width: 60px; text-align: center;">
                                     <f:validateLongRange minimum="0" maximum="100" />
                                 </p:inputText>
@@ -100,12 +99,12 @@
                                       style="width: 60px;" />
                         </h:panelGroup>
 
-                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                        <p:outputLabel for="chkActivo" value="#{trad['comun.activo']}:" style="font-weight: bold;" />
                         <h:panelGroup>
                             <p:selectBooleanCheckbox id="chkActivo" value="#{tipoDescuentoModel.registro.activo}" />
                         </h:panelGroup>
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                         <p:inputTextarea id="txtObservaciones" 
                                          value="#{tipoDescuentoModel.registro.observaciones}" 
                                          rows="3" 

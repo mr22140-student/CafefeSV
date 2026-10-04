@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Productos por factura
+       #{trad['pagina.facturaOrdenProducto']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -16,12 +16,12 @@
 
             <!-- Filtro por factura -->
             <p:panelGrid columns="2" rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO'}">
-                <p:outputLabel value="Factura" for="cboFiltro" />
+                <p:outputLabel value="#{trad['comun.factura']}" for="cboFiltro" />
                 <p:selectOneMenu id="cboFiltro" value="#{facturaOrdenProductoModel.facturaFiltro}"
                                  converter="entityConverter"
                                  filter="true" filterMatchMode="contains"
                                  style="width: 400px;">
-                    <f:selectItem itemLabel="Todas las facturas" itemValue="#{null}" noSelectionOption="true" />
+                    <f:selectItem itemLabel="#{trad['facturaOrdenProducto.todasFacturas']}" itemValue="#{null}" noSelectionOption="true" />
                     <f:selectItems value="#{facturaOrdenProductoModel.listaFactura}" var="x"
                                    itemLabel="#{facturaOrdenProductoModel.etiquetaFactura(x)}" itemValue="#{x}" />
                     <p:ajax event="change" listener="#{facturaOrdenProductoModel.filtrarHandler}"
@@ -37,7 +37,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idFacturaOrdenProducto}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{facturaOrdenProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -45,25 +45,25 @@
                         resetValues="true"
                         update=":frmFacturaOrdenProducto" />
 
-                <p:column headerText="Factura" rendered="#{facturaOrdenProductoModel.facturaFiltro == null}">
+                <p:column headerText="#{trad['comun.factura']}" rendered="#{facturaOrdenProductoModel.facturaFiltro == null}">
                     <h:outputText value="#{facturaOrdenProductoModel.etiquetaFactura(reg.idFactura)}" />
                 </p:column>
 
-                <p:column headerText="Producto">
-                    <h:outputText value="#{reg.idOrdenProducto != null and reg.idOrdenProducto.idProducto != null ? reg.idOrdenProducto.idProducto.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.producto']}">
+                    <h:outputText value="#{reg.idOrdenProducto != null and reg.idOrdenProducto.idProducto != null ? reg.idOrdenProducto.idProducto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
 
-                <p:column headerText="Orden">
-                    <h:outputText value="#{reg.idOrdenProducto != null ? facturaOrdenProductoModel.etiquetaOrden(reg.idOrdenProducto.idOrden) : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.orden']}">
+                    <h:outputText value="#{reg.idOrdenProducto != null ? facturaOrdenProductoModel.etiquetaOrden(reg.idOrdenProducto.idOrden) : trad['comun.sinAsignacion']}" />
                 </p:column>
 
-                <p:column headerText="Precio" style="width: 120px; text-align: right;">
+                <p:column headerText="#{trad['comun.precio']}" style="width: 120px; text-align: right;">
                     <h:outputText value="#{reg.precio}">
                         <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{empty reg.observaciones ? '—' : reg.observaciones}" />
                 </p:column>
             </p:dataTable>
@@ -87,36 +87,36 @@
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{facturaOrdenProductoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Producto de Factura">
+                <p:panel header="#{trad['facturaOrdenProducto.detalle']}">
                     <p:panelGrid columns="2">
-                        <p:outputLabel value="Factura" for="cboFactura" />
+                        <p:outputLabel value="#{trad['comun.factura']}" for="cboFactura" />
                         <p:selectOneMenu id="cboFactura" value="#{facturaOrdenProductoModel.registro.idFactura}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="La factura es obligatoria."
+                                         required="true" requiredMessage="#{trad['comun.facturaObligatoria']}"
                                          style="width: 400px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{facturaOrdenProductoModel.listaFacturaPendiente}" var="x"
                                            itemLabel="#{facturaOrdenProductoModel.etiquetaFactura(x)}" itemValue="#{x}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Producto de orden" for="cboOrdenProducto" />
+                        <p:outputLabel value="#{trad['facturaOrdenProducto.productoOrden']}" for="cboOrdenProducto" />
                         <p:selectOneMenu id="cboOrdenProducto" value="#{facturaOrdenProductoModel.registro.idOrdenProducto}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="El producto de la orden es obligatorio."
+                                         required="true" requiredMessage="#{trad['facturaOrdenProducto.productoOrdenObligatorio']}"
                                          style="width: 400px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{facturaOrdenProductoModel.listaOrdenProducto}" var="x"
                                            itemLabel="#{facturaOrdenProductoModel.etiquetaOrdenProducto(x)}" itemValue="#{x}" />
                             <p:ajax event="change" listener="#{facturaOrdenProductoModel.ordenProductoSeleccionadoHandler}"
                                     process="@this" update="txtPrecio" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Precio" for="txtPrecio" />
+                        <p:outputLabel value="#{trad['comun.precio']}" for="txtPrecio" />
                         <p:inputNumber id="txtPrecio" value="#{facturaOrdenProductoModel.registro.precio}"
                                        symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
-                                       required="true" requiredMessage="El precio es obligatorio." />
+                                       required="true" requiredMessage="#{trad['comun.precioObligatorio']}" />
 
                         <p:outputLabel value="Observaciones" for="txtObs" />
                         <p:inputTextarea id="txtObs" value="#{facturaOrdenProductoModel.registro.observaciones}"

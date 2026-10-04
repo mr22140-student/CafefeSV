@@ -9,7 +9,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Cajas
+      #{trad['pagina.caja']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -32,16 +32,16 @@
                     <h:outputText value="#{reg.idCaja}" />
                 </p:column>
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
 
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
 
-                <p:column headerText="Estado">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
             </p:dataTable>
 
@@ -68,19 +68,19 @@
 
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{cajaModel.estado != 'NINGUNO'}">
-                <p:panel header="Detalle de la Caja">
+                <p:panel header="#{trad['caja.detalle']}">
                     <p:panelGrid columns="2">
 
-                        <p:outputLabel for="txtNombre" value="Nombre:" />
+                        <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" />
                         <p:inputText id="txtNombre" 
                                      value="#{cajaModel.registro.nombre}" 
                                      required="true" 
-                                     requiredMessage="El nombre es obligatorio." />
+                                     requiredMessage="#{trad['comun.nombreObligatorio']}" />
 
-                        <p:outputLabel for="chkActivo" value="Activo:" />
+                        <p:outputLabel for="chkActivo" value="#{trad['comun.activo']}:" />
                         <p:selectBooleanCheckbox id="chkActivo" value="#{cajaModel.registro.activo}" />
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" />
                         <p:inputTextarea id="txtObservaciones" 
                                          value="#{cajaModel.registro.observaciones}" 
                                          rows="3" cols="40" />

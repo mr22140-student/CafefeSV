@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idProductoCaracteristica}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{productoCaracteristicaModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,13 +30,13 @@
                         resetValues="true"
                         update=":frmProductoCaracteristica" />
 
-                <p:column headerText="Producto">
-                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.producto']}">
+                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
                 <p:column headerText="Característica">
-                    <h:outputText value="#{reg.idCaracteristica != null ? reg.idCaracteristica.nombre : 'Sin asignación'}" />
+                    <h:outputText value="#{reg.idCaracteristica != null ? reg.idCaracteristica.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
-                <p:column headerText="Tipo de característica">
+                <p:column headerText="#{trad['caracteristica.tipo']}">
                     <h:outputText value="#{reg.idCaracteristica != null and reg.idCaracteristica.idTipoCaracteristica != null ? reg.idCaracteristica.idTipoCaracteristica.nombre : ''}" />
                 </p:column>
                 <p:column headerText="Valor">
@@ -80,7 +80,7 @@
                                          required="true"
                                          requiredMessage="Producto es obligatorio."
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{productoCaracteristicaModel.listaProducto}" var="p"
                                            itemLabel="#{p.nombre}"
                                            itemValue="#{p}" />
@@ -93,7 +93,7 @@
                                          required="true"
                                          requiredMessage="Característica es obligatoria."
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{productoCaracteristicaModel.listaCaracteristica}" var="c"
                                            itemLabel="#{c.nombre}"
                                            itemValue="#{c}" />

@@ -8,7 +8,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Facturas
+       #{trad['pagina.factura']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -21,7 +21,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idFactura}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{facturaModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -31,29 +31,29 @@
 
              
 
-                <p:column headerText="Fecha" style="width: 140px;">
+                <p:column headerText="#{trad['comun.fecha']}" style="width: 140px;">
                     <h:outputText value="#{reg.fechaFacturacion}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Cliente">
+                <p:column headerText="#{trad['factura.cliente']}">
                     <h:outputText value="#{reg.cliente}" />
                 </p:column>
 
-                <p:column headerText="Caja" style="width: 110px;">
-                    <h:outputText value="#{reg.idCaja != null ? reg.idCaja.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['factura.caja']}" style="width: 110px;">
+                    <h:outputText value="#{reg.idCaja != null ? reg.idCaja.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
 
-                <p:column headerText="Cajero">
-                    <h:outputText value="#{reg.idEmpleadoRol != null ? facturaModel.obtenerTextoEmpleadoRol(reg.idEmpleadoRol) : 'Sin asignación'}" />
+                <p:column headerText="#{trad['factura.cajero']}">
+                    <h:outputText value="#{reg.idEmpleadoRol != null ? facturaModel.obtenerTextoEmpleadoRol(reg.idEmpleadoRol) : trad['comun.sinAsignacion']}" />
                 </p:column>
 
-                <p:column headerText="Estado" style="width: 120px; text-align: center;">
+                <p:column headerText="#{trad['comun.estado']}" style="width: 120px; text-align: center;">
                     <p:tag value="#{reg.estado}" severity="#{facturaModel.severidadEstado(reg.estado)}" />
                 </p:column>
                 
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{empty reg.observaciones ? '—' : reg.observaciones}" />
                 </p:column>
             </p:dataTable>
@@ -68,29 +68,29 @@
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{facturaModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Factura">
+                <p:panel header="#{trad['factura.detalle']}">
                     <p:panelGrid columns="2">
                         <p:outputLabel value="ID" for="txtId" />
                         <p:inputText id="txtId" value="#{facturaModel.registro.idFactura}"
                                      readonly="true" size="40" />
 
-                        <p:outputLabel value="Fecha" />
+                        <p:outputLabel value="#{trad['comun.fecha']}" />
                         <h:outputText value="#{facturaModel.registro.fechaFacturacion}">
                             <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                         </h:outputText>
 
-                        <p:outputLabel value="Caja" for="cboCaja" />
+                        <p:outputLabel value="#{trad['factura.caja']}" for="cboCaja" />
                         <p:selectOneMenu id="cboCaja" value="#{facturaModel.registro.idCaja}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="La caja es obligatoria."
+                                         required="true" requiredMessage="#{trad['factura.cajaObligatoria']}"
                                          style="width: 350px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{facturaModel.listaCaja}" var="x"
                                            itemLabel="#{x.nombre}" itemValue="#{x}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Cajero" for="acEmpleadoRol" />
+                        <p:outputLabel value="#{trad['factura.cajero']}" for="acEmpleadoRol" />
                         <p:autoComplete id="acEmpleadoRol"
                                         value="#{facturaModel.registro.idEmpleadoRol}"
                                         completeMethod="#{facturaModel.completarEmpleadoRol}"
@@ -103,15 +103,15 @@
                                         queryDelay="300"
                                         scrollHeight="250"
                                         size="40"
-                                        placeholder="Escriba nombre, apellido o rol..."
-                                        emptyMessage="No se encontraron empleados activos"
+                                        placeholder="#{trad['factura.buscarEmpleado']}"
+                                        emptyMessage="#{trad['factura.sinEmpleados']}"
                                         required="true"
-                                        requiredMessage="Debe seleccionar el cajero." />
+                                        requiredMessage="#{trad['factura.cajeroObligatorio']}" />
 
-                        <p:outputLabel value="Cliente" for="txtCliente" />
+                        <p:outputLabel value="#{trad['factura.cliente']}" for="txtCliente" />
                         <p:inputText id="txtCliente" value="#{facturaModel.registro.cliente}"
                                      maxlength="155" size="40"
-                                     placeholder="Consumidor final" />
+                                     placeholder="#{trad['factura.consumidorFinal']}" />
 
                         <p:outputLabel value="Estado" for="cboEstado" />
                         <p:selectOneMenu id="cboEstado" value="#{facturaModel.registro.estado}"

@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Gestión de Características
+        #{trad['pagina.caracteristica']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idCaracteristica}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{caracteristicaModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,17 +30,17 @@
                         resetValues="true"
                         update=":frmCaracteristica" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
-                <p:column headerText="Tipo de característica">
-                    <h:outputText value="#{reg.idTipoCaracteristica != null ? reg.idTipoCaracteristica.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['caracteristica.tipo']}">
+                    <h:outputText value="#{reg.idTipoCaracteristica != null ? reg.idTipoCaracteristica.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
-                <p:column headerText="Estado" style="width: 120px; text-align: center;">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}" style="width: 120px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
             </p:dataTable>
 
@@ -69,13 +69,13 @@
 
             <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{caracteristicaModel.estado != 'NINGUNO'}">
-                <p:panel header="Detalle de la Característica">
+                <p:panel header="#{trad['caracteristica.detalle']}">
                     <p:panelGrid columns="2" 
                                  columnClasses="ui-grid-col-2, ui-grid-col-10" 
                                  layout="grid" 
                                  styleClass="ui-panelgrid-blank">
 
-                        <p:outputLabel for="txtTipoCaracteristica" value="Tipo Característica:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtTipoCaracteristica" value="#{trad['caracteristica.tipo']}:" style="font-weight: bold;" />
                         <p:autoComplete id="txtTipoCaracteristica" 
                                         value="#{caracteristicaModel.registro.idTipoCaracteristica}" 
                                         completeMethod="#{caracteristicaModel.completarTipoCaracteristica}"
@@ -88,22 +88,22 @@
                                         disabled="#{caracteristicaModel.estado == 'MODIFICAR'}"
                                         minQueryLength="1"
                                         required="true" 
-                                        requiredMessage="El Tipo de Característica es obligatorio." 
+                                        requiredMessage="#{trad['caracteristica.tipoObligatorio']}" 
                                         style="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" style="font-weight: bold;" />
                         <p:inputText id="txtNombre" 
                                      value="#{caracteristicaModel.registro.nombre}" 
                                      required="true" 
-                                     requiredMessage="El nombre es obligatorio." 
+                                     requiredMessage="#{trad['comun.nombreObligatorio']}" 
                                      style="max-width: 350px; width: 100%;" />
 
-                        <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                        <p:outputLabel for="chkActivo" value="#{trad['comun.activo']}:" style="font-weight: bold;" />
                         <h:panelGroup>
                             <p:selectBooleanCheckbox id="chkActivo" value="#{caracteristicaModel.registro.activo}" />
                         </h:panelGroup>
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                         <p:inputTextarea id="txtObservaciones" 
                                          value="#{caracteristicaModel.registro.observaciones}" 
                                          rows="3" 

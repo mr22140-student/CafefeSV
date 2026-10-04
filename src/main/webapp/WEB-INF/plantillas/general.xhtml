@@ -7,7 +7,8 @@
       xmlns:p="http://primefaces.org/ui">
 
     <h:head>
-        <title>CafefeSV POS</title>
+        <!-- Nombre de la pestaña del navegador: "CafefeSV POS - <título de la página>" -->
+        <title>#{trad['app.titulo']} - <ui:insert name="leyenda" /></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     </h:head>
 
@@ -44,36 +45,26 @@
                 <div class="ui-g-2">
                     <ui:insert name="menu">
                         <p:panelMenu id="menuPrincipal" style="width: 100%;" stateful="true">
-                            <p:submenu label="Personal">
-                                <p:menuitem value="Empleados" outcome="/paginas/Empleado" icon="pi pi-user" />
-                                <p:menuitem value="Roles" outcome="/paginas/Rol" icon="pi pi-id-card" />
+                            <p:submenu label="#{trad['menu.personal']}">
+                                <p:menuitem value="#{trad['menu.empleados']}" outcome="/paginas/Empleado" icon="pi pi-user" />
+                                <p:menuitem value="#{trad['menu.roles']}" outcome="/paginas/Rol" icon="pi pi-id-card" />
                             </p:submenu>
 
-                            <p:submenu label="Productos">
-                                <p:menuitem value="Tipos de producto" outcome="/paginas/TipoProducto" icon="pi pi-shopping-cart"/>
-                                <p:menuitem value="Productos" outcome="/paginas/Producto" />
-                                <p:menuitem value="Producto por tipo" outcome="/paginas/ProductoTipoProducto" />
-                                <p:menuitem value="Tipos de característica" outcome="/paginas/TipoCaracteristica" />
-                                <p:menuitem value="Características" outcome="/paginas/Caracteristica" />
-                                <p:menuitem value="Características por producto" outcome="/paginas/ProductoCaracteristica" />
+                            <p:submenu label="#{trad['menu.productos']}">
+                                <p:menuitem value="#{trad['menu.tiposProducto']}" outcome="/paginas/TipoProducto" icon="pi pi-tags" />
+                                <p:menuitem value="#{trad['menu.productos']}" outcome="/paginas/Producto" icon="pi pi-shopping-cart" />
+                                <p:menuitem value="#{trad['menu.tiposCaracteristica']}" outcome="/paginas/TipoCaracteristica" icon="pi pi-sliders-h" />
+                                <p:menuitem value="#{trad['menu.caracteristicas']}" outcome="/paginas/Caracteristica" icon="pi pi-list" />
                             </p:submenu>
 
-                            <p:submenu label="Descuentos">
-                                <p:menuitem value="Tipos de descuento" outcome="/paginas/TipoDescuento" />
-                                <p:menuitem value="Descuentos" outcome="/paginas/Descuento" />
-                                <p:menuitem value="Descuentos por producto" outcome="/paginas/DescuentoProducto" />
+                            <p:submenu label="#{trad['menu.descuentos']}">
+                                <p:menuitem value="#{trad['menu.tiposDescuento']}" outcome="/paginas/TipoDescuento" icon="pi pi-percentage" />
+                                <p:menuitem value="#{trad['menu.descuentos']}" outcome="/paginas/Descuento" icon="pi pi-tag" />
                             </p:submenu>
 
-                            <p:submenu label="Ventas">
-                                <p:menuitem value="Órdenes" outcome="/paginas/Orden" icon="pi pi-list" />
-                                <p:menuitem value="Productos por orden" outcome="/paginas/OrdenProducto" icon="pi pi-plus-circle" />
-                            </p:submenu>
-
-                            <p:submenu label="Facturación">
-                                <p:menuitem value="Facturas" outcome="/paginas/Factura" icon="pi pi-file" />
-                                <p:menuitem value="Productos por factura" outcome="/paginas/FacturaOrdenProducto" icon="pi pi-file-edit" />
-                                <p:menuitem value="Pagos" outcome="/paginas/Pago" icon="pi pi-credit-card" />
-                                <p:menuitem value="Detalle de pagos" outcome="/paginas/PagoDetalle" icon="pi pi-money-bill" />
+                            <p:submenu label="#{trad['menu.ventas']}">
+                                <p:menuitem value="#{trad['menu.ordenes']}" outcome="/paginas/Orden" icon="pi pi-list" />
+                                <p:menuitem value="#{trad['menu.productosOrden']}" outcome="/paginas/OrdenProducto" icon="pi pi-plus-circle" />
                             </p:submenu>
                         </p:panelMenu>
                     </ui:insert>
@@ -90,7 +81,7 @@
 
             <!-- Pie de página (Fila 3) -->
             <div class="ui-g-12">
-                <p>Todos los derechos reservados © 2026</p>
+                <p>#{trad['app.derechos']}</p>
             </div>
 
             <ui:insert name="extras" />

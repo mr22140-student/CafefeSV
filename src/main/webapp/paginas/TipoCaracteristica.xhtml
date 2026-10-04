@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idTipoCaracteristica}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{tipoCaracteristicaModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,7 +30,7 @@
                         resetValues="true"
                         update=":frmTipoCaracteristica" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
                 <p:column headerText="Expresión regular">
@@ -39,8 +39,8 @@
                 <p:column headerText="Observaciones">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
-                <p:column headerText="Estado" style="width: 120px; text-align: center;">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}" style="width: 120px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
             </p:dataTable>
 
@@ -76,11 +76,11 @@
                                      columnClasses="ui-grid-col-3, ui-grid-col-9" 
                                      styleClass="ui-panelgrid-blank ui-fluid">
 
-                            <p:outputLabel for="txtNombre" value="Nombre:" />
+                            <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" />
                             <p:inputText id="txtNombre" 
                                          value="#{tipoCaracteristicaModel.registro.nombre}" 
                                          required="true" 
-                                         requiredMessage="El nombre es obligatorio." />
+                                         requiredMessage="#{trad['comun.nombreObligatorio']}" />
 
                             <p:outputLabel for="txtExpresionRegular" value="Expresión regular:" />
                             <h:panelGroup layout="block">
@@ -93,10 +93,10 @@
                                 </small>
                             </h:panelGroup>
 
-                            <p:outputLabel for="chkActivo" value="Activo:" />
+                            <p:outputLabel for="chkActivo" value="#{trad['comun.activo']}:" />
                             <p:selectBooleanCheckbox id="chkActivo" value="#{tipoCaracteristicaModel.registro.activo}" />
 
-                            <p:outputLabel for="txtObservaciones" value="Observaciones:" />
+                            <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" />
                             <p:inputTextarea id="txtObservaciones" 
                                              value="#{tipoCaracteristicaModel.registro.observaciones}" 
                                              rows="3" />
