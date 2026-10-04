@@ -41,10 +41,14 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     private static final long serialVersionUID = 1L;
     private static final int MAX_SUGERENCIAS = 10;
 
-    /** Único rol que puede tomar órdenes (según la rúbrica). */
+    /**
+     * Único rol que puede tomar órdenes (según la rúbrica).
+     */
     private static final String ROL_PERMITIDO = "camarero";
 
-    /** Las observaciones de un producto con descuento empiezan con este texto. */
+    /**
+     * Las observaciones de un producto con descuento empiezan con este texto.
+     */
     private static final String PREFIJO_DESCUENTO = "Descuento ";
 
     @Inject
@@ -73,13 +77,19 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     private Map<UUID, EmpleadoRol> empleadosRol = new HashMap<>();
 
     // ===== Pestaña "Productos" =====
-    /** Productos de la orden seleccionada. */
+    /**
+     * Productos de la orden seleccionada.
+     */
     private List<OrdenProducto> productosOrden = new ArrayList<>();
 
-    /** Producto elegido en el combo para agregar. */
+    /**
+     * Producto elegido en el combo para agregar.
+     */
     private Producto productoSeleccionado;
 
-    /** Descuento elegido en el combo para aplicar. */
+    /**
+     * Descuento elegido en el combo para aplicar.
+     */
     private Descuento descuentoSeleccionado;
 
     @PostConstruct
@@ -113,7 +123,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Pestaña "Datos de la orden" =================
-
     @Override
     public void btnCrearHandler() {
         if (esValida()) {
@@ -153,8 +162,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Pestaña "Productos" =================
-
-    /** Al seleccionar una orden, carga sus productos. */
+    /**
+     * Al seleccionar una orden, carga sus productos.
+     */
     @Override
     public void seleccionarRegistro(Orden entidad) {
         super.seleccionarRegistro(entidad);
@@ -169,7 +179,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
                 : new ArrayList<>(ordenProductoDAO.findByOrden(registro));
     }
 
-    /** Agrega a la orden el producto elegido, con su precio sugerido. */
+    /**
+     * Agrega a la orden el producto elegido, con su precio sugerido.
+     */
     public void btnAgregarProductoHandler() {
         if (productoSeleccionado == null) {
             mensaje(FacesMessage.SEVERITY_WARN, "Seleccione un producto.");
@@ -186,11 +198,11 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     /**
-     * Aplica el descuento elegido a los productos de la orden que:
-     *  1) estén autorizados para ese descuento (DescuentoProducto), y
-     *  2) la fecha de la orden esté dentro del rango del descuento
-     *     (si no tiene fecha hasta, es abierto y no vence).
-     * Baja el precio y escribe el detalle en las observaciones.
+     * Aplica el descuento elegido a los productos de la orden que: 1) estén
+     * autorizados para ese descuento (DescuentoProducto), y 2) la fecha de la
+     * orden esté dentro del rango del descuento (si no tiene fecha hasta, es
+     * abierto y no vence). Baja el precio y escribe el detalle en las
+     * observaciones.
      */
     public void btnAplicarDescuentoHandler() {
         if (descuentoSeleccionado == null) {
@@ -225,10 +237,12 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
             if (ordenProductoDAO.countFacturas(op) > 0) {
                 continue; // ya facturado, no se cambia
             }
-            BigDecimal monto = calcularMonto(op.getPrecio(), dp.getValor());
-            op.setPrecio(op.getPrecio().subtract(monto));
+            BigDecimal precioOriginal = op.getPrecio();
+            BigDecimal monto = calcularMonto(precioOriginal, dp.getValor());
+            op.setPrecio(precioOriginal.subtract(monto));
             op.setObservaciones(PREFIJO_DESCUENTO + d.getNombre()
-                    + " (" + dp.getValor() + "%): -$" + monto);
+                    + " (" + dp.getValor() + "%): -$" + monto
+                    + " (precio original $" + precioOriginal + ")");
             ordenProductoDAO.update(op);
             aplicados++;
         }
@@ -246,7 +260,10 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         cargarProductos();
     }
 
-    /** Busca si el producto está autorizado para el descuento en la fecha de la orden. */
+    /**
+     * Busca si el producto está autorizado para el descuento en la fecha de la
+     * orden.
+     */
     private DescuentoProducto buscarAutorizacion(List<DescuentoProducto> autorizados, Producto producto, Date fecha) {
         for (DescuentoProducto dp : autorizados) {
             if (producto != null && producto.equals(dp.getIdProducto())
@@ -257,7 +274,10 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return null;
     }
 
-    /** true si la fecha está entre desde y hasta. Si hasta es null, el rango es abierto. */
+    /**
+     * true si la fecha está entre desde y hasta. Si hasta es null, el rango es
+     * abierto.
+     */
     private boolean dentroDeRango(Date fecha, Date desde, Date hasta) {
         if (fecha == null) {
             return false;
@@ -267,7 +287,10 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return despuesDeInicio && antesDeFin;
     }
 
-    /** Monto a descontar. valor = porcentaje (10 = 10%). Si fuera monto fijo, devolver BigDecimal.valueOf(valor). */
+    /**
+     * Monto a descontar. valor = porcentaje (10 = 10%). Si fuera monto fijo,
+     * devolver BigDecimal.valueOf(valor).
+     */
     private BigDecimal calcularMonto(BigDecimal precio, Integer valor) {
         return precio.multiply(BigDecimal.valueOf(valor))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
@@ -277,7 +300,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return op.getObservaciones() != null && op.getObservaciones().startsWith(PREFIJO_DESCUENTO);
     }
 
-    /** Total de la orden (suma de precios, ya con descuentos). */
+    /**
+     * Total de la orden (suma de precios, ya con descuentos).
+     */
     public BigDecimal getTotal() {
         BigDecimal total = BigDecimal.ZERO;
         for (OrdenProducto op : productosOrden) {
@@ -288,7 +313,10 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return total;
     }
 
-    /** "Navidad (01/12/2026 - 31/12/2026)" o "Frecuente (desde 01/10/2026, abierto)". */
+    /**
+     * "Navidad (01/12/2026 - 31/12/2026)" o "Frecuente (desde 01/10/2026,
+     * abierto)".
+     */
     public String etiquetaDescuento(Descuento d) {
         if (d == null) {
             return "";
@@ -304,7 +332,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= AutoComplete (solo camareros) =================
-
     public List<EmpleadoRol> completarEmpleadoRol(String consulta) {
         String[] palabras = normalizar(consulta).split("\\s+");
         List<EmpleadoRol> resultado = new ArrayList<>();
@@ -328,7 +355,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return resultado.size() > MAX_SUGERENCIAS ? resultado.subList(0, MAX_SUGERENCIAS) : resultado;
     }
 
-    /** "Nombre Apellido (Rol)" para la tabla y el AutoComplete. */
+    /**
+     * "Nombre Apellido (Rol)" para la tabla y el AutoComplete.
+     */
     public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
         if (er == null) {
             return "";
@@ -364,7 +393,10 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         };
     }
 
-    /** Solo camareros: asignación activa, empleado activo y rol activo llamado "camarero". */
+    /**
+     * Solo camareros: asignación activa, empleado activo y rol activo llamado
+     * "camarero".
+     */
     private boolean estaDisponible(EmpleadoRol er) {
         Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
         return Boolean.TRUE.equals(er.getActivo())
@@ -380,7 +412,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Utilidades =================
-
     private void mensaje(FacesMessage.Severity severidad, String texto) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
     }
@@ -400,8 +431,9 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     // ================= Getters / Setters =================
-
-    /** Solo productos activos para el combo. */
+    /**
+     * Solo productos activos para el combo.
+     */
     public List<Producto> getListaProducto() {
         List<Producto> lista = new ArrayList<>();
         for (Producto p : productoDAO.findRange(0, 1000)) {
@@ -412,8 +444,18 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         return lista;
     }
 
+    /**
+     * Solo los descuentos vigentes en la fecha de la orden.
+     */
     public List<Descuento> getListaDescuento() {
-        return descuentoDAO.findRange(0, 1000);
+        List<Descuento> lista = new ArrayList<>();
+        Date fechaOrden = (registro != null) ? registro.getFechaCreacion() : null;
+        for (Descuento d : descuentoDAO.findRange(0, 1000)) {
+            if (dentroDeRango(fechaOrden, d.getFechaDesde(), d.getFechaHasta())) {
+                lista.add(d);
+            }
+        }
+        return lista;
     }
 
     public List<OrdenProducto> getProductosOrden() {
