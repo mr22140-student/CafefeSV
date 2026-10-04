@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Pagos
+       #{trad['pagina.pago']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -20,7 +20,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idPago}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{pagoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -28,23 +28,23 @@
                         resetValues="true"
                         update=":frmPago" />
 
-                <p:column headerText="Factura">
+                <p:column headerText="#{trad['comun.factura']}">
                     <h:outputText value="#{pagoModel.etiquetaFactura(reg.idFactura)}" />
                 </p:column>
 
-                <p:column headerText="Total factura" style="width: 130px; text-align: right;">
+                <p:column headerText="#{trad['pago.totalFactura']}" style="width: 130px; text-align: right;">
                     <h:outputText value="#{pagoModel.totalFactura(reg.idFactura)}">
                         <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Pagado" style="width: 130px; text-align: right;">
+                <p:column headerText="#{trad['pago.pagado']}" style="width: 130px; text-align: right;">
                     <h:outputText value="#{pagoModel.pagado(reg)}">
                         <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Estado" style="width: 130px; text-align: center;">
+                <p:column headerText="#{trad['comun.estado']}" style="width: 130px; text-align: center;">
                     <p:tag value="#{reg.estado}" severity="#{pagoModel.severidadEstado(reg.estado)}" />
                 </p:column>
 
@@ -63,27 +63,27 @@
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{pagoModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Pago">
+                <p:panel header="#{trad['pago.detalle']}">
                     <p:panelGrid columns="2">
-                        <p:outputLabel value="Factura" for="cboFactura" />
+                        <p:outputLabel value="#{trad['comun.factura']}" for="cboFactura" />
                         <p:selectOneMenu id="cboFactura" value="#{pagoModel.registro.idFactura}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="La factura es obligatoria."
+                                         required="true" requiredMessage="#{trad['comun.facturaObligatoria']}"
                                          disabled="#{pagoModel.estado == 'MODIFICAR'}"
                                          style="width: 400px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{pagoModel.listaFacturaPendiente}" var="x"
                                            itemLabel="#{pagoModel.etiquetaFactura(x)}" itemValue="#{x}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Total factura" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
+                        <p:outputLabel value="#{trad['pago.totalFactura']}" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
                         <h:outputText value="#{pagoModel.totalFactura(pagoModel.registro.idFactura)}"
                                       rendered="#{pagoModel.estado == 'MODIFICAR'}">
                             <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                         </h:outputText>
 
-                        <p:outputLabel value="Pagado" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
+                        <p:outputLabel value="#{trad['pago.pagado']}" rendered="#{pagoModel.estado == 'MODIFICAR'}" />
                         <h:outputText value="#{pagoModel.pagado(pagoModel.registro)}"
                                       rendered="#{pagoModel.estado == 'MODIFICAR'}">
                             <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />

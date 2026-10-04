@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Gestión de Productos
+       #{trad['pagina.producto']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idProducto}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{productoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,19 +30,19 @@
                         resetValues="true"
                         update=":frmProducto" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
-                <p:column headerText="Precio sugerido">
+                <p:column headerText="#{trad['producto.precioSugerido']}">
                     <h:outputText value="#{reg.precioSugerido}">
                         <f:convertNumber type="currency" currencySymbol="$" locale="en_US" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
-                <p:column headerText="Comentarios">
+                <p:column headerText="#{trad['comun.comentarios']}">
                     <h:outputText value="#{reg.comentarios}" />
                 </p:column>
-                <p:column headerText="Estado" style="width: 100px; text-align: center;">
-                    <h:outputText value="#{reg.activo ? 'ACTIVO' : 'INACTIVO'}" />
+                <p:column headerText="#{trad['comun.estado']}" style="width: 100px; text-align: center;">
+                    <h:outputText value="#{reg.activo ? trad['comun.estado.activo'] : trad['comun.estado.inactivo']}" />
                 </p:column>
             </p:dataTable>
 
@@ -70,30 +70,30 @@
             <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{productoModel.estado != 'NINGUNO'}">
                 <p:tabView id="tvProducto" activeIndex="#{productoModel.tabActiva}">
-                    <p:tab title="Generalidades">
+                    <p:tab title="#{trad['producto.tab.generalidades']}">
                         <p:panelGrid columns="2"
                                      columnClasses="ui-grid-col-2, ui-grid-col-10"
                                      layout="grid"
                                      styleClass="ui-panelgrid-blank">
 
-                            <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                            <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" style="font-weight: bold;" />
                             <p:inputText id="txtNombre" value="#{productoModel.registro.nombre}" maxlength="155"
                                          required="true"
-                                         requiredMessage="Nombre es obligatorio."
+                                         requiredMessage="#{trad['comun.nombreObligatorio']}"
                                          style="max-width: 350px; width: 100%;" />
 
-                            <p:outputLabel for="txtPrecioSugerido" value="Precio sugerido:" style="font-weight: bold;" />
+                            <p:outputLabel for="txtPrecioSugerido" value="#{trad['producto.precioSugerido']}:" style="font-weight: bold;" />
                             <p:inputNumber id="txtPrecioSugerido" value="#{productoModel.registro.precioSugerido}"
                                            symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
                                            required="true"
-                                           requiredMessage="Precio sugerido es obligatorio." />
+                                           requiredMessage="#{trad['producto.precioObligatorio']}" />
 
-                            <p:outputLabel for="chkActivo" value="Activo:" style="font-weight: bold;" />
+                            <p:outputLabel for="chkActivo" value="#{trad['comun.activo']}:" style="font-weight: bold;" />
                             <h:panelGroup>
                                 <p:selectBooleanCheckbox id="chkActivo" value="#{productoModel.registro.activo}" />
                             </h:panelGroup>
 
-                            <p:outputLabel for="txtComentarios" value="Comentarios:" style="font-weight: bold;" />
+                            <p:outputLabel for="txtComentarios" value="#{trad['comun.comentarios']}:" style="font-weight: bold;" />
                             <p:inputTextarea id="txtComentarios" value="#{productoModel.registro.comentarios}" rows="3"
                                              style="max-width: 350px; width: 100%;" />
 
@@ -131,7 +131,7 @@
                     </p:tab>
 
                     <!-- ===== PESTAÑA 2: TIPOS DE PRODUCTO ===== -->
-                    <p:tab title="Tipos de Producto" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                    <p:tab title="#{trad['producto.tab.tipos']}" rendered="#{productoModel.estado == 'MODIFICAR'}">
                         <h:panelGroup id="pnlTipos" layout="block">
 
                             <!-- Tabla de tipos del producto -->
@@ -142,7 +142,7 @@
                                          selectionMode="single"
                                          rowKey="#{t.idProductoTipoProducto}"
                                          paginator="true" rows="5"
-                                         emptyMessage="Este producto aún no tiene tipos asignados"
+                                         emptyMessage="#{trad['producto.sinTipos']}"
                                          rendered="#{productoModel.estadoTipo == 'NINGUNO'}">
 
                                 <p:ajax event="rowSelect"
@@ -150,20 +150,20 @@
                                         process="@this"
                                         update="pnlTipos" />
 
-                                <p:column headerText="Tipo de Producto">
-                                    <h:outputText value="#{t.idTipoProducto != null ? t.idTipoProducto.nombre : 'Sin asignación'}" />
+                                <p:column headerText="#{trad['producto.tipo']}">
+                                    <h:outputText value="#{t.idTipoProducto != null ? t.idTipoProducto.nombre : trad['comun.sinAsignacion']}" />
                                 </p:column>
-                                <p:column headerText="Fecha de creación">
+                                <p:column headerText="#{trad['producto.fechaCreacion']}">
                                     <h:outputText value="#{t.fechaCreacion}">
                                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                                     </h:outputText>
                                 </p:column>
-                                <p:column headerText="Observaciones">
+                                <p:column headerText="#{trad['comun.observaciones']}">
                                     <h:outputText value="#{t.observaciones}" />
                                 </p:column>
                             </p:dataTable>
 
-                            <p:commandButton value="Nuevo Tipo de Producto"
+                            <p:commandButton value="#{trad['producto.nuevoTipo']}"
                                              icon="pi pi-plus"
                                              style="margin-top: 10px;"
                                              action="#{productoModel.nuevoTipo()}"
@@ -178,14 +178,14 @@
                                              layout="grid"
                                              styleClass="ui-panelgrid-blank">
 
-                                    <p:outputLabel value="Tipo de Producto:" style="font-weight: bold;" />
+                                    <p:outputLabel value="#{trad['producto.tipo']}:" style="font-weight: bold;" />
                                     <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
                                         <p:inputText id="txtTipoProducto"
                                                      value="#{productoModel.registroTipo.idTipoProducto != null ? productoModel.registroTipo.idTipoProducto.nombre : ''}"
                                                      readonly="true"
-                                                     placeholder="Ninguno seleccionado"
+                                                     placeholder="#{trad['producto.ningunoSeleccionado']}"
                                                      style="max-width: 250px; width: 100%;" />
-                                        <p:commandButton value="Seleccionar tipo"
+                                        <p:commandButton value="#{trad['producto.seleccionarTipo']}"
                                                          icon="pi pi-search"
                                                          disabled="#{productoModel.estadoTipo == 'MODIFICAR'}"
                                                          action="#{productoModel.abrirDialogoTipo()}"
@@ -194,36 +194,36 @@
                                                          oncomplete="PF('dlgTipo').show()" />
                                     </h:panelGroup>
 
-                                    <p:outputLabel value="Fecha de creación:" style="font-weight: bold;" />
+                                    <p:outputLabel value="#{trad['producto.fechaCreacion']}:" style="font-weight: bold;" />
                                     <h:outputText value="#{productoModel.registroTipo.fechaCreacion}">
                                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                                     </h:outputText>
 
-                                    <p:outputLabel for="txtObsTipo" value="Observaciones:" style="font-weight: bold;" />
+                                    <p:outputLabel for="txtObsTipo" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                                     <p:inputTextarea id="txtObsTipo" value="#{productoModel.registroTipo.observaciones}" rows="3"
                                                      style="max-width: 350px; width: 100%;" />
                                 </p:panelGrid>
 
                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                    <p:commandButton value="Guardar Tipo de Producto"
+                                    <p:commandButton value="#{trad['producto.guardarTipo']}"
                                                      icon="pi pi-save"
                                                      action="#{productoModel.guardarTipo()}"
                                                      process="@this txtObsTipo"
                                                      update="pnlTipos :frmProducto:messages" />
 
-                                    <p:commandButton value="Eliminar"
+                                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
                                                      icon="pi pi-trash"
                                                      styleClass="ui-button-danger"
                                                      action="#{productoModel.eliminarTipo()}"
                                                      rendered="#{productoModel.estadoTipo == 'MODIFICAR'}"
                                                      process="@this"
                                                      update="pnlTipos :frmProducto:messages">
-                                        <p:confirm header="Eliminar tipo"
-                                                   message="¿Quitar este tipo del producto?"
+                                        <p:confirm header="#{trad['producto.quitarTipo.titulo']}"
+                                                   message="#{trad['producto.quitarTipo.mensaje']}"
                                                    icon="pi pi-exclamation-triangle" />
                                     </p:commandButton>
 
-                                    <p:commandButton value="Cancelar Tipo de Producto"
+                                    <p:commandButton value="#{trad['producto.cancelarTipo']}"
                                                      icon="pi pi-times"
                                                      styleClass="ui-button-secondary"
                                                      action="#{productoModel.cancelarTipo()}"
@@ -235,7 +235,7 @@
                         </h:panelGroup>
                     </p:tab>
                     <!-- ===== PESTAÑA 3: CARACTERÍSTICAS ===== -->
-                    <p:tab title="Características" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                    <p:tab title="#{trad['producto.tab.caracteristicas']}" rendered="#{productoModel.estado == 'MODIFICAR'}">
                         <h:panelGroup id="pnlCaracteristicas" layout="block">
 
                             <!-- Tabla de características del producto -->
@@ -246,7 +246,7 @@
                                          selectionMode="single"
                                          rowKey="#{pc.idProductoCaracteristica}"
                                          paginator="true" rows="5"
-                                         emptyMessage="Este producto aún no tiene características"
+                                         emptyMessage="#{trad['producto.sinCaracteristicas']}"
                                          rendered="#{productoModel.estadoCaracteristica == 'NINGUNO'}">
 
                                 <p:ajax event="rowSelect"
@@ -254,18 +254,18 @@
                                         process="@this"
                                         update="pnlCaracteristicas" />
 
-                                <p:column headerText="Característica">
-                                    <h:outputText value="#{pc.idCaracteristica != null ? pc.idCaracteristica.nombre : 'Sin asignación'}" />
+                                <p:column headerText="#{trad['producto.caracteristica']}">
+                                    <h:outputText value="#{pc.idCaracteristica != null ? pc.idCaracteristica.nombre : trad['comun.sinAsignacion']}" />
                                 </p:column>
-                                <p:column headerText="Tipo">
+                                <p:column headerText="#{trad['producto.tipoCol']}">
                                     <h:outputText value="#{pc.idCaracteristica != null and pc.idCaracteristica.idTipoCaracteristica != null ? pc.idCaracteristica.idTipoCaracteristica.nombre : ''}" />
                                 </p:column>
-                                <p:column headerText="Valor">
+                                <p:column headerText="#{trad['producto.valor']}">
                                     <h:outputText value="#{pc.valor}" />
                                 </p:column>
                             </p:dataTable>
 
-                            <p:commandButton value="Nueva Característica"
+                            <p:commandButton value="#{trad['producto.nuevaCaracteristica']}"
                                              icon="pi pi-plus"
                                              style="margin-top: 10px;"
                                              action="#{productoModel.nuevaCaracteristica()}"
@@ -280,14 +280,14 @@
                                              layout="grid"
                                              styleClass="ui-panelgrid-blank">
 
-                                    <p:outputLabel value="Característica:" style="font-weight: bold;" />
+                                    <p:outputLabel value="#{trad['producto.caracteristica']}:" style="font-weight: bold;" />
                                     <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
                                         <p:inputText id="txtCaracteristica"
                                                      value="#{productoModel.registroCaracteristica.idCaracteristica != null ? productoModel.registroCaracteristica.idCaracteristica.nombre : ''}"
                                                      readonly="true"
-                                                     placeholder="Ninguna seleccionada"
+                                                     placeholder="#{trad['producto.ningunaSeleccionada']}"
                                                      style="max-width: 250px; width: 100%;" />
-                                        <p:commandButton value="Seleccionar característica"
+                                        <p:commandButton value="#{trad['producto.seleccionarCaracteristica']}"
                                                          icon="pi pi-search"
                                                          disabled="#{productoModel.estadoCaracteristica == 'MODIFICAR'}"
                                                          action="#{productoModel.abrirDialogoCaracteristica()}"
@@ -296,7 +296,7 @@
                                                          oncomplete="PF('dlgCaracteristica').show()" />
                                     </h:panelGroup>
 
-                                    <p:outputLabel for="txtValorCaract" value="Valor:" style="font-weight: bold;" />
+                                    <p:outputLabel for="txtValorCaract" value="#{trad['producto.valor']}:" style="font-weight: bold;" />
                                     <h:panelGroup layout="block">
                                         <p:inputText id="txtValorCaract" value="#{productoModel.registroCaracteristica.valor}"
                                                      style="max-width: 350px; width: 100%;" />
@@ -306,25 +306,25 @@
                                 </p:panelGrid>
 
                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                    <p:commandButton value="Guardar Característica"
+                                    <p:commandButton value="#{trad['producto.guardarCaracteristica']}"
                                                      icon="pi pi-save"
                                                      action="#{productoModel.guardarCaracteristica()}"
                                                      process="@this txtValorCaract"
                                                      update="pnlCaracteristicas :frmProducto:messages" />
 
-                                    <p:commandButton value="Eliminar"
+                                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
                                                      icon="pi pi-trash"
                                                      styleClass="ui-button-danger"
                                                      action="#{productoModel.eliminarCaracteristica()}"
                                                      rendered="#{productoModel.estadoCaracteristica == 'MODIFICAR'}"
                                                      process="@this"
                                                      update="pnlCaracteristicas :frmProducto:messages">
-                                        <p:confirm header="Eliminar característica"
-                                                   message="¿Quitar esta característica del producto?"
+                                        <p:confirm header="#{trad['producto.quitarCaracteristica.titulo']}"
+                                                   message="#{trad['producto.quitarCaracteristica.mensaje']}"
                                                    icon="pi pi-exclamation-triangle" />
                                     </p:commandButton>
 
-                                    <p:commandButton value="Cancelar Característica"
+                                    <p:commandButton value="#{trad['producto.cancelarCaracteristica']}"
                                                      icon="pi pi-times"
                                                      styleClass="ui-button-secondary"
                                                      action="#{productoModel.cancelarCaracteristica()}"
@@ -336,7 +336,7 @@
                         </h:panelGroup>
                     </p:tab>
                     <!-- ===== PESTAÑA 4: DESCUENTOS ===== -->
-                    <p:tab title="Descuentos" rendered="#{productoModel.estado == 'MODIFICAR'}">
+                    <p:tab title="#{trad['producto.tab.descuentos']}" rendered="#{productoModel.estado == 'MODIFICAR'}">
                         <h:panelGroup id="pnlDescuentos" layout="block">
 
                             <!-- Tabla de descuentos del producto -->
@@ -347,7 +347,7 @@
                                          selectionMode="single"
                                          rowKey="#{dp.idDescuentoProducto}"
                                          paginator="true" rows="5"
-                                         emptyMessage="Este producto aún no tiene descuentos"
+                                         emptyMessage="#{trad['producto.sinDescuentos']}"
                                          rendered="#{productoModel.estadoDescuento == 'NINGUNO'}">
 
                                 <p:ajax event="rowSelect"
@@ -355,29 +355,29 @@
                                         process="@this"
                                         update="pnlDescuentos" />
 
-                                <p:column headerText="Descuento">
-                                    <h:outputText value="#{dp.idDescuento != null ? dp.idDescuento.nombre : 'Sin asignación'}" />
+                                <p:column headerText="#{trad['producto.descuento']}">
+                                    <h:outputText value="#{dp.idDescuento != null ? dp.idDescuento.nombre : trad['comun.sinAsignacion']}" />
                                 </p:column>
-                                <p:column headerText="Tipo">
+                                <p:column headerText="#{trad['producto.tipoCol']}">
                                     <h:outputText value="#{dp.idDescuento != null and dp.idDescuento.idTipoDescuento != null ? dp.idDescuento.idTipoDescuento.nombre : ''}" />
                                 </p:column>
-                                <p:column headerText="Porcentaje" style="width: 110px; text-align: center;">
+                                <p:column headerText="#{trad['producto.porcentaje']}" style="width: 110px; text-align: center;">
                                     <h:outputText value="#{dp.valor != null ? dp.valor += ' %' : ''}" />
                                 </p:column>
-                                <p:column headerText="Inicio">
+                                <p:column headerText="#{trad['producto.inicio']}">
                                     <h:outputText value="#{dp.fechaDesde}">
                                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                                     </h:outputText>
                                 </p:column>
-                                <p:column headerText="Fin">
+                                <p:column headerText="#{trad['producto.fin']}">
                                     <h:outputText value="#{dp.fechaHasta}" rendered="#{dp.fechaHasta != null}">
                                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                                     </h:outputText>
-                                    <h:outputText value="Sin fin" rendered="#{dp.fechaHasta == null}" />
+                                    <h:outputText value="#{trad['comun.sinFin']}" rendered="#{dp.fechaHasta == null}" />
                                 </p:column>
                             </p:dataTable>
 
-                            <p:commandButton value="Nuevo Descuento"
+                            <p:commandButton value="#{trad['producto.nuevoDescuento']}"
                                              icon="pi pi-plus"
                                              style="margin-top: 10px;"
                                              action="#{productoModel.nuevoDescuento()}"
@@ -392,14 +392,14 @@
                                              layout="grid"
                                              styleClass="ui-panelgrid-blank">
 
-                                    <p:outputLabel value="Descuento:" style="font-weight: bold;" />
+                                    <p:outputLabel value="#{trad['producto.descuento']}:" style="font-weight: bold;" />
                                     <h:panelGroup layout="block" style="display:flex; gap:8px; align-items:center;">
                                         <p:inputText id="txtDescuento"
                                                      value="#{productoModel.registroDescuento.idDescuento != null ? productoModel.registroDescuento.idDescuento.nombre : ''}"
                                                      readonly="true"
-                                                     placeholder="Ninguno seleccionado"
+                                                     placeholder="#{trad['producto.ningunoSeleccionado']}"
                                                      style="max-width: 250px; width: 100%;" />
-                                        <p:commandButton value="Seleccionar descuento"
+                                        <p:commandButton value="#{trad['producto.seleccionarDescuento']}"
                                                          icon="pi pi-search"
                                                          disabled="#{productoModel.estadoDescuento == 'MODIFICAR'}"
                                                          action="#{productoModel.abrirDialogoDescuento()}"
@@ -408,7 +408,7 @@
                                                          oncomplete="PF('dlgDescuento').show()" />
                                     </h:panelGroup>
 
-                                    <p:outputLabel for="txtValorDesc" value="Porcentaje:" style="font-weight: bold;" />
+                                    <p:outputLabel for="txtValorDesc" value="#{trad['producto.porcentaje']}:" style="font-weight: bold;" />
                                     <h:panelGroup layout="block" style="display:flex; gap:10px; align-items:center;">
                                         <p:inputNumber id="txtValorDesc"
                                                        value="#{productoModel.registroDescuento.valor}"
@@ -419,39 +419,39 @@
                                                       style="font-style: italic; color:#6c757d;" />
                                     </h:panelGroup>
 
-                                    <p:outputLabel for="dpDesdeDesc" value="Fecha de inicio:" style="font-weight: bold;" />
+                                    <p:outputLabel for="dpDesdeDesc" value="#{trad['producto.fechaInicio']}:" style="font-weight: bold;" />
                                     <p:datePicker id="dpDesdeDesc" value="#{productoModel.registroDescuento.fechaDesde}"
                                                   showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
 
-                                    <p:outputLabel for="dpHastaDesc" value="Fecha de finalización:" style="font-weight: bold;" />
+                                    <p:outputLabel for="dpHastaDesc" value="#{trad['producto.fechaFin']}:" style="font-weight: bold;" />
                                     <p:datePicker id="dpHastaDesc" value="#{productoModel.registroDescuento.fechaHasta}"
                                                   showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
 
-                                    <p:outputLabel for="txtObsDesc" value="Observaciones:" style="font-weight: bold;" />
+                                    <p:outputLabel for="txtObsDesc" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                                     <p:inputTextarea id="txtObsDesc" value="#{productoModel.registroDescuento.observaciones}" rows="3"
                                                      style="max-width: 350px; width: 100%;" />
                                 </p:panelGrid>
 
                                 <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                    <p:commandButton value="Guardar Descuento"
+                                    <p:commandButton value="#{trad['producto.guardarDescuento']}"
                                                      icon="pi pi-save"
                                                      action="#{productoModel.guardarDescuento()}"
                                                      process="@this txtValorDesc dpDesdeDesc dpHastaDesc txtObsDesc"
                                                      update="pnlDescuentos :frmProducto:messages" />
 
-                                    <p:commandButton value="Eliminar"
+                                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}"
                                                      icon="pi pi-trash"
                                                      styleClass="ui-button-danger"
                                                      action="#{productoModel.eliminarDescuento()}"
                                                      rendered="#{productoModel.estadoDescuento == 'MODIFICAR'}"
                                                      process="@this"
                                                      update="pnlDescuentos :frmProducto:messages">
-                                        <p:confirm header="Eliminar descuento"
-                                                   message="¿Quitar este descuento del producto?"
+                                        <p:confirm header="#{trad['producto.quitarDescuento.titulo']}"
+                                                   message="#{trad['producto.quitarDescuento.mensaje']}"
                                                    icon="pi pi-exclamation-triangle" />
                                     </p:commandButton>
 
-                                    <p:commandButton value="Cancelar Descuento"
+                                    <p:commandButton value="#{trad['producto.cancelarDescuento']}"
                                                      icon="pi pi-times"
                                                      styleClass="ui-button-secondary"
                                                      action="#{productoModel.cancelarDescuento()}"
@@ -474,21 +474,21 @@
         </h:form>
 
         <!-- ========== DIÁLOGO: SELECCIONAR TIPO (fuera de frmProducto, con su propio form) ========== -->
-        <p:dialog id="dlgTipo" widgetVar="dlgTipo" header="Seleccionar tipo de producto"
+        <p:dialog id="dlgTipo" widgetVar="dlgTipo" header="#{trad['producto.dlgTipo']}"
                   modal="true" resizable="false" appendTo="@(body)">
             <h:form id="frmDlgTipo">
                 <div style="display:flex; gap:10px; align-items:center; padding: 10px 0;">
-                    <p:outputLabel for="cboTipoDialogo" value="Tipo de Producto:" />
+                    <p:outputLabel for="cboTipoDialogo" value="#{trad['producto.tipo']}:" />
                     <p:selectOneMenu id="cboTipoDialogo" value="#{productoModel.tipoElegido}"
                                      converter="entityConverter"
                                      filter="true" filterMatchMode="contains"
                                      style="min-width: 220px;">
-                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItem itemLabel="#{trad['producto.seleccioneTipo']}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems value="#{productoModel.listaTiposActivos}" var="tp"
                                        itemLabel="#{tp.nombre}" itemValue="#{tp}" />
                     </p:selectOneMenu>
                 </div>
-                <p:commandButton value="Seleccionar"
+                <p:commandButton value="#{trad['comun.seleccionar']}"
                                  icon="pi pi-check"
                                  action="#{productoModel.confirmarTipo()}"
                                  process="@form"
@@ -498,15 +498,15 @@
         </p:dialog>
 
         <!-- ========== DIÁLOGO: SELECCIONAR CARACTERÍSTICA (en cascada) ========== -->
-        <p:dialog id="dlgCaracteristica" widgetVar="dlgCaracteristica" header="Seleccionar característica"
+        <p:dialog id="dlgCaracteristica" widgetVar="dlgCaracteristica" header="#{trad['producto.seleccionarCaracteristica']}"
                   modal="true" resizable="false" appendTo="@(body)">
             <h:form id="frmDlgCaracteristica">
                 <p:panelGrid columns="2" styleClass="ui-panelgrid-blank" style="margin-bottom:10px;">
 
-                    <p:outputLabel for="cboTipoCaractDialogo" value="Tipo de Característica:" />
+                    <p:outputLabel for="cboTipoCaractDialogo" value="#{trad['producto.tipoCaracteristica']}:" />
                     <p:selectOneMenu id="cboTipoCaractDialogo" value="#{productoModel.tipoCaracteristicaElegido}"
                                      converter="entityConverter" style="min-width: 220px;">
-                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItem itemLabel="#{trad['producto.seleccioneTipo']}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems value="#{productoModel.listaTiposCaracteristicaActivos}" var="tc"
                                        itemLabel="#{tc.nombre}" itemValue="#{tc}" />
                         <p:ajax event="change"
@@ -515,16 +515,16 @@
                                 update="cboCaractDialogo" />
                     </p:selectOneMenu>
 
-                    <p:outputLabel for="cboCaractDialogo" value="Característica:" />
+                    <p:outputLabel for="cboCaractDialogo" value="#{trad['producto.caracteristica']}:" />
                     <p:selectOneMenu id="cboCaractDialogo" value="#{productoModel.caracteristicaElegida}"
                                      converter="entityConverter" style="min-width: 220px;">
-                        <f:selectItem itemLabel="Seleccione una característica" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItem itemLabel="#{trad['producto.seleccioneCaracteristica']}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems value="#{productoModel.listaCaracteristicasDelTipo}" var="ca"
                                        itemLabel="#{ca.nombre}" itemValue="#{ca}" />
                     </p:selectOneMenu>
                 </p:panelGrid>
 
-                <p:commandButton value="Seleccionar"
+                <p:commandButton value="#{trad['comun.seleccionar']}"
                                  icon="pi pi-check"
                                  action="#{productoModel.confirmarCaracteristica()}"
                                  process="@form"
@@ -534,15 +534,15 @@
         </p:dialog>
 
         <!-- ========== DIÁLOGO: SELECCIONAR DESCUENTO (en cascada) ========== -->
-        <p:dialog id="dlgDescuento" widgetVar="dlgDescuento" header="Seleccionar descuento"
+        <p:dialog id="dlgDescuento" widgetVar="dlgDescuento" header="#{trad['producto.seleccionarDescuento']}"
                   modal="true" resizable="false" appendTo="@(body)">
             <h:form id="frmDlgDescuento">
                 <p:panelGrid columns="2" styleClass="ui-panelgrid-blank" style="margin-bottom:10px;">
 
-                    <p:outputLabel for="cboTipoDescDialogo" value="Tipo de Descuento:" />
+                    <p:outputLabel for="cboTipoDescDialogo" value="#{trad['producto.tipoDescuento']}:" />
                     <p:selectOneMenu id="cboTipoDescDialogo" value="#{productoModel.tipoDescuentoElegido}"
                                      converter="entityConverter" style="min-width: 220px;">
-                        <f:selectItem itemLabel="Seleccione un tipo" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItem itemLabel="#{trad['producto.seleccioneTipo']}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems value="#{productoModel.listaTiposDescuentoActivos}" var="td"
                                        itemLabel="#{td.nombre}" itemValue="#{td}" />
                         <p:ajax event="change"
@@ -551,16 +551,16 @@
                                 update="cboDescDialogo" />
                     </p:selectOneMenu>
 
-                    <p:outputLabel for="cboDescDialogo" value="Descuento:" />
+                    <p:outputLabel for="cboDescDialogo" value="#{trad['producto.descuento']}:" />
                     <p:selectOneMenu id="cboDescDialogo" value="#{productoModel.descuentoElegido}"
                                      converter="entityConverter" style="min-width: 220px;">
-                        <f:selectItem itemLabel="Seleccione un descuento" itemValue="#{null}" noSelectionOption="true" />
+                        <f:selectItem itemLabel="#{trad['producto.seleccioneDescuento']}" itemValue="#{null}" noSelectionOption="true" />
                         <f:selectItems value="#{productoModel.listaDescuentosDelTipo}" var="de"
                                        itemLabel="#{de.nombre}" itemValue="#{de}" />
                     </p:selectOneMenu>
                 </p:panelGrid>
 
-                <p:commandButton value="Seleccionar"
+                <p:commandButton value="#{trad['comun.seleccionar']}"
                                  icon="pi pi-check"
                                  action="#{productoModel.confirmarDescuento()}"
                                  process="@form"

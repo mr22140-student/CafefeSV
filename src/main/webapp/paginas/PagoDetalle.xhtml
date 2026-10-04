@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Detalle de pagos
+       #{trad['pagina.pagoDetalle']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -16,12 +16,12 @@
 
             <!-- Filtro por pago -->
             <p:panelGrid columns="2" rendered="#{pagoDetalleModel.estado == 'NINGUNO'}">
-                <p:outputLabel value="Pago" for="cboFiltro" />
+                <p:outputLabel value="#{trad['pagoDetalle.pago']}" for="cboFiltro" />
                 <p:selectOneMenu id="cboFiltro" value="#{pagoDetalleModel.pagoFiltro}"
                                  converter="entityConverter"
                                  filter="true" filterMatchMode="contains"
                                  style="width: 400px;">
-                    <f:selectItem itemLabel="Todos los pagos" itemValue="#{null}" noSelectionOption="true" />
+                    <f:selectItem itemLabel="#{trad['pagoDetalle.todosPagos']}" itemValue="#{null}" noSelectionOption="true" />
                     <f:selectItems value="#{pagoDetalleModel.listaPago}" var="x"
                                    itemLabel="#{pagoDetalleModel.etiquetaPago(x)}" itemValue="#{x}" />
                     <p:ajax event="change" listener="#{pagoDetalleModel.filtrarHandler}"
@@ -33,17 +33,17 @@
             <p:panelGrid columns="6"
                          rendered="#{pagoDetalleModel.estado == 'NINGUNO' and pagoDetalleModel.pagoFiltro != null}"
                          style="margin-top: 10px;">
-                <h:outputText value="Total factura:" style="font-weight: bold;" />
+                <h:outputText value="#{trad['pago.totalFactura']}:" style="font-weight: bold;" />
                 <h:outputText value="#{pagoDetalleModel.totalFiltro}">
                     <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                 </h:outputText>
 
-                <h:outputText value="Pagado:" style="font-weight: bold;" />
+                <h:outputText value="#{trad['pago.pagado']}:" style="font-weight: bold;" />
                 <h:outputText value="#{pagoDetalleModel.pagadoFiltro}">
                     <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                 </h:outputText>
 
-                <h:outputText value="Falta:" style="font-weight: bold;" />
+                <h:outputText value="#{trad['pagoDetalle.falta']}:" style="font-weight: bold;" />
                 <h:outputText value="#{pagoDetalleModel.saldoFiltro}"
                               style="color: #{pagoDetalleModel.saldoFiltro > 0 ? '#d32f2f' : '#388e3c'}; font-weight: bold;">
                     <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
@@ -58,7 +58,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idPagoDetalle}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{pagoDetalleModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -66,21 +66,21 @@
                         resetValues="true"
                         update=":frmPagoDetalle" />
 
-                <p:column headerText="Pago" rendered="#{pagoDetalleModel.pagoFiltro == null}">
+                <p:column headerText="#{trad['pagoDetalle.pago']}" rendered="#{pagoDetalleModel.pagoFiltro == null}">
                     <h:outputText value="#{pagoDetalleModel.etiquetaPago(reg.idPago)}" />
                 </p:column>
 
-                <p:column headerText="Tipo de pago" style="width: 150px;">
+                <p:column headerText="#{trad['pagoDetalle.tipoPago']}" style="width: 150px;">
                     <h:outputText value="#{reg.tipoPago}" />
                 </p:column>
 
-                <p:column headerText="Monto" style="width: 120px; text-align: right;">
+                <p:column headerText="#{trad['pagoDetalle.monto']}" style="width: 120px; text-align: right;">
                     <h:outputText value="#{reg.monto}">
                         <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Referencia">
+                <p:column headerText="#{trad['pagoDetalle.referencia']}">
                     <h:outputText value="#{empty reg.referenciaExterna ? '—' : reg.referenciaExterna}" />
                 </p:column>
 
@@ -99,38 +99,38 @@
             <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{pagoDetalleModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Detalle de Pago">
+                <p:panel header="#{trad['pagoDetalle.detalle']}">
                     <p:panelGrid columns="2">
-                        <p:outputLabel value="Pago" for="cboPago" />
+                        <p:outputLabel value="#{trad['pagoDetalle.pago']}" for="cboPago" />
                         <p:selectOneMenu id="cboPago" value="#{pagoDetalleModel.registro.idPago}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
-                                         required="true" requiredMessage="El pago es obligatorio."
+                                         required="true" requiredMessage="#{trad['pagoDetalle.pagoObligatorio']}"
                                          style="width: 400px;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{pagoDetalleModel.listaPagoPendiente}" var="x"
                                            itemLabel="#{pagoDetalleModel.etiquetaPago(x)}" itemValue="#{x}" />
                             <p:ajax event="change" listener="#{pagoDetalleModel.pagoSeleccionadoHandler}"
                                     process="@this" update="txtMonto" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Tipo de pago" for="cboTipo" />
+                        <p:outputLabel value="#{trad['pagoDetalle.tipoPago']}" for="cboTipo" />
                         <p:selectOneMenu id="cboTipo" value="#{pagoDetalleModel.registro.tipoPago}"
-                                         required="true" requiredMessage="El tipo de pago es obligatorio."
+                                         required="true" requiredMessage="#{trad['pagoDetalle.tipoObligatorio']}"
                                          style="width: 200px;">
                             <f:selectItems value="#{pagoDetalleModel.tiposPago}" var="t"
                                            itemLabel="#{t}" itemValue="#{t}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel value="Monto" for="txtMonto" />
+                        <p:outputLabel value="#{trad['pagoDetalle.monto']}" for="txtMonto" />
                         <p:inputNumber id="txtMonto" value="#{pagoDetalleModel.registro.monto}"
                                        symbol="$ " decimalPlaces="2" minValue="0" maxValue="999999.99"
-                                       required="true" requiredMessage="El monto es obligatorio." />
+                                       required="true" requiredMessage="#{trad['pagoDetalle.montoObligatorio']}" />
 
-                        <p:outputLabel value="Referencia" for="txtReferencia" />
+                        <p:outputLabel value="#{trad['pagoDetalle.referencia']}" for="txtReferencia" />
                         <p:inputText id="txtReferencia" value="#{pagoDetalleModel.registro.referenciaExterna}"
                                      size="40"
-                                     placeholder="No. de autorización o transferencia (no aplica en efectivo)" />
+                                     placeholder="#{trad['pagoDetalle.referenciaAyuda']}" />
 
                         <p:outputLabel value="Observaciones" for="txtObs" />
                         <p:inputTextarea id="txtObs" value="#{pagoDetalleModel.registro.observaciones}"

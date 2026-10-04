@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idDescuentoProducto}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{descuentoProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,11 +30,11 @@
                         resetValues="true"
                         update=":frmDescuentoProducto" />
 
-                <p:column headerText="Producto">
-                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.producto']}">
+                    <h:outputText value="#{reg.idProducto != null ? reg.idProducto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
                 <p:column headerText="Descuento">
-                    <h:outputText value="#{reg.idDescuento != null ? reg.idDescuento.nombre : 'Sin asignación'}" />
+                    <h:outputText value="#{reg.idDescuento != null ? reg.idDescuento.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
                 <p:column headerText="Valor" style="width: 100px; text-align: center;">
                     <h:outputText value="#{reg.valor != null ? reg.valor += ' %' : ''}" />
@@ -49,7 +49,7 @@
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
                 </p:column>
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
             </p:dataTable>
@@ -88,9 +88,9 @@
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
                                          required="true"
-                                         requiredMessage="El producto es obligatorio."
+                                         requiredMessage="#{trad['ordenProducto.productoObligatorio']}"
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{descuentoProductoModel.listaProducto}" var="p"
                                            itemLabel="#{p.nombre}"
                                            itemValue="#{p}" />
@@ -103,7 +103,7 @@
                                          required="true"
                                          requiredMessage="El descuento es obligatorio."
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{descuentoProductoModel.listaDescuento}" var="d"
                                            itemLabel="#{d.nombre}"
                                            itemValue="#{d}" />
@@ -136,7 +136,7 @@
                         <p:datePicker id="dpFechaHasta" value="#{descuentoProductoModel.registro.fechaHasta}"
                                       showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                         <p:inputTextarea id="txtObservaciones" value="#{descuentoProductoModel.registro.observaciones}" rows="3"
                                          style="max-width: 350px; width: 100%;" />
 

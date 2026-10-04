@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Gestión de Descuentos
+        #{trad['pagina.descuento']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idDescuento}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{descuentoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,27 +30,27 @@
                         resetValues="true"
                         update=":frmDescuento" />
 
-                <p:column headerText="Nombre">
+                <p:column headerText="#{trad['comun.nombre']}">
                     <h:outputText value="#{reg.nombre}" />
                 </p:column>
-                <p:column headerText="Tipo de descuento">
-                    <h:outputText value="#{reg.idTipoDescuento != null ? reg.idTipoDescuento.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['descuento.tipo']}">
+                    <h:outputText value="#{reg.idTipoDescuento != null ? reg.idTipoDescuento.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
-                <p:column headerText="Desde">
+                <p:column headerText="#{trad['descuento.desde']}">
                     <h:outputText value="#{reg.fechaDesde}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
                 </p:column>
-                <p:column headerText="Hasta">
+                <p:column headerText="#{trad['descuento.hasta']}">
                     <h:outputText value="#{reg.fechaHasta}" rendered="#{reg.fechaHasta != null}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
-                    <h:outputText value="Sin fin" rendered="#{reg.fechaHasta == null}" />
+                    <h:outputText value="#{trad['comun.sinFin']}" rendered="#{reg.fechaHasta == null}" />
                 </p:column>
-                <p:column headerText="Vigencia" style="width: 120px; text-align: center;">
-                    <h:outputText value="#{descuentoModel.vigencia(reg)}" />
+                <p:column headerText="#{trad['descuento.vigencia']}" style="width: 120px; text-align: center;">
+                    <h:outputText value="#{trad['vigencia.'.concat(descuentoModel.vigencia(reg))]}" />
                 </p:column>
-                <p:column headerText="Observaciones">
+                <p:column headerText="#{trad['comun.observaciones']}">
                     <h:outputText value="#{reg.observaciones}" />
                 </p:column>
             </p:dataTable>
@@ -78,45 +78,45 @@
 
             <!-- Formulario de Detalle (Visible únicamente si el estado es CREAR o MODIFICAR) -->
             <p:outputPanel id="pnlFormulario" layout="block" style="margin-top:20px;" rendered="#{descuentoModel.estado != 'NINGUNO'}">
-                <p:panel header="Detalle del Descuento">
+                <p:panel header="#{trad['descuento.detalle']}">
                     <p:panelGrid columns="2"
                                  columnClasses="ui-grid-col-2, ui-grid-col-10"
                                  layout="grid"
                                  styleClass="ui-panelgrid-blank">
 
-                        <p:outputLabel for="cboTipoDescuento" value="Tipo de descuento:" style="font-weight: bold;" />
+                        <p:outputLabel for="cboTipoDescuento" value="#{trad['descuento.tipo']}:" style="font-weight: bold;" />
                         <p:selectOneMenu id="cboTipoDescuento" value="#{descuentoModel.registro.idTipoDescuento}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
                                          disabled="#{descuentoModel.estado == 'MODIFICAR'}"
                                          required="true"
-                                         requiredMessage="El tipo de descuento es obligatorio."
+                                         requiredMessage="#{trad['descuento.tipoObligatorio']}"
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{descuentoModel.listaTipoDescuento}" var="t"
                                            itemLabel="#{t.nombre}"
                                            itemValue="#{t}"
                                            itemDisabled="#{not t.activo and t ne descuentoModel.registro.idTipoDescuento}" />
                         </p:selectOneMenu>
 
-                        <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtNombre" value="#{trad['comun.nombre']}" style="font-weight: bold;" />
                         <p:inputText id="txtNombre" value="#{descuentoModel.registro.nombre}" maxlength="155"
                                      required="true"
-                                     requiredMessage="El nombre es obligatorio."
+                                     requiredMessage="#{trad['comun.nombreObligatorio']}"
                                      style="max-width: 350px; width: 100%;" />
 
 
-                        <p:outputLabel for="dpFechaDesde" value="Fecha desde:" style="font-weight: bold;" />
+                        <p:outputLabel for="dpFechaDesde" value="#{trad['descuento.fechaDesde']}:" style="font-weight: bold;" />
                         <p:datePicker id="dpFechaDesde" value="#{descuentoModel.registro.fechaDesde}"
                                       showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true"
                                       required="true"
-                                      requiredMessage="La fecha desde es obligatoria." />
+                                      requiredMessage="#{trad['descuento.fechaDesdeObligatoria']}" />
 
-                        <p:outputLabel for="dpFechaHasta" value="Fecha hasta:" style="font-weight: bold;" />
+                        <p:outputLabel for="dpFechaHasta" value="#{trad['descuento.fechaHasta']}:" style="font-weight: bold;" />
                         <p:datePicker id="dpFechaHasta" value="#{descuentoModel.registro.fechaHasta}"
                                       showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true" />
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                         <p:inputTextarea id="txtObservaciones" value="#{descuentoModel.registro.observaciones}" rows="3"
                                          style="max-width: 350px; width: 100%;" />
 

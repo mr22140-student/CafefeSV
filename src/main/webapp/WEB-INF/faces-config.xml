@@ -16,13 +16,17 @@
             <base-name>Traducciones.CRUD</base-name>
             <var>tradcrud</var>
         </resource-bundle>
+        <resource-bundle>
+            <base-name>Traducciones.Paginas</base-name>
+            <var>trad</var>
+        </resource-bundle>
     </application>
     
 
     <!-- Registro explícito del converter: evita que se pierda al recargar la app en modo dev -->  
     <converter>
         <converter-id>entityConverter</converter-id>
-        <converter-class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf.EntityConverter</converter-class>
+        <converter-class>sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.converter.EntityConverter</converter-class>
     </converter>
 
 </faces-config>

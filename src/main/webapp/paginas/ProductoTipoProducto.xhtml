@@ -22,7 +22,7 @@
                          selectionMode="single"
                          rowKey="#{reg.idProductoTipoProducto}"
                          paginator="true" rows="10"
-                         emptyMessage="No hay registros"
+                         emptyMessage="#{trad['comun.sinRegistros']}"
                          rendered="#{productoTipoProductoModel.estado == 'NINGUNO'}">
 
                 <p:ajax event="rowSelect"
@@ -30,11 +30,11 @@
                         resetValues="true"
                         update=":frmProductoTipoProducto" />
 
-                <p:column headerText="Producto">
-                    <h:outputText value="#{reg.producto != null ? reg.producto.nombre : 'Sin asignación'}" />
+                <p:column headerText="#{trad['comun.producto']}">
+                    <h:outputText value="#{reg.producto != null ? reg.producto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
                 <p:column headerText="Tipo de producto">
-                    <h:outputText value="#{reg.idTipoProducto != null ? reg.idTipoProducto.nombre : 'Sin asignación'}" />
+                    <h:outputText value="#{reg.idTipoProducto != null ? reg.idTipoProducto.nombre : trad['comun.sinAsignacion']}" />
                 </p:column>
                 <p:column headerText="Fecha de creación">
                     <h:outputText value="#{reg.fechaCreacion}">
@@ -82,7 +82,7 @@
                                          required="true"
                                          requiredMessage="Producto es obligatorio."
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{productoTipoProductoModel.listaProducto}" var="p"
                                            itemLabel="#{p.nombre}"
                                            itemValue="#{p}" />
@@ -95,7 +95,7 @@
                                          required="true"
                                          requiredMessage="Tipo de producto es obligatorio."
                                          style="max-width: 350px; width: 100%;">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                            <f:selectItem itemLabel="#{trad['comun.seleccione']}" itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{productoTipoProductoModel.listaTipoProducto}" var="t"
                                            itemLabel="#{t.nombre}"
                                            itemValue="#{t}" />
@@ -106,7 +106,7 @@
                             <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                         </h:outputText>
 
-                        <p:outputLabel for="txtObservaciones" value="Observaciones:" style="font-weight: bold;" />
+                        <p:outputLabel for="txtObservaciones" value="#{trad['comun.observaciones']}:" style="font-weight: bold;" />
                         <p:inputTextarea id="txtObservaciones" value="#{productoTipoProductoModel.registro.observaciones}" rows="3"
                                          style="max-width: 350px; width: 100%;" />
 
