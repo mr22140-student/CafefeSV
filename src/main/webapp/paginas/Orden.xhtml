@@ -12,8 +12,9 @@
 
     <ui:define name="contenido">
         <h:form id="frmOrden">
-            <p:growl id="messages" life="4000" showDetail="true" skipDetailIfEqualsSummary="true" />
+            <p:growl id="messages" life="6000" showDetail="true" skipDetailIfEqualsSummary="true" />
 
+            <!-- ================= Tabla de órdenes ================= -->
             <p:dataTable id="dtOrden" var="reg"
                          value="#{ordenModel.registros}"
                          selection="#{ordenModel.filaSeleccionada}"
@@ -26,19 +27,15 @@
                 <p:ajax event="rowSelect"
                         listener="#{ordenModel.seleccionarRegistro(ordenModel.filaSeleccionada)}"
                         resetValues="true"
-                        update=":frmOrden" />
+                        update="@form" />
 
-                <p:column headerText="ID" style="width: 280px; text-align: center;">
-                    <h:outputText value="#{reg.idOrden}" />
-                </p:column>
-
-                <p:column headerText="Fecha">
+                <p:column headerText="Fecha" style="width: 170px;">
                     <h:outputText value="#{reg.fechaCreacion}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
                 </p:column>
 
-                <p:column headerText="Empleado y rol">
+                <p:column headerText="Tomada por">
                     <h:outputText value="#{reg.idEmpleadoRol != null ? ordenModel.obtenerTextoEmpleadoRol(reg.idEmpleadoRol) : 'Sin asignación'}" />
                 </p:column>
             </p:dataTable>
@@ -48,75 +45,150 @@
             <p:commandButton value="#{tradcrud['jsf.crud.nuevo']}" icon="pi pi-plus"
                              action="#{ordenModel.btnNuevoHandler()}"
                              rendered="#{ordenModel.estado == 'NINGUNO'}"
-                             update=":frmOrden" />
+                             update="@form" />
 
-            <!-- Formulario de Mantenimiento -->
+            <!-- ================= Panel de edición con pestañas ================= -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;"
                            rendered="#{ordenModel.estado != 'NINGUNO'}">
-                <p:panel header="Mantenimiento Orden">
-                    <p:panelGrid columns="2">
-                        <p:outputLabel value="ID" for="txtId" />
-                        <p:inputText id="txtId" value="#{ordenModel.registro.idOrden}" readonly="true" size="40" />
 
-                        <p:outputLabel value="Fecha" />
-                        <h:outputText value="#{ordenModel.registro.fechaCreacion}">
-                            <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
-                        </h:outputText>
+                <p:tabView id="tabsOrden">
 
-                        <p:outputLabel value="Empleado y rol" for="acEmpleadoRol" />
-                        <p:autoComplete id="acEmpleadoRol"
-                                        value="#{ordenModel.registro.idEmpleadoRol}"
-                                        completeMethod="#{ordenModel.completarEmpleadoRol}"
-                                        var="er"
-                                        itemLabel="#{ordenModel.obtenerTextoEmpleadoRol(er)}"
-                                        itemValue="#{er}"
-                                        converter="#{ordenModel.empleadoRolConverter}"
-                                        forceSelection="true"
-                                        dropdown="true"
-                                        queryDelay="300"
-                                        scrollHeight="250"
-                                        size="40"
-                                        placeholder="Escriba nombre, apellido o rol..."
-                                        emptyMessage="No se encontraron empleados activos"
-                                        required="true"
-                                        requiredMessage="Debe seleccionar un empleado y rol válido." />
-                    </p:panelGrid>
+                    <!-- ============ Pestaña 1: datos de la orden ============ -->
+                    <p:tab title="Datos de la orden">
+                        <p:panelGrid columns="2">
+                            <p:outputLabel value="Fecha" for="dpFecha" />
+                            <p:datePicker id="dpFecha" value="#{ordenModel.registro.fechaCreacion}"
+                                          showTime="true" pattern="dd/MM/yyyy HH:mm" showIcon="true"
+                                          required="true" requiredMessage="La fecha es obligatoria." />
 
-                    <p:spacer height="5" />
+                            <p:outputLabel value="Camarero" for="acEmpleadoRol" />
+                            <p:autoComplete id="acEmpleadoRol"
+                                            value="#{ordenModel.registro.idEmpleadoRol}"
+                                            completeMethod="#{ordenModel.completarEmpleadoRol}"
+                                            var="er"
+                                            itemLabel="#{ordenModel.obtenerTextoEmpleadoRol(er)}"
+                                            itemValue="#{er}"
+                                            converter="#{ordenModel.empleadoRolConverter}"
+                                            forceSelection="true"
+                                            dropdown="true"
+                                            queryDelay="300"
+                                            scrollHeight="250"
+                                            size="40"
+                                            placeholder="Escriba el nombre del camarero..."
+                                            emptyMessage="No se encontraron camareros activos"
+                                            required="true"
+                                            requiredMessage="Debe seleccionar un camarero." />
+                        </p:panelGrid>
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
-                                     action="#{ordenModel.btnCrearHandler()}"
-                                     rendered="#{ordenModel.estado == 'CREAR'}"
-                                     update=":frmOrden"
-                                     style="margin-right:10px;" />
+                        <div style="margin-top: 10px;">
+                            <p:commandButton value="#{tradcrud['jsf.crud.crear']}" icon="pi pi-save"
+                                             action="#{ordenModel.btnCrearHandler()}"
+                                             rendered="#{ordenModel.estado == 'CREAR'}"
+                                             update="@form"
+                                             style="margin-right:10px;" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
-                                     action="#{ordenModel.btnModificarHandler()}"
-                                     rendered="#{ordenModel.estado == 'MODIFICAR'}"
-                                     update=":frmOrden"
-                                     style="margin-right:10px;" />
+                            <p:commandButton value="#{tradcrud['jsf.crud.modificar']}" icon="pi pi-save"
+                                             action="#{ordenModel.btnModificarHandler()}"
+                                             rendered="#{ordenModel.estado == 'MODIFICAR'}"
+                                             update="@form"
+                                             style="margin-right:10px;" />
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
-                                     action="#{ordenModel.btnEliminarHandler()}"
-                                     rendered="#{ordenModel.estado == 'MODIFICAR'}"
-                                     process="@this"
-                                     immediate="true"
-                                     update=":frmOrden"
-                                     style="margin-right:10px;">
-                        <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
-                                   message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
-                                   icon="pi pi-exclamation-triangle" />
-                    </p:commandButton>
+                            <p:commandButton value="#{tradcrud['jsf.crud.eliminar']}" icon="pi pi-trash"
+                                             action="#{ordenModel.btnEliminarHandler()}"
+                                             rendered="#{ordenModel.estado == 'MODIFICAR'}"
+                                             process="@this"
+                                             immediate="true"
+                                             update="@form"
+                                             style="margin-right:10px;">
+                                <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}"
+                                           message="#{tradcrud['jsf.crud.confirmacion.mensaje']}"
+                                           icon="pi pi-exclamation-triangle" />
+                            </p:commandButton>
 
-                    <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
-                                     action="#{ordenModel.btnCancelarHandler()}"
-                                     process="@this"
-                                     immediate="true"
-                                     resetValues="true"
-                                     update=":frmOrden" />
-                </p:panel>
+                            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                             action="#{ordenModel.btnCancelarHandler()}"
+                                             process="@this"
+                                             immediate="true"
+                                             resetValues="true"
+                                             update="@form" />
+                        </div>
+                    </p:tab>
+
+                    <!-- ============ Pestaña 2: productos (solo con la orden ya guardada) ============ -->
+                    <p:tab title="Productos" rendered="#{ordenModel.estado == 'MODIFICAR'}">
+
+                        <!-- Agregar producto -->
+                        <p:panelGrid columns="3">
+                            <p:outputLabel value="Producto" for="cboProducto" />
+                            <p:selectOneMenu id="cboProducto" value="#{ordenModel.productoSeleccionado}"
+                                             converter="entityConverter"
+                                             filter="true" filterMatchMode="contains"
+                                             style="width: 300px;">
+                                <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ordenModel.listaProducto}" var="x"
+                                               itemLabel="#{x.nombre}" itemValue="#{x}" />
+                            </p:selectOneMenu>
+                            <p:commandButton value="Agregar" icon="pi pi-plus"
+                                             action="#{ordenModel.btnAgregarProductoHandler()}"
+                                             process="@this cboProducto"
+                                             update="@form" />
+                        </p:panelGrid>
+
+                        <!-- Productos de la orden (solo lectura) -->
+                        <p:dataTable id="dtProductos" var="op"
+                                     value="#{ordenModel.productosOrden}"
+                                     emptyMessage="La orden todavía no tiene productos"
+                                     style="margin-top: 10px;">
+                            <p:column headerText="Producto">
+                                <h:outputText value="#{op.idProducto != null ? op.idProducto.nombre : 'Sin asignación'}" />
+                            </p:column>
+                            <p:column headerText="Precio" style="width: 120px; text-align: right;">
+                                <h:outputText value="#{op.precio}">
+                                    <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Observaciones">
+                                <h:outputText value="#{empty op.observaciones ? '—' : op.observaciones}" />
+                            </p:column>
+                        </p:dataTable>
+
+                        <div style="text-align: right; margin-top: 10px; font-weight: bold;">
+                            Total:
+                            <h:outputText value="#{ordenModel.total}">
+                                <f:convertNumber type="currency" currencySymbol="$" minFractionDigits="2" />
+                            </h:outputText>
+                        </div>
+
+                        <!-- Aplicar descuento -->
+                        <p:panelGrid columns="3" style="margin-top: 10px;">
+                            <p:outputLabel value="Descuento" for="cboDescuento" />
+                            <p:selectOneMenu id="cboDescuento" value="#{ordenModel.descuentoSeleccionado}"
+                                             converter="entityConverter"
+                                             style="width: 300px;">
+                                <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
+                                <f:selectItems value="#{ordenModel.listaDescuento}" var="d"
+                                               itemLabel="#{ordenModel.etiquetaDescuento(d)}" itemValue="#{d}" />
+                            </p:selectOneMenu>
+                            <p:commandButton value="Aplicar descuento" icon="pi pi-percentage"
+                                             action="#{ordenModel.btnAplicarDescuentoHandler()}"
+                                             process="@this cboDescuento"
+                                             update="@form" />
+                        </p:panelGrid>
+
+                        <div style="margin-top: 10px;">
+                            <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                             action="#{ordenModel.btnCancelarHandler()}"
+                                             process="@this"
+                                             immediate="true"
+                                             resetValues="true"
+                                             update="@form" />
+                        </div>
+                    </p:tab>
+
+                </p:tabView>
             </p:outputPanel>
 
+            <!-- Diálogo de confirmación -->
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
                 <p:commandButton value="#{tradcrud['jsf.crud.si']}" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check" />
                 <p:commandButton value="#{tradcrud['jsf.crud.no']}" type="button" styleClass="ui-confirmdialog-no" icon="pi pi-times" />
