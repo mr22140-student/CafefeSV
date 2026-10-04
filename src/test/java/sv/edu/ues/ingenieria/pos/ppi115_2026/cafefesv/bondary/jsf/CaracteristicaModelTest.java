@@ -23,7 +23,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
  *
  * @author valen
  */
-public class CaracteristicaModelTest extends ModelTestBase  {
+public class CaracteristicaModelTest extends ModelTestBase {
+
     @InjectMocks
     private CaracteristicaModel model;
 
@@ -69,20 +70,23 @@ public class CaracteristicaModelTest extends ModelTestBase  {
     }
 
     @Test
-    void noInactivaSiUnProductoActivoLaUsa() {
+    void permiteModificarAunqueUnProductoActivoLaUsa() {
         Caracteristica c = caracteristica(false, tipo(true));
+
         Producto producto = new Producto(UUID.randomUUID());
         producto.setActivo(true);
+
         ProductoCaracteristica pc = new ProductoCaracteristica(UUID.randomUUID());
         pc.setIdProducto(producto);
         pc.setIdCaracteristica(c);
+
         when(pcDAO.findByCaracteristica(c)).thenReturn(List.of(pc));
+
         model.setRegistro(c);
 
         model.btnModificarHandler();
 
-        verify(caracteristicaDAO, never()).update(any());
-        assertEquals("No se puede inactivar", ultimoMensaje().getSummary());
+        verify(caracteristicaDAO).update(c);
     }
 
     private TipoCaracteristica tipo(boolean activo) {
@@ -102,5 +106,5 @@ public class CaracteristicaModelTest extends ModelTestBase  {
         c.setIdTipoCaracteristica(tipo);
         return c;
     }
-    
+
 }
