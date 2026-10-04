@@ -46,10 +46,10 @@
                              action="#{rolModel.btnNuevoHandler()}"
                              rendered="#{rolModel.estado == 'NINGUNO'}"
                              update=":frmRol" />
-            
+
             <p:spacer height="10" />
 
- <!-- Formulario de Mantenimiento -->
+            <!-- Formulario de Mantenimiento -->
             <p:outputPanel id="pnlMantenimiento" layout="block" style="margin-top:20px;" rendered="#{rolModel.estado != 'NINGUNO'}">
                 <p:panel header="Mantenimiento Rol">
                     <p:panelGrid columns="2">
@@ -92,11 +92,18 @@
                                      immediate="true"
                                      update=":frmRol"
                                      style="margin-right:10px;" >
-                        
+
                         <p:confirm header="#{tradcrud['jsf.crud.confirmacion.titulo']}" 
                                    message="#{tradcrud['jsf.crud.confirmacion.mensaje']}" 
                                    icon="pi pi-exclamation-triangle" />
                     </p:commandButton>
+                                        <p:commandButton value="#{tradcrud['jsf.crud.cancelar']}" icon="pi pi-times"
+                                     action="#{rolModel.btnCancelarHandler()}"
+                                     process="@this"
+                                     immediate="true"
+                                     resetValues="true"
+                                     update=":frmRol" />
+
                 </p:panel>
             </p:outputPanel>
 

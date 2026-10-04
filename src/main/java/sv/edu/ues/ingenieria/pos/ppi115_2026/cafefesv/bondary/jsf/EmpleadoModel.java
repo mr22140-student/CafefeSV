@@ -177,7 +177,9 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
      * Quita el rol seleccionado en la tabla, si no se ha usado en órdenes o
      * facturas.
      */
+
     // ================= Getters / Setters =================
+
     /**
      * Roles activos para el combo (más el rol actual del empleado, aunque esté
      * inactivo).
