@@ -178,6 +178,8 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
      * facturas.
      */
 
+    // ================= Getters / Setters =================
+
     /**
      * Roles activos para el combo (más el rol actual del empleado, aunque esté
      * inactivo).

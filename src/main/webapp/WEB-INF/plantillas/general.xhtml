@@ -43,7 +43,7 @@
                 <!-- Columna izquierda: MENÚ -->
                 <div class="ui-g-2">
                     <ui:insert name="menu">
-                        <p:menu toggleable="true" style="width: 100%;">
+                        <p:panelMenu id="menuPrincipal" style="width: 100%;" stateful="true">
                             <p:submenu label="Personal">
                                 <p:menuitem value="Empleados" outcome="/paginas/Empleado" icon="pi pi-user" />
                                 <p:menuitem value="Roles" outcome="/paginas/Rol" icon="pi pi-id-card" />
@@ -61,6 +61,7 @@
                             <p:submenu label="Descuentos">
                                 <p:menuitem value="Tipos de descuento" outcome="/paginas/TipoDescuento" />
                                 <p:menuitem value="Descuentos" outcome="/paginas/Descuento" />
+                                <p:menuitem value="Descuentos por producto" outcome="/paginas/DescuentoProducto" />
                             </p:submenu>
 
                             <p:submenu label="Ventas">
@@ -74,7 +75,7 @@
                                 <p:menuitem value="Pagos" outcome="/paginas/Pago" icon="pi pi-credit-card" />
                                 <p:menuitem value="Detalle de pagos" outcome="/paginas/PagoDetalle" icon="pi pi-money-bill" />
                             </p:submenu>
-                        </p:menu>
+                        </p:panelMenu>
                     </ui:insert>
                 </div>
 

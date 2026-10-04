@@ -11,7 +11,10 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.DescuentoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoDescuentoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
-
+/**
+ *
+ * @author valen
+ */
 @Named("tipoDescuentoModel")
 @ViewScoped
 public class TipoDescuentoModel extends AbstractModel<TipoDescuento, UUID> {
@@ -55,5 +58,31 @@ public class TipoDescuentoModel extends AbstractModel<TipoDescuento, UUID> {
             return;
         }
         super.btnEliminarHandler();
+    }
+
+    @Override
+    public void btnModificarHandler() {
+        if (puedeInactivar()) {
+            super.btnModificarHandler();
+        }
+    }
+
+    /**
+     * No se puede inactivar un tipo mientras lo use algún descuento que no ha
+     * vencido.
+     */
+    private boolean puedeInactivar() {
+        if (registro == null || Boolean.TRUE.equals(registro.getActivo())) {
+            return true;
+        }
+        long vigentes = descuentoDAO.countVigentesByTipoDescuento(registro);
+        if (vigentes > 0) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
+                    "No se puede inactivar",
+                    "Hay " + vigentes + " descuento(s) sin vencer con este tipo. "
+                    + "Cámbielos de tipo o espere a que venzan."));
+            return false;
+        }
+        return true;
     }
 }

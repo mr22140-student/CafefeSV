@@ -42,9 +42,10 @@
                     </h:outputText>
                 </p:column>
                 <p:column headerText="Hasta">
-                    <h:outputText value="#{reg.fechaHasta}">
+                    <h:outputText value="#{reg.fechaHasta}" rendered="#{reg.fechaHasta != null}">
                         <f:convertDateTime pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
+                    <h:outputText value="Sin fin" rendered="#{reg.fechaHasta == null}" />
                 </p:column>
                 <p:column headerText="Vigencia" style="width: 120px; text-align: center;">
                     <h:outputText value="#{descuentoModel.vigencia(reg)}" />
@@ -87,13 +88,15 @@
                         <p:selectOneMenu id="cboTipoDescuento" value="#{descuentoModel.registro.idTipoDescuento}"
                                          converter="entityConverter"
                                          filter="true" filterMatchMode="contains"
+                                         disabled="#{descuentoModel.estado == 'MODIFICAR'}"
                                          required="true"
                                          requiredMessage="El tipo de descuento es obligatorio."
                                          style="max-width: 350px; width: 100%;">
                             <f:selectItem itemLabel="Seleccione..." itemValue="#{null}" noSelectionOption="true" />
                             <f:selectItems value="#{descuentoModel.listaTipoDescuento}" var="t"
                                            itemLabel="#{t.nombre}"
-                                           itemValue="#{t}" />
+                                           itemValue="#{t}"
+                                           itemDisabled="#{not t.activo and t ne descuentoModel.registro.idTipoDescuento}" />
                         </p:selectOneMenu>
 
                         <p:outputLabel for="txtNombre" value="Nombre:" style="font-weight: bold;" />

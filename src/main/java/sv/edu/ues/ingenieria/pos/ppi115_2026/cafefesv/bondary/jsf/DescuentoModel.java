@@ -14,7 +14,10 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoDescuentoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
-
+/**
+ *
+ * @author valen
+ */
 @Named("descuentoModel")
 @ViewScoped
 public class DescuentoModel extends AbstractModel<Descuento, UUID> {
@@ -49,19 +52,22 @@ public class DescuentoModel extends AbstractModel<Descuento, UUID> {
 
     @Override
     public void btnCrearHandler() {
-        if (fechasValidas()) {
+        if (fechasValidas() && tipoActivo()) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (fechasValidas()) {
+        if (fechasValidas() && tipoActivo()) {
             super.btnModificarHandler();
         }
     }
 
-    /** La fecha hasta es opcional, pero si viene no puede ser anterior a la fecha desde. */
+    /**
+     * La fecha hasta es opcional, pero si viene no puede ser anterior a la
+     * fecha desde.
+     */
     private boolean fechasValidas() {
         if (registro != null && registro.getFechaDesde() != null && registro.getFechaHasta() != null
                 && registro.getFechaHasta().before(registro.getFechaDesde())) {
@@ -72,7 +78,28 @@ public class DescuentoModel extends AbstractModel<Descuento, UUID> {
         return true;
     }
 
-    /** Estado calculado del descuento según la fecha actual, para mostrarlo en la tabla. */
+    /**
+     * No se puede guardar un descuento con un tipo inactivo.
+     */
+    private boolean tipoActivo() {
+        if (registro == null || registro.getIdTipoDescuento() == null) {
+            return true;
+        }
+        TipoDescuento actual = tipoDescuentoDAO.findById(registro.getIdTipoDescuento().getIdTipoDescuento());
+        if (actual == null || !Boolean.TRUE.equals(actual.getActivo())) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Tipo inactivo",
+                    "El tipo \"" + registro.getIdTipoDescuento().getNombre()
+                    + "\" está inactivo. Seleccione un tipo activo."));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Estado calculado del descuento según la fecha actual, para mostrarlo en
+     * la tabla.
+     */
     public String vigencia(Descuento d) {
         if (d == null || d.getFechaDesde() == null) {
             return "SIN FECHA";
