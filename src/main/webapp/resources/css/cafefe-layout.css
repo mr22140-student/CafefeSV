@@ -1,0 +1,462 @@
+/* =========================================================
+   USUARIO
+   ========================================================= */
+
+.cafefe-user {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 8px 14px 8px 8px;
+
+    background: #FFFFFF;
+
+    border: 1px solid rgba(107, 85, 61, 0.12);
+
+    border-radius: 16px;
+
+    color: var(--brown);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    box-shadow:
+        0 3px 12px rgba(52, 43, 28, 0.05);
+}
+
+
+.cafefe-user-icon {
+    width: 36px;
+
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: var(--brown);
+
+    color: white;
+}
+
+
+.cafefe-user-text {
+    white-space: nowrap;
+}
+
+
+.cafefe-user > .pi-chevron-down {
+    font-size: 11px;
+
+    color: #777;
+}
+
+/* =========================================================
+   CAFEFESV - LAYOUT GENERAL
+   ========================================================= */
+
+:root {
+    --cream: #F8F5F0;
+    --cream-dark: #E8E2D8;
+    --blue: #90967A;
+    --blue-soft: #B8C9D9;
+    --brown: #6B553D;
+    --brown-dark: #342B1C;
+    --green-soft: #DCE9DF;
+    --white: #FFFFFF;
+
+    --shadow-soft: 0 8px 30px rgba(52, 43, 28, 0.08);
+    --shadow-card: 0 10px 35px rgba(52, 43, 28, 0.10);
+
+    --radius-small: 12px;
+    --radius-medium: 18px;
+    --radius-large: 28px;
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
+body {
+    background:
+        linear-gradient(
+        135deg,
+        #F8F5F0 0%,
+        #F4F0E9 55%,
+        #E8E2D8 100%
+        );
+
+    color: var(--brown-dark);
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        Helvetica,
+        sans-serif;
+}
+
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+
+.cafefe-app {
+    min-height: 100vh;
+    display: flex;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.cafefe-sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 280px;
+
+    padding: 24px 18px;
+
+    background:
+        rgba(248, 245, 240, 0.96);
+
+    border-right:
+        1px solid rgba(107, 85, 61, 0.10);
+
+    z-index: 1000;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.cafefe-brand {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding:
+        4px 8px 22px;
+
+    border-bottom:
+        1px solid rgba(107, 85, 61, 0.12);
+}
+
+.cafefe-brand img {
+    width: 58px;
+    height: 58px;
+
+    object-fit: contain;
+}
+
+.cafefe-brand-title {
+    margin: 0;
+
+    font-family: Georgia, serif;
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    color: var(--brown-dark);
+}
+
+.cafefe-brand-subtitle {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #777;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   ÁREA DEL MENÚ
+   ========================================================= */
+
+.cafefe-menu {
+    margin-top: 22px;
+}
+
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.cafefe-main {
+    margin-left: 280px;
+
+    width: calc(100% - 280px);
+
+    min-height: 100vh;
+
+    padding:
+        0 34px 30px;
+}
+
+
+/* =========================================================
+   BARRA SUPERIOR
+   ========================================================= */
+
+.cafefe-topbar {
+    min-height: 82px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   SELECTOR DE IDIOMA
+   ========================================================= */
+
+.cafefe-language {
+    display: flex;
+    align-items: center;
+
+    background: white;
+
+    border:
+        1px solid rgba(107, 85, 61, 0.12);
+
+    border-radius: 16px;
+
+    padding: 4px;
+
+    box-shadow:
+        0 3px 12px rgba(52, 43, 28, 0.05);
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.cafefe-hero {
+    position: relative;
+
+    overflow: hidden;
+
+    min-height: 220px;
+
+    border-radius: var(--radius-large);
+
+    padding: 42px;
+
+    margin-bottom: 26px;
+
+    background:
+        linear-gradient(
+        120deg,
+        #F8F5F0 0%,
+        #F8F5F0 43%,
+        #B8C9D9 100%
+        );
+
+    box-shadow: var(--shadow-card);
+}
+
+
+/* Decoración */
+
+.cafefe-hero::before {
+    content: "";
+
+    position: absolute;
+
+    width: 420px;
+    height: 420px;
+
+    right: -130px;
+    top: -170px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(144, 150, 122, 0.22);
+}
+
+.cafefe-hero::after {
+    content: "";
+
+    position: absolute;
+
+    width: 300px;
+    height: 150px;
+
+    right: 120px;
+    bottom: -100px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255, 255, 255, 0.55);
+}
+
+
+/* =========================================================
+   CONTENIDO DEL HERO
+   ========================================================= */
+
+.cafefe-hero-content {
+    position: relative;
+
+    z-index: 2;
+
+    max-width: 70%;
+}
+
+.cafefe-hero-title {
+    margin: 0 0 10px;
+
+    font-family: Georgia, serif;
+
+    font-size: clamp(30px, 3vw, 44px);
+
+    line-height: 1.1;
+
+    color: var(--brown-dark);
+}
+
+.cafefe-hero-description {
+    margin: 0;
+
+    font-size: 16px;
+
+    line-height: 1.6;
+
+    color: #6F6A63;
+
+    max-width: 600px;
+}
+
+
+/* =========================================================
+   TARJETA DE CONTENIDO
+   ========================================================= */
+
+.cafefe-content-card {
+    background:
+        rgba(255, 255, 255, 0.94);
+
+    border:
+        1px solid rgba(107, 85, 61, 0.07);
+
+    border-radius: var(--radius-large);
+
+    padding: 28px;
+
+    box-shadow: var(--shadow-card);
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.cafefe-footer {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding:
+        24px 8px 8px;
+
+    color: #7C766E;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .cafefe-sidebar {
+        width: 235px;
+    }
+
+    .cafefe-main {
+        margin-left: 235px;
+
+        width: calc(100% - 235px);
+
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .cafefe-hero-content {
+        max-width: 80%;
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .cafefe-sidebar {
+        position: static;
+
+        width: 100%;
+
+        min-height: auto;
+    }
+
+    .cafefe-app {
+        flex-direction: column;
+    }
+
+    .cafefe-main {
+        margin-left: 0;
+
+        width: 100%;
+    }
+
+    .cafefe-hero-content {
+        max-width: 100%;
+    }
+
+    .cafefe-footer {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+}

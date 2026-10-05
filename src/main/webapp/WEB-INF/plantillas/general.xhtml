@@ -1,90 +1,300 @@
-<?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:ui="jakarta.faces.facelets"
-      xmlns:p="http://primefaces.org/ui">
+<f:view locale="#{idiomaModel.currentLocale}"
+        xmlns:h="jakarta.faces.html"
+        xmlns:f="jakarta.faces.core"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:p="http://primefaces.org/ui">
 
     <h:head>
         <!-- Nombre de la pestaña del navegador: "CafefeSV POS - <título de la página>" -->
-        <title>#{trad['app.titulo']} - <ui:insert name="leyenda" /></title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>#{trad['app.titulo']} - <ui:insert name="leyenda" />
+        </title>
+        <meta
+            http-equiv="Content-Type"
+            content="text/html; charset=UTF-8" />
+
+        <h:outputStylesheet
+            library="css"
+            name="cafefe-layout.css" />
+
+        <h:outputStylesheet
+            library="css"
+            name="cafefe-primefaces.css" />
+
+        <h:outputStylesheet
+            library="css"
+            name="cafefe-pages.css" />
+
     </h:head>
 
     <h:body>
-        <div class="ui-g">
-            <!-- Encabezado (Fila 1 = 12 columnas) -->
-            <div class="ui-g-12 ui-g-nopad">
-                <div class="ui-g-4" style="padding-left: 70px;">
-                    <p:graphicImage library="imagenes" name="Cafefe.png" alt="Logo Cafefe" style="width:200px; height:auto;" />
-                </div>
-                <div class="ui-g-4">
-                    <h1>
-                        <ui:insert name="leyenda">
-                            LEYENDA POR DEFECTO
-                        </ui:insert>
-                    </h1>
-                </div>
-                <div class="ui-g-4">
-                    <h:form id="frmCambiarIdioma">
-                        <p:selectOneMenu value="#{idiomaModel.locale}">
-                            <f:selectItem itemLabel="Español" itemValue="es" />
-                            <f:selectItem itemLabel="English" itemValue="en" />
-                            <f:selectItem itemLabel="中文" itemValue="zh" />
-                            <p:ajax event="change" update="@all" />
-                        </p:selectOneMenu>
-                    </h:form>
-                </div>
-            </div>
 
-            <!-- Menú y Contenido Principal (Fila 2 = 2 + 10 columnas) -->
-            <div class="ui-g-12">
+        <div class="cafefe-app">
 
-                <!-- Columna izquierda: MENÚ -->
-                <div class="ui-g-2">
+            <!-- =====================================================
+                 SIDEBAR
+                 ===================================================== -->
+
+            <aside class="cafefe-sidebar">
+
+                <!-- LOGO Y NOMBRE -->
+                <div class="cafefe-brand">
+
+                    <p:graphicImage
+                        library="imagenes"
+                        name="Cafefe.png"
+                        alt="Logo Cafefe" />
+
+                    <div>
+
+                        <h2 class="cafefe-brand-title">
+                            CafeFeSV
+                        </h2>
+
+                        <span class="cafefe-brand-subtitle">
+                            Pasa un calido momento con nosotros
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MENÚ -->
+                <div class="cafefe-menu">
+
                     <ui:insert name="menu">
-                        <p:panelMenu id="menuPrincipal" style="width: 100%;" stateful="true">
-                            <p:submenu label="#{trad['menu.personal']}">
-                                <p:menuitem value="#{trad['menu.empleados']}" outcome="/paginas/Empleado" icon="pi pi-user" />
-                                <p:menuitem value="#{trad['menu.roles']}" outcome="/paginas/Rol" icon="pi pi-id-card" />
+
+                        <p:panelMenu
+                            id="menuPrincipal"
+                            style="width: 100%;"
+                            stateful="false">
+
+                            <!-- PERSONAL -->
+
+                            <p:submenu
+                                label="#{trad['menu.personal']}">
+
+                                <p:menuitem
+                                    value="#{trad['menu.empleados']}"
+                                    outcome="/paginas/Empleado"
+                                    icon="pi pi-user" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.roles']}"
+                                    outcome="/paginas/Rol"
+                                    icon="pi pi-id-card" />
+
                             </p:submenu>
 
-                            <p:submenu label="#{trad['menu.productos']}">
-                                <p:menuitem value="#{trad['menu.tiposProducto']}" outcome="/paginas/TipoProducto" icon="pi pi-tags" />
-                                <p:menuitem value="#{trad['menu.productos']}" outcome="/paginas/Producto" icon="pi pi-shopping-cart" />
-                                <p:menuitem value="#{trad['menu.tiposCaracteristica']}" outcome="/paginas/TipoCaracteristica" icon="pi pi-sliders-h" />
-                                <p:menuitem value="#{trad['menu.caracteristicas']}" outcome="/paginas/Caracteristica" icon="pi pi-list" />
+
+                            <!-- PRODUCTOS -->
+
+                            <p:submenu
+                                label="#{trad['menu.productos']}">
+
+                                <p:menuitem
+                                    value="#{trad['menu.tiposProducto']}"
+                                    outcome="/paginas/TipoProducto"
+                                    icon="pi pi-tags" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.productos']}"
+                                    outcome="/paginas/Producto"
+                                    icon="pi pi-shopping-cart" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.tiposCaracteristica']}"
+                                    outcome="/paginas/TipoCaracteristica"
+                                    icon="pi pi-sliders-h" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.caracteristicas']}"
+                                    outcome="/paginas/Caracteristica"
+                                    icon="pi pi-list" />
+
                             </p:submenu>
 
-                            <p:submenu label="#{trad['menu.descuentos']}">
-                                <p:menuitem value="#{trad['menu.tiposDescuento']}" outcome="/paginas/TipoDescuento" icon="pi pi-percentage" />
-                                <p:menuitem value="#{trad['menu.descuentos']}" outcome="/paginas/Descuento" icon="pi pi-tag" />
+
+                            <!-- DESCUENTOS -->
+
+                            <p:submenu
+                                label="#{trad['menu.descuentos']}">
+
+                                <p:menuitem
+                                    value="#{trad['menu.tiposDescuento']}"
+                                    outcome="/paginas/TipoDescuento"
+                                    icon="pi pi-percentage" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.descuentos']}"
+                                    outcome="/paginas/Descuento"
+                                    icon="pi pi-tag" />
+
                             </p:submenu>
 
-                            <p:submenu label="#{trad['menu.ventas']}">
-                                <p:menuitem value="#{trad['menu.ordenes']}" outcome="/paginas/Orden" icon="pi pi-list" />
-                                <p:menuitem value="#{trad['menu.productosOrden']}" outcome="/paginas/OrdenProducto" icon="pi pi-plus-circle" />
+
+                            <!-- VENTAS -->
+
+                            <p:submenu
+                                label="#{trad['menu.ventas']}">
+
+                                <p:menuitem
+                                    value="#{trad['menu.ordenes']}"
+                                    outcome="/paginas/Orden"
+                                    icon="pi pi-list" />
+
+                                <p:menuitem
+                                    value="#{trad['menu.productosOrden']}"
+                                    outcome="/paginas/OrdenProducto"
+                                    icon="pi pi-plus-circle" />
+
                             </p:submenu>
+
                         </p:panelMenu>
+
                     </ui:insert>
+
                 </div>
 
-                <!-- Columna derecha: CONTENIDO de cada página -->
-                <div class="ui-g-10">
+            </aside>
+
+
+            <!-- =====================================================
+                 CONTENIDO PRINCIPAL
+                 ===================================================== -->
+
+            <main class="cafefe-main">
+
+
+                <!-- =================================================
+                     BARRA SUPERIOR
+                     ================================================= -->
+
+                <div class="cafefe-topbar">
+
+                    <div class="cafefe-language">
+
+                        <h:form id="frmCambiarIdioma">
+
+                            <p:selectOneMenu
+                                value="#{idiomaModel.locale}">
+
+                                <f:selectItem
+                                    itemLabel="Español"
+                                    itemValue="es" />
+
+                                <f:selectItem
+                                    itemLabel="English"
+                                    itemValue="en" />
+
+                                <f:selectItem
+                                    itemLabel="中文"
+                                    itemValue="zh" />
+
+                                <p:ajax
+                                    event="change"
+                                    update="@all" />
+
+                            </p:selectOneMenu>
+
+                        </h:form>
+
+                    </div>
+
+
+                    <!-- ADMINISTRADOR -->
+
+                    <div class="cafefe-user">
+
+                        <span class="cafefe-user-icon">
+                            <i class="pi pi-user"></i>
+                        </span>
+
+                        <span class="cafefe-user-text">
+                            Administrador
+                        </span>
+
+                        <i class="pi pi-chevron-down"></i>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     HERO
+                     ================================================= -->
+
+                <section class="cafefe-hero">
+
+                    <div class="cafefe-hero-content">
+
+                        <h1 class="cafefe-hero-title">
+
+                            <ui:insert name="leyenda">
+                                CafeFeSV
+                            </ui:insert>
+
+                        </h1>
+
+                        <p class="cafefe-hero-description">
+
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     CONTENIDO DE LA PÁGINA
+                     ================================================= -->
+
+                <section class="cafefe-content-card">
+
                     <ui:insert name="contenido">
-                        <!-- El contenido de las páginas irá aquí -->
+
+                        <!-- El contenido de cada página aparece aquí -->
+
                     </ui:insert>
-                </div>
 
-            </div>
+                </section>
 
-            <!-- Pie de página (Fila 3) -->
-            <div class="ui-g-12">
-                <p>#{trad['app.derechos']}</p>
-            </div>
 
-            <ui:insert name="extras" />
+                <!-- =================================================
+                     FOOTER
+                     ================================================= -->
+
+                <footer class="cafefe-footer">
+
+                    <p>
+                        #{trad['app.derechos']}
+                    </p>
+
+                    <div>
+
+                        <span>
+                            Política de privacidad
+                        </span>
+
+                        <span style="margin-left: 25px;">
+                            Términos de uso
+                        </span>
+
+                    </div>
+
+                </footer>
+
+
+                <!-- =================================================
+                     EXTRAS
+                     ================================================= -->
+
+                <ui:insert name="extras" />
+
+            </main>
+
         </div>
+
     </h:body>
-</html>
+</f:view>

@@ -1,0 +1,243 @@
+/* 
+    Created on : 4 oct 2026, 17:21:47
+    Author     : valen
+*/
+/* =========================================================
+   CAFEFESV - ELEMENTOS DE PÁGINA
+   ========================================================= */
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.cafefe-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 18px;
+
+    margin-bottom: 22px;
+}
+
+
+/* =========================================================
+   BUSCADOR
+   ========================================================= */
+
+.cafefe-search {
+
+    width: 410px;
+
+    max-width: 100%;
+
+    position: relative;
+}
+
+
+.cafefe-search .ui-inputfield {
+
+    width: 100%;
+
+    height: 50px;
+
+    padding-left: 45px !important;
+
+    border-radius:
+        14px !important;
+
+    background:
+        #FFFFFF !important;
+}
+
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+
+.cafefe-status {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding:
+        6px 13px;
+
+    border-radius:
+        30px;
+
+    background:
+        #DCE9DF;
+
+    color:
+        #55735E;
+
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    text-transform:
+        uppercase;
+}
+
+
+/* =========================================================
+   ESTADO INACTIVO
+   ========================================================= */
+
+.cafefe-status-inactive {
+
+    background:
+        #E9DEDA;
+
+    color:
+        #81594E;
+}
+
+
+/* =========================================================
+   FORMULARIOS
+   ========================================================= */
+
+.cafefe-form {
+
+    padding:
+        5px;
+}
+
+
+.cafefe-form-grid {
+
+    max-width:
+        800px;
+}
+
+
+/* =========================================================
+   TÍTULOS INTERNOS
+   ========================================================= */
+
+.cafefe-section-title {
+
+    margin:
+        0 0 15px;
+
+    font-family:
+        Georgia, serif;
+
+    color:
+        var(--brown-dark);
+
+    font-size:
+        24px;
+}
+
+
+/* =========================================================
+   BOTONES DEL FORMULARIO
+   ========================================================= */
+
+.cafefe-form-buttons {
+
+    display:
+        flex;
+
+    flex-wrap:
+        wrap;
+
+    gap:
+        10px;
+
+    margin-top:
+        20px;
+}
+
+
+/* =========================================================
+   TEXTO DE INFORMACIÓN
+   ========================================================= */
+
+.cafefe-record-info {
+
+    margin-top:
+        15px;
+
+    color:
+        #817A71;
+
+    font-size:
+        13px;
+}
+
+
+/* =========================================================
+   SEPARADORES
+   ========================================================= */
+
+.cafefe-divider {
+
+    height:
+        1px;
+
+    border:
+        none;
+
+    background:
+        #E6DED4;
+
+    margin:
+        24px 0;
+}
+
+
+/* =========================================================
+   FOOTER DECORATIVO
+   ========================================================= */
+
+.cafefe-footer-message {
+
+    font-family:
+        Georgia, serif;
+
+    font-size:
+        18px;
+
+    font-style:
+        italic;
+
+    color:
+        var(--brown);
+
+    margin:
+        0;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+    .cafefe-toolbar {
+        flex-direction:
+            column;
+
+        align-items:
+            stretch;
+    }
+
+    .cafefe-search {
+        width:
+            100%;
+    }
+}

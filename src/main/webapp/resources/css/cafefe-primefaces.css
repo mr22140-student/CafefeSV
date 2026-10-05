@@ -1,0 +1,510 @@
+/* 
+    Created on : 4 oct 2026, 17:21:17
+    Author     : valen
+*/
+/* =========================================================
+   CAFEFESV - PRIMEFACES
+   ========================================================= */
+
+
+/* =========================================================
+   PANEL MENU
+   ========================================================= */
+
+.cafefe-sidebar .ui-panelmenu {
+    border: none !important;
+
+    background: transparent !important;
+
+    width: 100% !important;
+}
+
+
+/* Encabezados */
+
+.cafefe-sidebar .ui-panelmenu .ui-panelmenu-header {
+    border: none !important;
+
+    background: transparent !important;
+
+    border-radius: 13px !important;
+
+    margin-bottom: 4px;
+}
+
+
+.cafefe-sidebar .ui-panelmenu .ui-panelmenu-header > a {
+    border: none !important;
+
+    border-radius: 13px !important;
+
+    padding: 13px 14px !important;
+
+    background: transparent !important;
+
+    color: var(--brown-dark) !important;
+
+    font-weight: 700 !important;
+}
+
+
+.cafefe-sidebar
+.ui-panelmenu
+.ui-panelmenu-header:hover > a {
+
+    background: var(--cream-dark) !important;
+}
+
+
+/* Submenú abierto */
+
+.cafefe-sidebar
+.ui-panelmenu
+.ui-panelmenu-header.ui-state-active > a {
+
+    background: var(--brown) !important;
+
+    color: white !important;
+}
+
+
+/* =========================================================
+   ITEMS
+   ========================================================= */
+
+.cafefe-sidebar
+.ui-panelmenu
+.ui-menuitem-link {
+
+    border: none !important;
+
+    border-radius: 11px !important;
+
+    margin:
+        2px 0 !important;
+
+    padding:
+        11px 14px !important;
+
+    color:
+        var(--brown-dark) !important;
+
+    background:
+        transparent !important;
+}
+
+
+.cafefe-sidebar
+.ui-panelmenu
+.ui-menuitem-link:hover {
+
+    background:
+        #EDE7DE !important;
+
+    color:
+        var(--brown) !important;
+}
+
+
+.cafefe-sidebar
+.ui-panelmenu
+.ui-menuitem-link .ui-menuitem-icon {
+
+    color:
+        #6F7669 !important;
+
+    margin-right:
+        9px !important;
+}
+
+
+/* =========================================================
+   DATATABLE
+   ========================================================= */
+
+.cafefe-content-card .ui-datatable {
+
+    border:
+        1px solid #E6E0D8 !important;
+
+    border-radius:
+        16px !important;
+
+    overflow:
+        hidden !important;
+}
+
+
+/* Encabezado */
+
+.cafefe-content-card
+.ui-datatable
+.ui-datatable-thead > tr > th {
+
+    background:
+        #DCE5EC !important;
+
+    color:
+        var(--brown-dark) !important;
+
+    border:
+        none !important;
+
+    padding:
+        16px 18px !important;
+
+    font-size:
+        14px !important;
+
+    font-weight:
+        700 !important;
+}
+
+
+/* Filas */
+
+.cafefe-content-card
+.ui-datatable
+.ui-datatable-data > tr {
+
+    background:
+        #FFFFFF !important;
+
+    transition:
+        background-color .2s ease,
+        transform .2s ease !important;
+}
+
+
+.cafefe-content-card
+.ui-datatable
+.ui-datatable-data > tr:hover {
+
+    background:
+        #FAF7F2 !important;
+}
+
+
+/* Celdas */
+
+.cafefe-content-card
+.ui-datatable
+.ui-datatable-data > tr > td {
+
+    padding:
+        15px 18px !important;
+
+    border:
+        none !important;
+
+    border-bottom:
+        1px solid #EEE8E0 !important;
+
+    color:
+        #44392E !important;
+
+    font-size:
+        14px !important;
+}
+
+
+/* Selección */
+
+.cafefe-content-card
+.ui-datatable
+.ui-datatable-data > tr.ui-state-highlight {
+
+    background:
+        #E8E2D8 !important;
+
+    color:
+        var(--brown-dark) !important;
+}
+
+
+/* =========================================================
+   PAGINATOR
+   ========================================================= */
+
+.cafefe-content-card
+.ui-paginator {
+
+    background:
+        transparent !important;
+
+    border:
+        none !important;
+
+    padding:
+        18px 4px 2px !important;
+}
+
+
+.cafefe-content-card
+.ui-paginator
+.ui-paginator-page,
+.cafefe-content-card
+.ui-paginator
+.ui-paginator-first,
+.cafefe-content-card
+.ui-paginator
+.ui-paginator-prev,
+.cafefe-content-card
+.ui-paginator
+.ui-paginator-next,
+.cafefe-content-card
+.ui-paginator
+.ui-paginator-last {
+
+    border:
+        none !important;
+
+    border-radius:
+        10px !important;
+
+    min-width:
+        38px !important;
+
+    height:
+        38px !important;
+
+    margin:
+        2px !important;
+}
+
+
+.cafefe-content-card
+.ui-paginator
+.ui-state-active {
+
+    background:
+        var(--brown) !important;
+
+    color:
+        white !important;
+}
+
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+
+.cafefe-content-card .ui-button {
+
+    border:
+        none !important;
+
+    border-radius:
+        12px !important;
+
+    background:
+        var(--blue-soft) !important;
+
+    color:
+        var(--brown-dark) !important;
+
+    font-weight:
+        600 !important;
+
+    padding:
+        11px 18px !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+.cafefe-content-card .ui-button:hover {
+
+    background:
+        var(--blue) !important;
+
+    color:
+        white !important;
+}
+
+
+/* Botón principal */
+
+.cafefe-new-button {
+
+    background:
+        #7EA5C3 !important;
+
+    color:
+        white !important;
+
+    font-weight:
+        700 !important;
+}
+
+
+.cafefe-new-button:hover {
+
+    background:
+        #678DAA !important;
+}
+
+
+/* Cancelar */
+
+.cafefe-cancel-button {
+
+    background:
+        #E8E2D8 !important;
+
+    color:
+        var(--brown) !important;
+}
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.cafefe-content-card
+.ui-inputfield {
+
+    border:
+        1px solid #DDD6CD !important;
+
+    border-radius:
+        11px !important;
+
+    background:
+        white !important;
+
+    color:
+        var(--brown-dark) !important;
+
+    padding:
+        11px 13px !important;
+}
+
+
+.cafefe-content-card
+.ui-inputfield:focus {
+
+    border-color:
+        #90967A !important;
+
+    box-shadow:
+        0 0 0 2px rgba(144,150,122,.16) !important;
+}
+
+
+/* =========================================================
+   PANEL
+   ========================================================= */
+
+.cafefe-content-card .ui-panel {
+
+    border:
+        1px solid #E7E0D7 !important;
+
+    border-radius:
+        16px !important;
+
+    overflow:
+        hidden !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+.cafefe-content-card .ui-panel .ui-panel-titlebar {
+
+    background:
+        #F2EDE5 !important;
+
+    border:
+        none !important;
+
+    color:
+        var(--brown-dark) !important;
+
+    padding:
+        15px 18px !important;
+
+    font-family:
+        Georgia, serif !important;
+}
+
+
+/* =========================================================
+   TABVIEW
+   ========================================================= */
+
+.cafefe-content-card .ui-tabs {
+
+    border:
+        none !important;
+}
+
+
+.cafefe-content-card .ui-tabs-nav {
+
+    border:
+        none !important;
+
+    background:
+        transparent !important;
+}
+
+
+.cafefe-content-card .ui-tabs-nav li {
+
+    border:
+        none !important;
+
+    border-radius:
+        10px 10px 0 0 !important;
+}
+
+
+.cafefe-content-card .ui-tabs-nav li.ui-tabs-selected,
+.cafefe-content-card .ui-tabs-nav li.ui-state-active {
+
+    background:
+        #DCE5EC !important;
+}
+
+
+/* =========================================================
+   GROWL
+   ========================================================= */
+
+.ui-growl-item-container {
+
+    border-radius:
+        14px !important;
+}
+
+
+/* =========================================================
+   DIALOG
+   ========================================================= */
+
+.ui-dialog {
+
+    border-radius:
+        18px !important;
+
+    overflow:
+        hidden !important;
+}
+
+
+.ui-dialog .ui-dialog-titlebar {
+
+    background:
+        var(--brown) !important;
+
+    color:
+        white !important;
+
+    border:
+        none !important;
+}
+

@@ -7,7 +7,7 @@
                 template="/WEB-INF/plantillas/general.xhtml">
 
     <ui:define name="leyenda">
-        Tipos de Característica
+        #{trad['pagina.caracteristica']}
     </ui:define>
 
     <ui:define name="contenido">
@@ -89,7 +89,7 @@
                                              placeholder="Ej: ^\d+(\.\d{1,2})?$"
                                              style="font-family: monospace;" />
                                 <small style="display:block; margin-top:4px; color:#6c757d;">
-                                    Expresión regular de Java para validar el valor. Déjala vacía para aceptar cualquier valor.
+                                    Expresión regular de Java para validar el valor. Déjala vacía o .* para aceptar cualquier valor.
                                 </small>
                             </h:panelGroup>
 

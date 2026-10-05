@@ -19,14 +19,41 @@ public class IdiomaModel implements Serializable {
     }
 
     public void setLocale(String locale) {
+
         this.locale = locale;
 
         Locale nuevoLocale = switch (locale) {
-            case "en" -> Locale.of("en", "US");
-            case "zh" -> Locale.of("zh", "TW");
-            default -> Locale.of("es");
+
+            case "en" ->
+                Locale.US;
+
+            case "zh" ->
+                Locale.TAIWAN;
+
+            default ->
+                new Locale("es");
         };
 
-        FacesContext.getCurrentInstance().getViewRoot().setLocale(nuevoLocale);
+        FacesContext.getCurrentInstance()
+                .getViewRoot()
+                .setLocale(nuevoLocale);
+    }
+
+    /**
+     * Locale que debe utilizar cada nueva vista.
+     */
+    public Locale getCurrentLocale() {
+
+        return switch (locale) {
+
+            case "en" ->
+                Locale.US;
+
+            case "zh" ->
+                Locale.TAIWAN;
+
+            default ->
+                new Locale("es");
+        };
     }
 }
