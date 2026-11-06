@@ -47,7 +47,7 @@ public class TipoProductoModel extends AbstractModel<TipoProducto, UUID> {
 
     @Override
     public void btnModificarHandler() {
-        if (puedeInactivar() && puedeInactivar()) {
+        if (puedeInactivar()) {
             super.btnModificarHandler();
         }
     }

@@ -3,7 +3,6 @@ package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
@@ -26,24 +25,6 @@ public class ProductoTipoProductoDAO extends AbstractDAO<ProductoTipoProducto, U
     @Override
     protected EntityManager getEntityManager() {
         return em;
-    }
-
-    public List<ProductoTipoProducto> findByFechaCreacion(Date fechaCreacion) {
-        return em.createNamedQuery(
-                "ProductoTipoProducto.findByFechaCreacion",
-                ProductoTipoProducto.class
-        )
-        .setParameter("fechaCreacion", fechaCreacion)
-        .getResultList();
-    }
-
-    public List<ProductoTipoProducto> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "ProductoTipoProducto.findByObservaciones",
-                ProductoTipoProducto.class
-        )
-        .setParameter("observaciones", observaciones)
-        .getResultList();
     }
 
     public List<ProductoTipoProducto> findByProducto(Producto producto) {

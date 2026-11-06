@@ -27,15 +27,6 @@ public class ProductoCaracteristicaDAO extends AbstractDAO<ProductoCaracteristic
         return em;
     }
 
-    public List<ProductoCaracteristica> findByValor(String valor) {
-        return em.createNamedQuery(
-                "ProductoCaracteristica.findByValor",
-                ProductoCaracteristica.class
-        )
-        .setParameter("valor", valor)
-        .getResultList();
-    }
-
     public List<ProductoCaracteristica> findByCaracteristica(Caracteristica caracteristica) {
         return em.createQuery(
                 "SELECT x FROM ProductoCaracteristica x "

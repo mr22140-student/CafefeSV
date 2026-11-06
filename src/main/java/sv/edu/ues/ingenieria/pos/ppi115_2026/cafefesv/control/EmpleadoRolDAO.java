@@ -28,24 +28,6 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
         return em;
     }
 
-    public List<EmpleadoRol> findByActivo(Boolean activo) {
-        return em.createNamedQuery(
-                "EmpleadoRol.findByActivo",
-                EmpleadoRol.class
-        )
-                .setParameter("activo", activo)
-                .getResultList();
-    }
-
-    public List<EmpleadoRol> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "EmpleadoRol.findByObservaciones",
-                EmpleadoRol.class
-        )
-                .setParameter("observaciones", observaciones)
-                .getResultList();
-    }
-
     public List<EmpleadoRol> findByRol(Rol rol) {
         return em.createQuery(
                 "SELECT x FROM EmpleadoRol x "
@@ -56,17 +38,6 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
                 .getResultList();
     }
 
-    /**
-     * Cuantos roles tiene asignados un empleado (para no eliminar empleados en
-     * uso).
-     */
-    public long countByEmpleado(UUID idEmpleado) {
-        return em.createQuery(
-                "SELECT COUNT(x) FROM EmpleadoRol x WHERE x.idEmpleado = :emp", Long.class)
-                .setParameter("emp", idEmpleado)
-                .getSingleResult();
-    }
-    
         /**
      * true si el empleado ya tiene asignado ese rol en otro registro.
      * idExcluir es el registro que se esta modificando (null al crear).

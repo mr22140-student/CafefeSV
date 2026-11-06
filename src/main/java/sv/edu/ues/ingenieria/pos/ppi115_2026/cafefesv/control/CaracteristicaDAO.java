@@ -28,27 +28,6 @@ public class CaracteristicaDAO extends AbstractDAO<Caracteristica, UUID> {
         return em;
     }
 
-    public List<Caracteristica> findByNombre(String nombre) {
-        if (nombre == null) return Collections.emptyList();
-        return em.createNamedQuery("Caracteristica.findByNombre", Caracteristica.class)
-                .setParameter("nombre", nombre)
-                .getResultList();
-    }
-
-    public List<Caracteristica> findByActivo(Boolean activo) {
-        if (activo == null) return Collections.emptyList();
-        return em.createNamedQuery("Caracteristica.findByActivo", Caracteristica.class)
-                .setParameter("activo", activo)
-                .getResultList();
-    }
-
-    public List<Caracteristica> findByObservaciones(String observaciones) {
-        if (observaciones == null) return Collections.emptyList();
-        return em.createNamedQuery("Caracteristica.findByObservaciones", Caracteristica.class)
-                .setParameter("observaciones", observaciones)
-                .getResultList();
-    }
-
     public List<Caracteristica> findByTipoCaracteristica(TipoCaracteristica tipoCaracteristica) {
         if (tipoCaracteristica == null) return Collections.emptyList();
         return em.createQuery(

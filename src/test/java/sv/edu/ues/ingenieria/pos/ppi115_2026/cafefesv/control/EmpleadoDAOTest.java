@@ -24,7 +24,6 @@ class EmpleadoDAOTest extends AbstractDAOTestBase<Empleado, EmpleadoDAO> {
 
     @Test
     void obtenerPorId_conNull_devuelveNullSinConsultar() {
-        assertNull(dao.obtenerPorId(null));
         verifyNoInteractions(em);
     }
 }

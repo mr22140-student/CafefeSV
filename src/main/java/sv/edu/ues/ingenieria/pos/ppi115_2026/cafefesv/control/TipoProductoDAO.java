@@ -25,15 +25,6 @@ public class TipoProductoDAO extends AbstractDAO<TipoProducto, UUID> {
         return em;
     }
 
-    public List<TipoProducto> findByNombre(String nombre) {
-        return em.createNamedQuery(
-                "TipoProducto.findByNombre",
-                TipoProducto.class
-        )
-        .setParameter("nombre", nombre)
-        .getResultList();
-    }
-
     public List<TipoProducto> findByActivo(Boolean activo) {
         return em.createNamedQuery(
                 "TipoProducto.findByActivo",
@@ -43,12 +34,4 @@ public class TipoProductoDAO extends AbstractDAO<TipoProducto, UUID> {
         .getResultList();
     }
 
-    public List<TipoProducto> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "TipoProducto.findByObservaciones",
-                TipoProducto.class
-        )
-        .setParameter("observaciones", observaciones)
-        .getResultList();
-    }
 }

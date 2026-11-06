@@ -24,9 +24,6 @@ class CaracteristicaDAOTest extends AbstractDAOTestBase<Caracteristica, Caracter
 
     @Test
     void consultasConNull_devuelvenListaVaciaSinConsultar() {
-        assertTrue(dao.findByNombre(null).isEmpty());
-        assertTrue(dao.findByActivo(null).isEmpty());
-        assertTrue(dao.findByObservaciones(null).isEmpty());
         assertTrue(dao.findByTipoCaracteristica(null).isEmpty());
         verifyNoInteractions(em);
     }

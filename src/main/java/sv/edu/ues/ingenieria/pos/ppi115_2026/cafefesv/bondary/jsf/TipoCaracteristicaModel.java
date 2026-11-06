@@ -51,7 +51,7 @@ public class TipoCaracteristicaModel extends AbstractModel<TipoCaracteristica, U
 
     @Override
     public void btnCrearHandler() {
-        if (expresionValida() && puedeInactivar()) {
+        if (expresionValida()) {
             super.btnCrearHandler();
         }
     }

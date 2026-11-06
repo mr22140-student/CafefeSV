@@ -29,55 +29,6 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
         return em;
     }
 
-    public List<Descuento> findByNombre(String nombre) {
-        return em.createNamedQuery(
-                "Descuento.findByNombre",
-                Descuento.class
-        )
-                .setParameter("nombre", nombre)
-                .getResultList();
-    }
-
-    public List<Descuento> findByFechaDesde(Date fechaDesde) {
-        return em.createNamedQuery(
-                "Descuento.findByFechaDesde",
-                Descuento.class
-        )
-                .setParameter("fechaDesde", fechaDesde)
-                .getResultList();
-    }
-
-    public List<Descuento> findByFechaHasta(Date fechaHasta) {
-        return em.createNamedQuery(
-                "Descuento.findByFechaHasta",
-                Descuento.class
-        )
-                .setParameter("fechaHasta", fechaHasta)
-                .getResultList();
-    }
-
-    public List<Descuento> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "Descuento.findByObservaciones",
-                Descuento.class
-        )
-                .setParameter("observaciones", observaciones)
-                .getResultList();
-    }
-
-    /**
-     * Obtiene los descuentos vigentes en la fecha indicada.
-     */
-    public List<Descuento> findVigentes(Date fecha) {
-        return em.createQuery(
-                "SELECT d FROM Descuento d "
-                + "WHERE :fecha BETWEEN d.fechaDesde AND d.fechaHasta",
-                Descuento.class
-        )
-                .setParameter("fecha", fecha)
-                .getResultList();
-    }
-
     public long countByTipoDescuento(TipoDescuento tipoDescuento) {
         if (tipoDescuento == null) {
             return 0;

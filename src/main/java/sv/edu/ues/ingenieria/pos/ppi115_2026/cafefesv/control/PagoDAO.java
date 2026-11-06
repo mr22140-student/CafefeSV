@@ -24,34 +24,6 @@ public class PagoDAO extends AbstractDAO<Pago, UUID> {
         return em;
     }
 
-    public List<Pago> findByEstado(String estado) {
-        return em.createNamedQuery(
-                "Pago.findByEstado",
-                Pago.class
-        )
-        .setParameter("estado", estado)
-        .getResultList();
-    }
-
-    public List<Pago> findByObservaciones(String observaciones) {
-        return em.createNamedQuery(
-                "Pago.findByObservaciones",
-                Pago.class
-        )
-        .setParameter("observaciones", observaciones)
-        .getResultList();
-    }
-
-    public List<Pago> findByFactura(Factura factura) {
-        return em.createQuery(
-                "SELECT x FROM Pago x "
-                + "WHERE x.idFactura = :factura",
-                Pago.class
-        )
-        .setParameter("factura", factura)
-        .getResultList();
-    }
-    
         /** Cuantos detalles (montos) tiene el pago. */
     public long countDetalles(Pago pago) {
         return em.createQuery(

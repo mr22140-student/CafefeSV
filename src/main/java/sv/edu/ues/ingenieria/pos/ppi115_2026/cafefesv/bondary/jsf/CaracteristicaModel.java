@@ -120,25 +120,4 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
         return true;
     }
 
-    /**
-     * No se puede inactivar una característica mientras la tenga algún producto
-     * ACTIVO.
-     */
-    private boolean puedeInactivar() {
-        if (registro == null || Boolean.TRUE.equals(registro.getActivo())) {
-            return true;
-        }
-        long activos = pcDAO.findByCaracteristica(registro).stream()
-                .filter(x -> x.getIdProducto() != null && Boolean.TRUE.equals(x.getIdProducto().getActivo()))
-                .count();
-        if (activos > 0) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                    "No se puede inactivar",
-                    "Hay " + activos + " producto(s) activo(s) con esta característica. "
-                    + "Quítesela o inactive esos productos primero."));
-            return false;
-        }
-        return true;
-    }
-
 }
