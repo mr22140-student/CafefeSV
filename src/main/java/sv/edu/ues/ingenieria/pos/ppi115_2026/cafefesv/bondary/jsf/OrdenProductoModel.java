@@ -47,18 +47,22 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
     private List<Producto> listaProducto = new ArrayList<>();
     private Map<UUID, Empleado> empleados = new HashMap<>();
 
-    /** Orden elegida arriba de la tabla; null = todas. */
+    /**
+     * Orden elegida arriba de la tabla; null = todas.
+     */
     private Orden ordenFiltro;
 
-    /** Cuantas unidades del producto agregar de una vez (solo al crear). */
+    /**
+     * Cuantas unidades del producto agregar de una vez (solo al crear).
+     */
     private Integer cantidad = 1;
 
     @PostConstruct
     public void init() {
-        List<Empleado> emps = empleadoDAO.findRange(0, 1000);
-        if (emps != null) {
-            for (Empleado e : emps) {
-                empleados.put(e.getIdEmpleado(), e);
+        List<Empleado> todosLosEmpleados = empleadoDAO.findRange(0, 1000);
+        if (todosLosEmpleados != null) {
+            for (Empleado empleado : todosLosEmpleados) {
+                empleados.put(empleado.getIdEmpleado(), empleado);
             }
         }
 
@@ -70,19 +74,14 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
                     Comparator.nullsLast(Comparator.reverseOrder())));
         }
 
-        List<Producto> productos = productoDAO.findRange(0, 1000);
-        if (productos != null) {
-            for (Producto p : productos) {
-                if (Boolean.TRUE.equals(p.getActivo())) {
-                    listaProducto.add(p);
-                }
-            }
-        }
+        listaProducto = new ArrayList<>(productoDAO.findByActivo(Boolean.TRUE));
 
         iniciar();
     }
 
-    /** Si hay una orden elegida, la tabla solo muestra sus productos. */
+    /**
+     * Si hay una orden elegida, la tabla solo muestra sus productos.
+     */
     @Override
     public void iniciar() {
         if (ordenFiltro != null) {
@@ -117,13 +116,16 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
     }
 
     // ================= Handlers de la vista =================
-
-    /** Al cambiar la orden de arriba, recarga la tabla. */
+    /**
+     * Al cambiar la orden de arriba, recarga la tabla.
+     */
     public void filtrarHandler() {
         iniciar();
     }
 
-    /** Al elegir un producto, copia su precio sugerido (se puede editar). */
+    /**
+     * Al elegir un producto, copia su precio sugerido (se puede editar).
+     */
     public void productoSeleccionadoHandler() {
         if (registro != null && registro.getIdProducto() != null) {
             registro.setPrecio(registro.getIdProducto().getPrecioSugerido());
@@ -131,24 +133,23 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
     }
 
     // ================= Crear / Modificar / Eliminar =================
-
     @Override
     public void btnCrearHandler() {
-        if (!esValido()) {
+        if (!sinError("Producto no válido", ordenProductoDAO.validarDetalle(registro))) {
             return;
         }
-        int n = (cantidad == null || cantidad < 1) ? 1 : cantidad;
-        if (n == 1) {
+        int unidades = (cantidad == null || cantidad < 1) ? 1 : cantidad;
+        if (unidades == 1) {
             super.btnCrearHandler();
             return;
         }
         // Varias unidades: se guarda una fila por unidad
         try {
-            for (int i = 0; i < n; i++) {
-                OrdenProducto op = (i == 0) ? registro : copiar(registro);
-                ordenProductoDAO.save(op);
+            for (int numeroUnidad = 0; numeroUnidad < unidades; numeroUnidad++) {
+                OrdenProducto detalle = (numeroUnidad == 0) ? registro : copiar(registro);
+                ordenProductoDAO.save(detalle);
             }
-            mensaje(FacesMessage.SEVERITY_INFO, n + " productos agregados a la orden");
+            mensaje(FacesMessage.SEVERITY_INFO, unidades + " productos agregados a la orden");
             registro = null;
             cantidad = 1;
             iniciar();
@@ -159,92 +160,60 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
 
     @Override
     public void btnModificarHandler() {
-        if (estaFacturado()) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede modificar: este producto ya está facturado.");
-            return;
-        }
-        if (esValido()) {
+        if (sinError("No se puede modificar", ordenProductoDAO.validarNoFacturado(registro))
+                && sinError("Producto no válido", ordenProductoDAO.validarDetalle(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (estaFacturado()) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede eliminar: este producto ya está facturado.");
-            return;
+        if (sinError("No se puede eliminar", ordenProductoDAO.validarNoFacturado(registro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
-    private boolean esValido() {
-        if (registro == null) {
-            return true; // AbstractModel muestra su propio mensaje
-        }
-        if (registro.getIdOrden() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar la orden.");
-            return false;
-        }
-        if (registro.getIdProducto() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el producto.");
-            return false;
-        }
-        if (registro.getPrecio() == null || registro.getPrecio().signum() < 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El precio debe ser mayor o igual a cero.");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean estaFacturado() {
-        return registro != null && ordenProductoDAO.countFacturas(registro) > 0;
-    }
-
+    // Una fila más con los mismos datos, para guardar varias unidades.
     private OrdenProducto copiar(OrdenProducto base) {
-        OrdenProducto c = new OrdenProducto(UUID.randomUUID());
-        c.setIdOrden(base.getIdOrden());
-        c.setIdProducto(base.getIdProducto());
-        c.setPrecio(base.getPrecio());
-        c.setObservaciones(base.getObservaciones());
-        return c;
+        OrdenProducto copia = new OrdenProducto(UUID.randomUUID());
+        copia.setIdOrden(base.getIdOrden());
+        copia.setIdProducto(base.getIdProducto());
+        copia.setPrecio(base.getPrecio());
+        copia.setObservaciones(base.getObservaciones());
+        return copia;
     }
 
     // ================= Etiquetas =================
-
-    /** "dd/MM/yyyy HH:mm - Nombre Apellido" para combos y tabla. */
-    public String etiquetaOrden(Orden o) {
-        if (o == null) {
+    /**
+     * "dd/MM/yyyy HH:mm - Nombre Apellido" para combos y tabla.
+     */
+    public String etiquetaOrden(Orden orden) {
+        if (orden == null) {
             return "Sin asignación";
         }
-        String fecha = (o.getFechaCreacion() != null)
-                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(o.getFechaCreacion())
+        String fecha = (orden.getFechaCreacion() != null)
+                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(orden.getFechaCreacion())
                 : "Sin fecha";
-        String empleado = "Sin empleado";
-        EmpleadoRol er = o.getIdEmpleadoRol();
-        if (er != null && er.getIdEmpleado() != null) {
-            Empleado e = empleados.get(er.getIdEmpleado());
-            if (e != null) {
-                empleado = (texto(e.getNombre()) + " " + texto(e.getApellido())).trim();
+        String nombreEmpleado = "Sin empleado";
+        EmpleadoRol asignacion = orden.getIdEmpleadoRol();
+        if (asignacion != null && asignacion.getIdEmpleado() != null) {
+            Empleado empleado = empleados.get(asignacion.getIdEmpleado());
+            if (empleado != null) {
+                nombreEmpleado = (texto(empleado.getNombre()) + " " + texto(empleado.getApellido())).trim();
             }
         }
-        return fecha + " - " + empleado;
+        return fecha + " - " + nombreEmpleado;
     }
 
-    /** Suma de precios de lo que se ve en la tabla (util al filtrar por orden). */
+    /**
+     * Suma de precios de lo que se ve en la tabla (util al filtrar por orden).
+     */
     public BigDecimal getTotal() {
-        BigDecimal total = BigDecimal.ZERO;
-        if (registros != null) {
-            for (OrdenProducto op : registros) {
-                if (op.getPrecio() != null) {
-                    total = total.add(op.getPrecio());
-                }
-            }
-        }
-        return total;
+        return ordenProductoDAO.calcularTotal(registros);
     }
 
-    private static String texto(String s) {
-        return s != null ? s : "";
+    private static String texto(String valor) {
+        return valor != null ? valor : "";
     }
 
     private void mensaje(FacesMessage.Severity severidad, String texto) {
@@ -252,7 +221,6 @@ public class OrdenProductoModel extends AbstractModel<OrdenProducto, UUID> {
     }
 
     // ================= Getters / Setters =================
-
     public List<Orden> getListaOrden() {
         return listaOrden;
     }

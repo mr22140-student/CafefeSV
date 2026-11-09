@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
  */
 public class EmpleadoModelTest extends ModelTestBase {
 
-    @InjectMocks
+        @InjectMocks
     private EmpleadoModel model;
 
     @Mock
@@ -36,30 +36,48 @@ public class EmpleadoModelTest extends ModelTestBase {
 
     @Test
     void alSeleccionarUnEmpleado_cargaSuRolActual() {
-        Empleado e = empleado();
-        Rol cajero = rol("Cajero", true);
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(asignacion(e, cajero)));
+        Empleado ana = empleado();
+        Rol cajero = rol("Cajero");
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacion(ana, cajero)));
 
-        model.seleccionarRegistro(e);
+        model.seleccionarRegistro(ana);
 
         assertEquals(cajero, model.getRolSeleccionado());
         assertEquals(1, model.getRolesEmpleado().size());
     }
 
+    // ===================== Asignar rol =====================
+
     @Test
-    void asignarRol_sinElegirRol_avisaYNoGuarda() {
-        model.seleccionarRegistro(empleado());
+    void asignarRol_siElDaoDiceQueYaTieneUno_noGuarda() {
+        Empleado ana = empleado();
+        when(empleadoRolDAO.validarSinRolAsignado(ana.getIdEmpleado())).thenReturn("El empleado ya tiene un rol asignado.");
+        model.seleccionarRegistro(ana);
+        model.setRolSeleccionado(rol("Cajero"));
 
         model.btnAgregarRolHandler();
 
         verify(empleadoRolDAO, never()).save(any());
-        assertEquals("Seleccione un rol.", ultimoMensaje().getSummary());
+        assertEquals("Ya tiene rol", ultimoMensaje().getSummary());
     }
 
     @Test
-    void asignarRol_guardaLaAsignacion() {
+    void asignarRol_siElDaoRechazaElRol_noGuarda() {
+        Rol barista = rol("Barista");
+        when(empleadoRolDAO.validarRolElegido(barista)).thenReturn("El rol Barista está inactivo.");
         model.seleccionarRegistro(empleado());
-        model.setRolSeleccionado(rol("Cajero", true));
+        model.setRolSeleccionado(barista);
+
+        model.btnAgregarRolHandler();
+
+        verify(empleadoRolDAO, never()).save(any());
+        assertEquals("Rol no válido", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void asignarRol_siElDaoNoEncuentraErrores_guardaLaAsignacion() {
+        model.seleccionarRegistro(empleado());
+        model.setRolSeleccionado(rol("Cajero"));
 
         model.btnAgregarRolHandler();
 
@@ -67,129 +85,114 @@ public class EmpleadoModelTest extends ModelTestBase {
         assertEquals("Rol Cajero asignado.", ultimoMensaje().getSummary());
     }
 
-    @Test
-    void asignarRol_inactivo_avisaYNoGuarda() {
-        model.seleccionarRegistro(empleado());
-        model.setRolSeleccionado(rol("Barista", false));
-
-        model.btnAgregarRolHandler();
-
-        verify(empleadoRolDAO, never()).save(any());
-        assertEquals("El rol Barista está inactivo.", ultimoMensaje().getSummary());
-    }
+    // ===================== Cambiar rol =====================
 
     @Test
-    void asignarRol_siYaTieneUno_avisaYNoGuarda() {
-        Empleado e = empleado();
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(asignacion(e, rol("Cajero", true))));
-        model.seleccionarRegistro(e);
-
-        model.btnAgregarRolHandler();
-
-        verify(empleadoRolDAO, never()).save(any());
-    }
-
-    @Test
-    void cambiarAlMismoRol_avisaYNoActualiza() {
-        Empleado e = empleado();
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(asignacion(e, rol("Cajero", true))));
-        model.seleccionarRegistro(e);
+    void cambiarRol_siElDaoLoRechaza_noActualiza() {
+        Empleado ana = empleado();
+        EmpleadoRol asignacionActual = asignacion(ana, rol("Cajero"));
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacionActual));
+        when(empleadoRolDAO.validarCambioDeRol(asignacionActual, asignacionActual.getIdRol())).thenReturn("El empleado ya tiene ese rol.");
+        model.seleccionarRegistro(ana);
 
         model.btnModificarRolHandler();
 
         verify(empleadoRolDAO, never()).update(any());
-        assertEquals("El empleado ya tiene ese rol.", ultimoMensaje().getSummary());
+        assertEquals("No se puede cambiar el rol", ultimoMensaje().getSummary());
     }
 
     @Test
-    void cambiarAUnRolInactivo_avisaYNoActualiza() {
-        Empleado e = empleado();
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(asignacion(e, rol("Cajero", true))));
-        model.seleccionarRegistro(e);
-        model.setRolSeleccionado(rol("Barista", false));
+    void cambiarRol_aUnRolQueElDaoRechaza_noActualiza() {
+        Empleado ana = empleado();
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacion(ana, rol("Cajero"))));
+        Rol barista = rol("Barista");
+        when(empleadoRolDAO.validarRolElegido(barista)).thenReturn("El rol Barista está inactivo.");
+        model.seleccionarRegistro(ana);
+        model.setRolSeleccionado(barista);
 
         model.btnModificarRolHandler();
 
         verify(empleadoRolDAO, never()).update(any());
-        assertEquals("El rol Barista está inactivo.", ultimoMensaje().getSummary());
+        assertEquals("Rol no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void cambiarRol_actualizaLaAsignacion() {
-        Empleado e = empleado();
-        EmpleadoRol er = asignacion(e, rol("Cajero", true));
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(er));
-        model.seleccionarRegistro(e);
-        Rol camarero = rol("Camarero", true);
+    void cambiarRol_siElDaoNoEncuentraErrores_actualizaLaAsignacion() {
+        Empleado ana = empleado();
+        EmpleadoRol asignacionActual = asignacion(ana, rol("Cajero"));
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacionActual));
+        model.seleccionarRegistro(ana);
+        Rol camarero = rol("Camarero");
         model.setRolSeleccionado(camarero);
 
         model.btnModificarRolHandler();
 
-        verify(empleadoRolDAO).update(er);
-        assertEquals(camarero, er.getIdRol());
+        verify(empleadoRolDAO).update(asignacionActual);
+        assertEquals(camarero, asignacionActual.getIdRol());
     }
 
     @Test
-    void laListaDeRoles_muestraActivosYElRolActualAunqueEsteInactivo() {
-        Empleado e = empleado();
-        Rol activo = rol("Cajero", true);
-        Rol inactivo = rol("Barista", false);
-        Rol actualInactivo = rol("Mesero", false);
-        when(rolDAO.findRange(0, 1000)).thenReturn(List.of(activo, inactivo, actualInactivo));
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(asignacion(e, actualInactivo)));
-        model.seleccionarRegistro(e);
+    void laListaDeRoles_laArmaElDaoConElRolActual() {
+        Empleado ana = empleado();
+        Rol meseroInactivo = rol("Mesero");
+        List<Rol> rolesDelCombo = List.of(rol("Cajero"), meseroInactivo);
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacion(ana, meseroInactivo)));
+        when(rolDAO.buscarActivosIncluyendo(meseroInactivo)).thenReturn(rolesDelCombo);
+        model.seleccionarRegistro(ana);
 
-        assertEquals(List.of(activo, actualInactivo), model.getListaRol());
+        assertEquals(rolesDelCombo, model.getListaRol());
     }
 
+    // ===================== Eliminar =====================
+
     @Test
-    void noEliminaUnEmpleadoConOrdenes() {
-        Empleado e = empleado();
-        EmpleadoRol er = asignacion(e, rol("Camarero", true));
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(er));
-        when(empleadoRolDAO.countOrdenes(er)).thenReturn(1L);
-        model.seleccionarRegistro(e);
+    void noEliminaSiElDaoLoRechaza() {
+        Empleado ana = empleado();
+        when(empleadoDAO.validarEliminar(ana)).thenReturn("El empleado ya tiene órdenes o facturas.");
+        model.seleccionarRegistro(ana);
 
         model.btnEliminarHandler();
 
+        verify(empleadoRolDAO, never()).delete(any());
         verify(empleadoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     @Test
     void eliminaUnEmpleadoSinHistorial_borrandoPrimeroSuRol() {
-        Empleado e = empleado();
-        EmpleadoRol er = asignacion(e, rol("Camarero", true));
-        when(empleadoRolDAO.findByEmpleado(e.getIdEmpleado())).thenReturn(List.of(er));
-        model.seleccionarRegistro(e);
+        Empleado ana = empleado();
+        EmpleadoRol asignacion = asignacion(ana, rol("Camarero"));
+        when(empleadoRolDAO.findByEmpleado(ana.getIdEmpleado())).thenReturn(List.of(asignacion));
+        model.seleccionarRegistro(ana);
 
         model.btnEliminarHandler();
 
-        verify(empleadoRolDAO).delete(er);
-        verify(empleadoDAO).delete(e);
+        verify(empleadoRolDAO).delete(asignacion);
+        verify(empleadoDAO).delete(ana);
     }
+
+    // ===================== ayudantes =====================
 
     private Empleado empleado() {
-        Empleado e = new Empleado(UUID.randomUUID());
-        e.setNombre("Ana");
-        e.setApellido("López");
-        e.setActivo(true);
-        return e;
+        Empleado ana = new Empleado(UUID.randomUUID());
+        ana.setNombre("Ana");
+        ana.setApellido("López");
+        ana.setActivo(true);
+        return ana;
     }
 
-    private Rol rol(String nombre, boolean activo) {
-        Rol r = new Rol(UUID.randomUUID());
-        r.setNombre(nombre);
-        r.setActivo(activo);
-        return r;
+    private Rol rol(String nombre) {
+        Rol rol = new Rol(UUID.randomUUID());
+        rol.setNombre(nombre);
+        rol.setActivo(true);
+        return rol;
     }
 
-    private EmpleadoRol asignacion(Empleado e, Rol r) {
-        EmpleadoRol er = new EmpleadoRol(UUID.randomUUID());
-        er.setIdEmpleado(e.getIdEmpleado());
-        er.setIdRol(r);
-        er.setActivo(true);
-        return er;
+    private EmpleadoRol asignacion(Empleado empleado, Rol rol) {
+        EmpleadoRol asignacion = new EmpleadoRol(UUID.randomUUID());
+        asignacion.setIdEmpleado(empleado.getIdEmpleado());
+        asignacion.setIdRol(rol);
+        asignacion.setActivo(true);
+        return asignacion;
     }
-    
-
 }

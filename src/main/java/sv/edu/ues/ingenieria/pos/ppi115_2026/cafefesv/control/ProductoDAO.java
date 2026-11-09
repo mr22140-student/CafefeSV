@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.UUID;
 import java.math.BigDecimal;
+import java.util.List;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 
 /**
@@ -37,6 +38,12 @@ public class ProductoDAO extends AbstractDAO<Producto, UUID> {
             return "El precio sugerido debe ser mayor que $0.00.";
         }
         return null;
+    }
+
+    public List<Producto> findByActivo(Boolean activo) {
+        return em.createNamedQuery("Producto.findByActivo", Producto.class)
+                .setParameter("activo", activo)
+                .getResultList();
     }
 
 }

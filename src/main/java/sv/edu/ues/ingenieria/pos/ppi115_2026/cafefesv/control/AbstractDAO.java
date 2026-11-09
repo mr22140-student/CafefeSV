@@ -10,6 +10,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,47 +19,45 @@ import java.util.logging.Logger;
  *
  * @author daniel
  */
-
 /**
  * Implementación base del patrón DAO usando JPA {@link EntityManager}.
  * <p>
  * Cada DAO concreto (un {@code @Stateless} EJB) solo necesita:
  * <ol>
- *   <li>extender esta clase pasando en el constructor la clase de la
- *       entidad que administra;</li>
- *   <li>inyectar su propio {@link EntityManager} con
- *       {@code @PersistenceContext(unitName = "CafefePU")};</li>
- *   <li>implementar {@link #getEntityManager()} devolviendo ese campo.</li>
+ * <li>extender esta clase pasando en el constructor la clase de la entidad que
+ * administra;</li>
+ * <li>inyectar su propio {@link EntityManager} con
+ * {@code @PersistenceContext(unitName = "CafefePU")};</li>
+ * <li>implementar {@link #getEntityManager()} devolviendo ese campo.</li>
  * </ol>
  * <p>
  * Cada operación valida sus parámetros antes de tocar la base de datos
- * (lanzando {@link IllegalArgumentException} si algo requerido viene nulo o
- * mal formado) y envuelve cualquier falla de JPA en un
+ * (lanzando {@link IllegalArgumentException} si algo requerido viene nulo o mal
+ * formado) y envuelve cualquier falla de JPA en un
  * {@link IllegalStateException} con un mensaje claro, dejando la excepción
- * original como causa y registrándola en el {@link Logger} — así cualquier
- * capa de arriba (por ejemplo un Model de JSF) puede mostrar un mensaje
- * genérico al usuario sin perder el detalle real del error en el log del
- * servidor.
+ * original como causa y registrándola en el {@link Logger} — así cualquier capa
+ * de arriba (por ejemplo un Model de JSF) puede mostrar un mensaje genérico al
+ * usuario sin perder el detalle real del error en el log del servidor.
  *
- * @param <Entidad>  tipo de la entidad administrada
+ * @param <Entidad> tipo de la entidad administrada
  * @param <ID> tipo de la clave primaria de la entidad
  */
 public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID>, Serializable {
- 
+
     private static final long serialVersionUID = 1L;
     private final Class<Entidad> entityClass;
     private final Logger logger = Logger.getLogger(getClass().getName());
- 
+
     protected AbstractDAO(Class<Entidad> entityClass) {
         this.entityClass = entityClass;
     }
- 
+
     /**
-     * Debe devolver el {@link EntityManager} inyectado por el contenedor en
-     * la subclase concreta.
+     * Debe devolver el {@link EntityManager} inyectado por el contenedor en la
+     * subclase concreta.
      */
     protected abstract EntityManager getEntityManager();
- 
+
     @Override
     public void save(Entidad entity) {
         if (entity == null) {
@@ -71,7 +70,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al crear el registro", e);
         }
     }
- 
+
     @Override
     public Entidad update(Entidad entity) {
         if (entity == null) {
@@ -84,7 +83,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al modificar el registro", e);
         }
     }
- 
+
     @Override
     public void delete(Entidad entity) {
         if (entity == null) {
@@ -98,7 +97,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al eliminar el registro", e);
         }
     }
- 
+
     @Override
     public void deleteById(ID id) {
         if (id == null) {
@@ -109,7 +108,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             delete(entity);
         }
     }
- 
+
     @Override
     public Entidad findById(ID id) {
         if (id == null) {
@@ -122,7 +121,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al buscar el registro por id", e);
         }
     }
- 
+
     @Override
     public List<Entidad> findAll() {
         try {
@@ -135,7 +134,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al listar los registros", e);
         }
     }
- 
+
     @Override
     public List<Entidad> findRange(int start, int end) {
         if (start < 0 || end < start) {
@@ -154,7 +153,7 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al listar los registros por rango", e);
         }
     }
- 
+
     @Override
     public long count() {
         try {
@@ -167,5 +166,19 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             logger.log(Level.SEVERE, "Error al contar los registros", e);
             throw new IllegalStateException("Error al contar los registros", e);
         }
+    }
+
+    /**
+     * true si la fecha está entre desde y hasta (incluidas). Si desde o hasta
+     * son null, ese lado del rango queda abierto. Lo usan las reglas de
+     * descuentos de Orden.
+     */
+    protected static boolean estaDentroDeRango(Date fecha, Date desde, Date hasta) {
+        if (fecha == null) {
+            return false;
+        }
+        boolean despuesDelInicio = (desde == null) || !fecha.before(desde);
+        boolean antesDelFin = (hasta == null) || !fecha.after(hasta);
+        return despuesDelInicio && antesDelFin;
     }
 }

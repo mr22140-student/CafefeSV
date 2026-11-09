@@ -7,14 +7,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.EmpleadoRolDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.RolDAO;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
 
 /**
@@ -28,8 +25,6 @@ public class RolModelTest extends ModelTestBase {
 
     @Mock
     private RolDAO rolDAO;
-    @Mock
-    private EmpleadoRolDAO empleadoRolDAO;
 
     @Test
     void nuevoRol_empiezaActivo() {
@@ -42,54 +37,53 @@ public class RolModelTest extends ModelTestBase {
     @Test
     void crearRol_loGuarda() {
         model.btnNuevoHandler();
-        Rol rol = model.getRegistro();
-        rol.setNombre("Cajero");
+        Rol cajero = model.getRegistro();
+        cajero.setNombre("Cajero");
 
         model.btnCrearHandler();
 
-        verify(rolDAO).save(rol);
+        verify(rolDAO).save(cajero);
     }
 
     @Test
-    void noDesactivaUnRolAsignadoAEmpleados() {
-        Rol rol = rol(false);
-        when(empleadoRolDAO.findByRol(rol)).thenReturn(List.of(new EmpleadoRol(UUID.randomUUID())));
-        model.seleccionarRegistro(rol);
+    void noDesactivaSiElDaoLoRechaza_yRegresaElCheck() {
+        Rol barista = rol(false);
+        when(rolDAO.validarInactivar(barista)).thenReturn("El rol está asignado a 1 empleado(s).");
+        model.seleccionarRegistro(barista);
 
         model.btnModificarHandler();
 
         verify(rolDAO, never()).update(any());
-        assertTrue(rol.getActivo(), "El check de activo debe regresar a marcado");
-        assertTrue(ultimoMensaje().getSummary().startsWith("No se puede desactivar"));
+        assertTrue(barista.getActivo(), "El check de activo debe regresar a marcado");
+        assertEquals("No se puede desactivar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void desactivaUnRolQueNadieTiene() {
-        Rol rol = rol(false);
-        model.seleccionarRegistro(rol);
+    void desactivaSiElDaoNoEncuentraErrores() {
+        Rol barista = rol(false);
+        model.seleccionarRegistro(barista);
 
         model.btnModificarHandler();
 
-        verify(rolDAO).update(rol);
+        verify(rolDAO).update(barista);
     }
 
     @Test
-    void noEliminaUnRolAsignadoAEmpleados() {
-        Rol rol = rol(true);
-        when(empleadoRolDAO.findByRol(rol)).thenReturn(List.of(new EmpleadoRol(UUID.randomUUID())));
-        model.seleccionarRegistro(rol);
+    void noEliminaSiElDaoLoRechaza() {
+        Rol barista = rol(true);
+        when(rolDAO.validarEliminar(barista)).thenReturn("El rol está asignado a uno o más empleados.");
+        model.seleccionarRegistro(barista);
 
         model.btnEliminarHandler();
 
         verify(rolDAO, never()).delete(any());
-        assertTrue(ultimoMensaje().getSummary().startsWith("No se puede eliminar"));
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     private Rol rol(boolean activo) {
-        Rol r = new Rol(UUID.randomUUID());
-        r.setNombre("Barista");
-        r.setActivo(activo);
-        return r;
+        Rol barista = new Rol(UUID.randomUUID());
+        barista.setNombre("Barista");
+        barista.setActivo(activo);
+        return barista;
     }
-
 }

@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -39,26 +39,15 @@ public class OrdenProductoModelTest extends ModelTestBase {
     @Mock
     private EmpleadoDAO empleadoDAO;
 
-    @Test
-    void noGuardaSinOrden() {
-        model.btnNuevoHandler();
-        model.getRegistro().setIdProducto(producto("2.50"));
-        model.getRegistro().setPrecio(new BigDecimal("2.50"));
-
-        model.btnCrearHandler();
-
-        verify(ordenProductoDAO, never()).save(any());
-        assertEquals("Debe seleccionar la orden.", ultimoMensaje().getSummary());
-    }
-
-    @Test
-    void noGuardaConPrecioNegativo() {
+        @Test
+    void noGuardaSiElDaoRechazaElDetalle() {
         prepararRegistro(new BigDecimal("-1"));
+        when(ordenProductoDAO.validarDetalle(model.getRegistro())).thenReturn("El precio debe ser mayor o igual a cero.");
 
         model.btnCrearHandler();
 
         verify(ordenProductoDAO, never()).save(any());
-        assertEquals("El precio debe ser mayor o igual a cero.", ultimoMensaje().getSummary());
+        assertEquals("Producto no válido", ultimoMensaje().getSummary());
     }
 
     @Test
@@ -83,25 +72,44 @@ public class OrdenProductoModelTest extends ModelTestBase {
     }
 
     @Test
-    void noModificaUnProductoYaFacturado() {
-        OrdenProducto op = new OrdenProducto(UUID.randomUUID());
-        when(ordenProductoDAO.countFacturas(op)).thenReturn(1L);
-        model.seleccionarRegistro(op);
+    void noModificaSiElDaoDiceQueYaEstaFacturado() {
+        OrdenProducto detalle = new OrdenProducto(UUID.randomUUID());
+        when(ordenProductoDAO.validarNoFacturado(detalle)).thenReturn("Este producto ya está facturado.");
+        model.seleccionarRegistro(detalle);
 
         model.btnModificarHandler();
 
         verify(ordenProductoDAO, never()).update(any());
-        assertEquals("No se puede modificar: este producto ya está facturado.", ultimoMensaje().getSummary());
+        assertEquals("No se puede modificar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void elTotal_sumaLosPreciosDeLaOrden() {
-        OrdenProducto a = new OrdenProducto(UUID.randomUUID());
-        a.setPrecio(new BigDecimal("2.50"));
-        OrdenProducto b = new OrdenProducto(UUID.randomUUID());
-        b.setPrecio(new BigDecimal("1.00"));
-        OrdenProducto sinPrecio = new OrdenProducto(UUID.randomUUID());
-        model.setRegistros(Arrays.asList(a, b, sinPrecio));
+    void noEliminaSiElDaoDiceQueYaEstaFacturado() {
+        OrdenProducto detalle = new OrdenProducto(UUID.randomUUID());
+        when(ordenProductoDAO.validarNoFacturado(detalle)).thenReturn("Este producto ya está facturado.");
+        model.seleccionarRegistro(detalle);
+
+        model.btnEliminarHandler();
+
+        verify(ordenProductoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void alIniciar_losProductosDelComboLosTraeElDao() {
+        Producto cafe = producto("2.50");
+        when(productoDAO.findByActivo(Boolean.TRUE)).thenReturn(List.of(cafe));
+
+        model.init();
+
+        assertEquals(List.of(cafe), model.getListaProducto());
+    }
+
+    @Test
+    void elTotal_loCalculaElDaoConLoQueSeVeEnLaTabla() {
+        List<OrdenProducto> detalles = List.of(new OrdenProducto(UUID.randomUUID()));
+        model.setRegistros(detalles);
+        when(ordenProductoDAO.calcularTotal(detalles)).thenReturn(new BigDecimal("3.50"));
 
         assertEquals(new BigDecimal("3.50"), model.getTotal());
     }
@@ -114,11 +122,10 @@ public class OrdenProductoModelTest extends ModelTestBase {
     }
 
     private Producto producto(String precio) {
-        Producto p = new Producto(UUID.randomUUID());
-        p.setNombre("Café");
-        p.setActivo(true);
-        p.setPrecioSugerido(new BigDecimal(precio));
-        return p;
+        Producto cafe = new Producto(UUID.randomUUID());
+        cafe.setNombre("Café");
+        cafe.setActivo(true);
+        cafe.setPrecioSugerido(new BigDecimal(precio));
+        return cafe;
     }
-
 }

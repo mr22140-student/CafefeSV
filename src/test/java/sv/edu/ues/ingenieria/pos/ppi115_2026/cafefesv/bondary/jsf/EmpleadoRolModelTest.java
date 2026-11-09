@@ -35,70 +35,51 @@ public class EmpleadoRolModelTest extends ModelTestBase {
     private RolDAO rolDAO;
 
     @Test
-    void noGuardaSinEmpleado() {
-        model.setRegistro(asignacion(null, rol("Cajero", true)));
+    void noGuardaSiElDaoRechazaLaAsignacion() {
+        EmpleadoRol asignacion = asignacion(UUID.randomUUID(), rol("Cajero", true));
+        when(empleadoRolDAO.validarAsignacion(asignacion)).thenReturn("Ese empleado ya tiene asignado el rol Cajero.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
         verify(empleadoRolDAO, never()).save(any());
-        assertEquals("Debe seleccionar el empleado.", ultimoMensaje().getSummary());
+        assertEquals("Asignación no válida", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaSinRol() {
-        model.setRegistro(asignacion(UUID.randomUUID(), null));
+    void guardaSiElDaoNoEncuentraErrores() {
+        EmpleadoRol asignacion = asignacion(UUID.randomUUID(), rol("Cajero", true));
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(empleadoRolDAO, never()).save(any());
-        assertEquals("Debe seleccionar el rol.", ultimoMensaje().getSummary());
+        verify(empleadoRolDAO).save(asignacion);
     }
 
     @Test
-    void noGuardaUnaAsignacionRepetida() {
-        when(empleadoRolDAO.existeAsignacion(any(), any(), any())).thenReturn(true);
-        model.setRegistro(asignacion(UUID.randomUUID(), rol("Cajero", true)));
-
-        model.btnCrearHandler();
-
-        verify(empleadoRolDAO, never()).save(any());
-    }
-
-    @Test
-    void guardaUnaAsignacionValida() {
-        when(empleadoRolDAO.existeAsignacion(any(), any(), any())).thenReturn(false);
-        EmpleadoRol er = asignacion(UUID.randomUUID(), rol("Cajero", true));
-        model.setRegistro(er);
-
-        model.btnCrearHandler();
-
-        verify(empleadoRolDAO).save(er);
-    }
-
-    @Test
-    void noEliminaUnaAsignacionConOrdenes() {
-        EmpleadoRol er = asignacion(UUID.randomUUID(), rol("Camarero", true));
-        when(empleadoRolDAO.countOrdenes(er)).thenReturn(1L);
-        model.seleccionarRegistro(er);
+    void noEliminaSiElDaoLaRechaza() {
+        EmpleadoRol asignacion = asignacion(UUID.randomUUID(), rol("Camarero", true));
+        when(empleadoRolDAO.validarEliminar(asignacion)).thenReturn("Esta asignación ya tiene órdenes o facturas.");
+        model.seleccionarRegistro(asignacion);
 
         model.btnEliminarHandler();
 
         verify(empleadoRolDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void alIniciar_soloListaEmpleadosYRolesActivos() {
-        Empleado activo = empleado("Ana", true);
-        Empleado inactivo = empleado("Beto", false);
-        Rol rolActivo = rol("Cajero", true);
-        Rol rolInactivo = rol("Barista", false);
-        when(empleadoDAO.findRange(0, 1000)).thenReturn(List.of(activo, inactivo));
-        when(rolDAO.findRange(0, 1000)).thenReturn(List.of(rolActivo, rolInactivo));
+    void alIniciar_soloListaEmpleadosActivosYLosRolesActivosDelDao() {
+        Empleado ana = empleado("Ana", true);
+        Empleado beto = empleado("Beto", false);
+        Rol cajero = rol("Cajero", true);
+        when(empleadoDAO.findRange(0, 1000)).thenReturn(List.of(ana, beto));
+        when(rolDAO.findByActivo(Boolean.TRUE)).thenReturn(List.of(cajero));
 
         model.init();
 
-        assertEquals(List.of(activo), model.getListaEmpleado());
-        assertEquals(List.of(rolActivo), model.getListaRol());
+        assertEquals(List.of(ana), model.getListaEmpleado());
+        assertEquals(List.of(cajero), model.getListaRol());
     }
 
     @Test
@@ -108,25 +89,25 @@ public class EmpleadoRolModelTest extends ModelTestBase {
     }
 
     private Empleado empleado(String nombre, boolean activo) {
-        Empleado e = new Empleado(UUID.randomUUID());
-        e.setNombre(nombre);
-        e.setApellido("López");
-        e.setActivo(activo);
-        return e;
+        Empleado empleado = new Empleado(UUID.randomUUID());
+        empleado.setNombre(nombre);
+        empleado.setApellido("López");
+        empleado.setActivo(activo);
+        return empleado;
     }
 
     private Rol rol(String nombre, boolean activo) {
-        Rol r = new Rol(UUID.randomUUID());
-        r.setNombre(nombre);
-        r.setActivo(activo);
-        return r;
+        Rol rol = new Rol(UUID.randomUUID());
+        rol.setNombre(nombre);
+        rol.setActivo(activo);
+        return rol;
     }
 
-    private EmpleadoRol asignacion(UUID idEmpleado, Rol r) {
-        EmpleadoRol er = new EmpleadoRol(UUID.randomUUID());
-        er.setIdEmpleado(idEmpleado);
-        er.setIdRol(r);
-        er.setActivo(true);
-        return er;
+    private EmpleadoRol asignacion(UUID idEmpleado, Rol rol) {
+        EmpleadoRol asignacion = new EmpleadoRol(UUID.randomUUID());
+        asignacion.setIdEmpleado(idEmpleado);
+        asignacion.setIdRol(rol);
+        asignacion.setActivo(true);
+        return asignacion;
     }
 }

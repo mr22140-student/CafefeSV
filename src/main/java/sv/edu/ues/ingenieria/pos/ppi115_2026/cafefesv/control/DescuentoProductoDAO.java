@@ -155,4 +155,24 @@ public class DescuentoProductoDAO extends AbstractDAO<DescuentoProducto, UUID> {
     private String formatoFecha(Date fecha) {
         return new SimpleDateFormat("dd/MM/yyyy HH:mm").format(fecha);
     }
+        /**
+     * Busca la autorización del producto para el descuento que cubra la fecha
+     * de la orden.
+     *
+     * @return la autorización con su porcentaje, o null si el producto no
+     * tiene ese descuento en esa fecha
+     */
+    public DescuentoProducto buscarAutorizacion(Descuento descuento, Producto producto, Date fecha) {
+        if (descuento == null || producto == null) {
+            return null;
+        }
+        for (DescuentoProducto autorizacion : findByDescuento(descuento)) {
+            if (producto.equals(autorizacion.getIdProducto())
+                    && autorizacion.getValor() != null
+                    && estaDentroDeRango(fecha, autorizacion.getFechaDesde(), autorizacion.getFechaHasta())) {
+                return autorizacion;
+            }
+        }
+        return null;
+    }
 }

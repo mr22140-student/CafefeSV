@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
@@ -149,6 +150,33 @@ public class DescuentoProductoDAOTest extends AbstractDAOTestBase<DescuentoProdu
         nueva.setIdProducto(guardada.getIdProducto());
 
         assertNull(dao.validarDuplicado(nueva));
+    }
+    // ===================== buscarAutorizacion =====================
+
+    @Test
+    void buscarAutorizacion_productoAutorizadoEnLaFecha_laDevuelve() {
+        Descuento navidad = descuento(tipoDescuento(true, 30), enDias(-1), null);
+        DescuentoProducto autorizacion = asignacion(navidad, 20, enDias(-1), null);
+        simularConsulta(DescuentoProducto.class, List.of(autorizacion));
+
+        assertEquals(autorizacion, dao.buscarAutorizacion(navidad, autorizacion.getIdProducto(), new Date()));
+    }
+
+    @Test
+    void buscarAutorizacion_siNoCubreLaFecha_devuelveNull() {
+        Descuento navidad = descuento(tipoDescuento(true, 30), enDias(-1), null);
+        DescuentoProducto autorizacion = asignacion(navidad, 20, enDias(2), enDias(5));
+        simularConsulta(DescuentoProducto.class, List.of(autorizacion));
+
+        assertNull(dao.buscarAutorizacion(navidad, autorizacion.getIdProducto(), new Date()));
+    }
+
+    @Test
+    void buscarAutorizacion_deOtroProducto_devuelveNull() {
+        Descuento navidad = descuento(tipoDescuento(true, 30), enDias(-1), null);
+        simularConsulta(DescuentoProducto.class, List.of(asignacion(navidad, 20, enDias(-1), null)));
+
+        assertNull(dao.buscarAutorizacion(navidad, new Producto(UUID.randomUUID()), new Date()));
     }
 
     // ===================== ayudantes =====================

@@ -4,6 +4,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TemporalType;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -94,5 +95,19 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
             return "VENCIDO";
         }
         return "VIGENTE";
+    }
+
+    /**
+     * Descuentos vigentes en una fecha (la de la orden). Llena el combo de
+     * descuentos de Orden.
+     */
+    public List<Descuento> buscarVigentesEn(Date fecha) {
+        List<Descuento> vigentes = new ArrayList<>();
+        for (Descuento descuento : em.createNamedQuery("Descuento.findAll", Descuento.class).getResultList()) {
+            if (estaDentroDeRango(fecha, descuento.getFechaDesde(), descuento.getFechaHasta())) {
+                vigentes.add(descuento);
+            }
+        }
+        return vigentes;
     }
 }

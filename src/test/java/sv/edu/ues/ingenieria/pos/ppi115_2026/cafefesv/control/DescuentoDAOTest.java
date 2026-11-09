@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
@@ -36,7 +37,6 @@ class DescuentoDAOTest extends AbstractDAOTestBase<Descuento, DescuentoDAO> {
     }
 
     // ===================== validarFechas =====================
-
     @Test
     void validarFechas_hastaAnteriorADesde_devuelveError() {
         assertNotNull(dao.validarFechas(descuento(tipoDescuento(true), enDias(5), enDias(1))));
@@ -53,7 +53,6 @@ class DescuentoDAOTest extends AbstractDAOTestBase<Descuento, DescuentoDAO> {
     }
 
     // ===================== validarTipoActivo =====================
-
     @Test
     void validarTipoActivo_conTipoInactivo_devuelveError() {
         TipoDescuento tipoInactivo = tipoDescuento(false);
@@ -71,7 +70,6 @@ class DescuentoDAOTest extends AbstractDAOTestBase<Descuento, DescuentoDAO> {
     }
 
     // ===================== calcularVigencia =====================
-
     @Test
     void calcularVigencia_segunLaFechaActual() {
         TipoDescuento tipoDescuento = tipoDescuento(true);
@@ -81,9 +79,18 @@ class DescuentoDAOTest extends AbstractDAOTestBase<Descuento, DescuentoDAO> {
         assertEquals("VENCIDO", dao.calcularVigencia(descuento(tipoDescuento, enDias(-5), enDias(-1))));
         assertEquals("SIN FECHA", dao.calcularVigencia(descuento(tipoDescuento, null, null)));
     }
+    // ===================== buscarVigentesEn =====================
+
+    @Test
+    void buscarVigentesEn_soloDevuelveLosQueCubrenLaFecha() {
+        Descuento abierto = descuento(tipoDescuento(true), enDias(-1), null);
+        Descuento vencido = descuento(tipoDescuento(true), enDias(-10), enDias(-5));
+        simularConsulta(Descuento.class, List.of(abierto, vencido));
+
+        assertEquals(List.of(abierto), dao.buscarVigentesEn(new Date()));
+    }
 
     // ===================== ayudantes =====================
-
     private TipoDescuento tipoDescuento(boolean activo) {
         TipoDescuento tipoDescuento = new TipoDescuento(UUID.randomUUID());
         tipoDescuento.setNombre("Temporada");

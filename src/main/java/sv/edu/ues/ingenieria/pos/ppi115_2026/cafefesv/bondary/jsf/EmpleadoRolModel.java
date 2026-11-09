@@ -21,7 +21,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
 
 /**
- * idEmpleado es UUID (la BD no tiene FK hacia empleado); idRol es @ManyToOne Rol.
+ * idEmpleado es UUID (la BD no tiene FK hacia empleado); idRol es @ManyToOne
+ * Rol.
  */
 @Named("empleadoRolModel")
 @ViewScoped
@@ -38,35 +39,30 @@ public class EmpleadoRolModel extends AbstractModel<EmpleadoRol, UUID> {
     @Inject
     private RolDAO rolDAO;
 
-    /** Todos los empleados, para mostrar nombres en la tabla. */
+    /**
+     * Todos los empleados, para mostrar nombres en la tabla.
+     */
     private Map<UUID, Empleado> empleados = new HashMap<>();
 
-    /** Opciones de los combos (solo activos). */
+    /**
+     * Opciones de los combos (solo activos).
+     */
     private List<Empleado> listaEmpleado = new ArrayList<>();
     private List<Rol> listaRol = new ArrayList<>();
 
     @PostConstruct
     public void init() {
-        List<Empleado> emps = empleadoDAO.findRange(0, 1000);
-        if (emps != null) {
-            for (Empleado e : emps) {
-                empleados.put(e.getIdEmpleado(), e);
-                if (Boolean.TRUE.equals(e.getActivo())) {
-                    listaEmpleado.add(e);
+        List<Empleado> todosLosEmpleados = empleadoDAO.findRange(0, 1000);
+        if (todosLosEmpleados != null) {
+            for (Empleado empleado : todosLosEmpleados) {
+                empleados.put(empleado.getIdEmpleado(), empleado);
+                if (Boolean.TRUE.equals(empleado.getActivo())) {
+                    listaEmpleado.add(empleado);
                 }
             }
             listaEmpleado.sort(Comparator.comparing(this::nombreCompleto, String.CASE_INSENSITIVE_ORDER));
         }
-
-        List<Rol> roles = rolDAO.findRange(0, 1000);
-        if (roles != null) {
-            for (Rol r : roles) {
-                if (Boolean.TRUE.equals(r.getActivo())) {
-                    listaRol.add(r);
-                }
-            }
-        }
-
+        listaRol = new ArrayList<>(rolDAO.findByActivo(Boolean.TRUE));
         iniciar();
     }
 
@@ -89,9 +85,9 @@ public class EmpleadoRolModel extends AbstractModel<EmpleadoRol, UUID> {
             return;
         }
         // Si el empleado o el rol estan inactivos, se agregan al combo para que se vean al modificar
-        Empleado e = (registro.getIdEmpleado() != null) ? empleados.get(registro.getIdEmpleado()) : null;
-        if (e != null && !listaEmpleado.contains(e)) {
-            listaEmpleado.add(e);
+        Empleado empleado = (registro.getIdEmpleado() != null) ? empleados.get(registro.getIdEmpleado()) : null;
+        if (empleado != null && !listaEmpleado.contains(empleado)) {
+            listaEmpleado.add(empleado);
         }
         if (registro.getIdRol() != null && !listaRol.contains(registro.getIdRol())) {
             listaRol.add(registro.getIdRol());
@@ -99,76 +95,46 @@ public class EmpleadoRolModel extends AbstractModel<EmpleadoRol, UUID> {
     }
 
     // ================= Validaciones =================
-
     @Override
     public void btnCrearHandler() {
-        if (esValido()) {
+        if (sinError("Asignación no válida", empleadoRolDAO.validarAsignacion(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (esValido()) {
+        if (sinError("Asignación no válida", empleadoRolDAO.validarAsignacion(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null
-                && (empleadoRolDAO.countOrdenes(registro) > 0 || empleadoRolDAO.countFacturas(registro) > 0)) {
-            mensaje(FacesMessage.SEVERITY_WARN,
-                    "No se puede eliminar: esta asignación ya tiene órdenes o facturas. Puede desmarcar 'Activo'.");
-            return;
+        if (sinError("No se puede eliminar", empleadoRolDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
-    }
-
-    private boolean esValido() {
-        if (registro == null) {
-            return true; // AbstractModel muestra su propio mensaje
-        }
-        if (registro.getIdEmpleado() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el empleado.");
-            return false;
-        }
-        if (registro.getIdRol() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el rol.");
-            return false;
-        }
-        UUID excluir = ESTADO_MODIFICAR.equals(estado) ? registro.getIdEmpleadoRol() : null;
-        if (empleadoRolDAO.existeAsignacion(registro.getIdEmpleado(), registro.getIdRol(), excluir)) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Ese empleado ya tiene asignado el rol "
-                    + registro.getIdRol().getNombre() + ".");
-            return false;
-        }
-        return true;
     }
 
     // ================= Etiquetas =================
-
-    /** "Nombre Apellido" a partir del UUID guardado en empleado_rol. */
+    /**
+     * "Nombre Apellido" a partir del UUID guardado en empleado_rol.
+     */
     public String nombreEmpleado(UUID idEmpleado) {
         if (idEmpleado == null) {
             return "Sin asignación";
         }
-        Empleado e = empleados.get(idEmpleado);
-        return (e != null) ? nombreCompleto(e) : "Empleado no encontrado";
+        Empleado empleado = empleados.get(idEmpleado);
+        return (empleado != null) ? nombreCompleto(empleado) : "Empleado no encontrado";
     }
 
-    public String nombreCompleto(Empleado e) {
-        String nombre = e.getNombre() != null ? e.getNombre() : "";
-        String apellido = e.getApellido() != null ? e.getApellido() : "";
+    public String nombreCompleto(Empleado empleado) {
+        String nombre = empleado.getNombre() != null ? empleado.getNombre() : "";
+        String apellido = empleado.getApellido() != null ? empleado.getApellido() : "";
         return (nombre + " " + apellido).trim();
     }
 
-    private void mensaje(FacesMessage.Severity severidad, String texto) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
-    }
-
     // ================= Getters =================
-
     public List<Empleado> getListaEmpleado() {
         return listaEmpleado;
     }

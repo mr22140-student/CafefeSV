@@ -66,31 +66,19 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
 
     @Override
     public void btnEliminarHandler() {
-        if (registro == null) {
-            super.btnEliminarHandler();
-            return;
-        }
-        List<EmpleadoRol> roles = empleadoRolDAO.findByEmpleado(registro.getIdEmpleado());
-
-        // Si algún rol del empleado ya tiene órdenes o facturas, no se elimina
-        for (EmpleadoRol er : roles) {
-            if (empleadoRolDAO.countOrdenes(er) > 0 || empleadoRolDAO.countFacturas(er) > 0) {
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                        FacesMessage.SEVERITY_WARN,
-                        "No se puede eliminar: el empleado ya tiene órdenes o facturas. Puede desmarcar 'Activo'.", null));
+        if (registro != null) {
+            if (!sinError("No se puede eliminar", empleadoDAO.validarEliminar(registro))) {
                 return;
             }
-        }
-
-        // Si no tiene historial, primero se borra su rol y luego el empleado
-        try {
-            for (EmpleadoRol er : roles) {
-                empleadoRolDAO.delete(er);
+            // Si no tiene historial, primero se borra su rol y luego el empleado
+            try {
+                for (EmpleadoRol asignacion : empleadoRolDAO.findByEmpleado(registro.getIdEmpleado())) {
+                    empleadoRolDAO.delete(asignacion);
+                }
+            } catch (Exception ex) {
+                mensaje(FacesMessage.SEVERITY_ERROR, "No se pudo quitar el rol del empleado.");
+                return;
             }
-        } catch (Exception ex) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_ERROR, "No se pudo quitar el rol del empleado.", null));
-            return;
         }
         super.btnEliminarHandler();
     }
@@ -111,32 +99,17 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
         }
     }
 
-    /**
-     * Asigna el rol elegido, solo si el empleado todavía no tiene uno.
-     */
     public void btnAgregarRolHandler() {
-        if (!rolesEmpleado.isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "El empleado ya tiene un rol asignado. Use Modificar para cambiarlo.", null));
+        if (!sinError("Ya tiene rol", empleadoRolDAO.validarSinRolAsignado(registro.getIdEmpleado()))
+                || !sinError("Rol no válido", empleadoRolDAO.validarRolElegido(rolSeleccionado))) {
             return;
         }
-        if (rolSeleccionado == null) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "Seleccione un rol.", null));
-            return;
-        }
-        if (!Boolean.TRUE.equals(rolSeleccionado.getActivo())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "El rol " + rolSeleccionado.getNombre() + " está inactivo.", null));
-            return;
-        }
-        EmpleadoRol nuevo = new EmpleadoRol(UUID.randomUUID());
-        nuevo.setIdEmpleado(registro.getIdEmpleado());
-        nuevo.setIdRol(rolSeleccionado);
-        nuevo.setActivo(Boolean.TRUE);
-        empleadoRolDAO.save(nuevo);
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                FacesMessage.SEVERITY_INFO, "Rol " + rolSeleccionado.getNombre() + " asignado.", null));
+        EmpleadoRol nuevaAsignacion = new EmpleadoRol(UUID.randomUUID());
+        nuevaAsignacion.setIdEmpleado(registro.getIdEmpleado());
+        nuevaAsignacion.setIdRol(rolSeleccionado);
+        nuevaAsignacion.setActivo(Boolean.TRUE);
+        empleadoRolDAO.save(nuevaAsignacion);
+        mensaje(FacesMessage.SEVERITY_INFO, "Rol " + rolSeleccionado.getNombre() + " asignado.");
         rolesEmpleado = empleadoRolDAO.findByEmpleado(registro.getIdEmpleado());
     }
 
@@ -144,55 +117,25 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
      * Cambia el rol actual del empleado por el elegido en el combo.
      */
     public void btnModificarRolHandler() {
-        if (rolesEmpleado.isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "El empleado no tiene rol. Use Asignar.", null));
+        EmpleadoRol asignacionActual = rolesEmpleado.isEmpty() ? null : rolesEmpleado.get(0);
+        if (!sinError("No se puede cambiar el rol", empleadoRolDAO.validarCambioDeRol(asignacionActual, rolSeleccionado))
+                || !sinError("Rol no válido", empleadoRolDAO.validarRolElegido(rolSeleccionado))) {
             return;
         }
-        if (rolSeleccionado == null) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "Seleccione un rol.", null));
-            return;
-        }
-        if (!Boolean.TRUE.equals(rolSeleccionado.getActivo())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "El rol " + rolSeleccionado.getNombre() + " está inactivo.", null));
-            return;
-        }
-
-        EmpleadoRol actual = rolesEmpleado.get(0);
-        if (rolSeleccionado.equals(actual.getIdRol())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "El empleado ya tiene ese rol.", null));
-            return;
-        }
-        actual.setIdRol(rolSeleccionado);
-        empleadoRolDAO.update(actual);
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                FacesMessage.SEVERITY_INFO, "Rol cambiado a " + rolSeleccionado.getNombre() + ".", null));
+        asignacionActual.setIdRol(rolSeleccionado);
+        empleadoRolDAO.update(asignacionActual);
+        mensaje(FacesMessage.SEVERITY_INFO, "Rol cambiado a " + rolSeleccionado.getNombre() + ".");
         rolesEmpleado = empleadoRolDAO.findByEmpleado(registro.getIdEmpleado());
     }
 
-    /**
-     * Quita el rol seleccionado en la tabla, si no se ha usado en órdenes o
-     * facturas.
-     */
-
     // ================= Getters / Setters =================
-
     /**
      * Roles activos para el combo (más el rol actual del empleado, aunque esté
      * inactivo).
      */
     public List<Rol> getListaRol() {
         Rol rolActual = rolesEmpleado.isEmpty() ? null : rolesEmpleado.get(0).getIdRol();
-        List<Rol> lista = new ArrayList<>();
-        for (Rol r : rolDAO.findRange(0, 1000)) {
-            if (Boolean.TRUE.equals(r.getActivo()) || r.equals(rolActual)) {
-                lista.add(r);
-            }
-        }
-        return lista;
+        return rolDAO.buscarActivosIncluyendo(rolActual);
     }
 
     public List<EmpleadoRol> getRolesEmpleado() {
@@ -205,6 +148,11 @@ public class EmpleadoModel extends AbstractModel<Empleado, UUID> {
 
     public void setRolSeleccionado(Rol rolSeleccionado) {
         this.rolSeleccionado = rolSeleccionado;
+    }
+    // Atajo para no repetir tanto FacesContext...addMessage.
+
+    private void mensaje(FacesMessage.Severity severidad, String texto) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
     }
 
 }

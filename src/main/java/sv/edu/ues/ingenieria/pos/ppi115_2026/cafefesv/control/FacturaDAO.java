@@ -4,7 +4,6 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.UUID;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caja;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Factura;
 
 /**
@@ -39,14 +38,6 @@ public class FacturaDAO extends AbstractDAO<Factura, UUID> {
         return em.createQuery(
                 "SELECT COUNT(x) FROM Pago x WHERE x.idFactura = :factura", Long.class)
                 .setParameter("factura", factura)
-                .getSingleResult();
-    }
-
-    /** Cuantas facturas se hicieron en una caja (para no eliminar cajas en uso). */
-    public long countByCaja(Caja caja) {
-        return em.createQuery(
-                "SELECT COUNT(x) FROM Factura x WHERE x.idCaja = :caja", Long.class)
-                .setParameter("caja", caja)
                 .getSingleResult();
     }
 }   

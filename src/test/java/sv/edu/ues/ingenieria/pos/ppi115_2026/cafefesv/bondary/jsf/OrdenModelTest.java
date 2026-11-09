@@ -3,7 +3,6 @@ package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,9 +39,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
  */
 public class OrdenModelTest extends ModelTestBase {
 
-    private static final String SOLO_CAMARERO = "Solo un empleado con rol camarero puede tomar la orden.";
-
-    @InjectMocks
+        @InjectMocks
     private OrdenModel model;
 
     @Mock
@@ -69,38 +66,20 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void noGuardaUnaOrdenSinEmpleado() {
+    void noGuardaSiElDaoRechazaLaOrden() {
         model.btnNuevoHandler();
+        Orden orden = model.getRegistro();
+        orden.setIdEmpleadoRol(asignacion(empleado("Ana", true), "Cajero", true, true));
+        when(ordenDAO.validarOrden(orden)).thenReturn("Solo un empleado con rol camarero puede tomar la orden.");
 
         model.btnCrearHandler();
 
         verify(ordenDAO, never()).save(any());
-        assertEquals(SOLO_CAMARERO, ultimoMensaje().getSummary());
+        assertEquals("Orden no válida", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaUnaOrdenTomadaPorUnCajero() {
-        model.btnNuevoHandler();
-        model.getRegistro().setIdEmpleadoRol(asignacion(empleado("Ana", true), "Cajero", true, true));
-
-        model.btnCrearHandler();
-
-        verify(ordenDAO, never()).save(any());
-        assertEquals(SOLO_CAMARERO, ultimoMensaje().getSummary());
-    }
-
-    @Test
-    void noGuardaSiElRolCamareroEstaInactivo() {
-        model.btnNuevoHandler();
-        model.getRegistro().setIdEmpleadoRol(asignacion(empleado("Ana", true), "Camarero", false, true));
-
-        model.btnCrearHandler();
-
-        verify(ordenDAO, never()).save(any());
-    }
-
-    @Test
-    void guardaUnaOrdenTomadaPorUnCamarero() {
+    void guardaSiElDaoNoEncuentraErrores() {
         model.btnNuevoHandler();
         Orden orden = model.getRegistro();
         orden.setIdEmpleadoRol(asignacion(empleado("Ana", true), "Camarero", true, true));
@@ -111,14 +90,15 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void noEliminaUnaOrdenConProductos() {
+    void noEliminaSiElDaoLaRechaza() {
         Orden orden = orden(new Date());
-        when(ordenProductoDAO.countByOrden(orden)).thenReturn(2L);
+        when(ordenDAO.validarEliminar(orden)).thenReturn("La orden tiene productos.");
         model.seleccionarRegistro(orden);
 
         model.btnEliminarHandler();
 
         verify(ordenDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     // ===================== Buscador de empleados =====================
@@ -133,6 +113,7 @@ public class OrdenModelTest extends ModelTestBase {
         when(empleadoDAO.findRange(0, 1000)).thenReturn(List.of(activo, inactivo));
         when(empleadoRolDAO.findRange(0, 1000))
                 .thenReturn(List.of(camarero, cajero, camareroInactivo, asignacionInactiva));
+        when(ordenDAO.validarCamarero(cajero)).thenReturn("Solo un empleado con rol camarero puede tomar la orden.");
         model.init();
 
         assertEquals(List.of(camarero), model.completarEmpleadoRol(""));
@@ -141,28 +122,28 @@ public class OrdenModelTest extends ModelTestBase {
     @Test
     void elBuscador_encuentraSinImportarTildesNiMayusculas() {
         Empleado jose = empleado("José", true);
-        EmpleadoRol er = asignacion(jose, "Camarero", true, true);
+        EmpleadoRol camarero = asignacion(jose, "Camarero", true, true);
         when(empleadoDAO.findRange(0, 1000)).thenReturn(List.of(jose));
-        when(empleadoRolDAO.findRange(0, 1000)).thenReturn(List.of(er));
+        when(empleadoRolDAO.findRange(0, 1000)).thenReturn(List.of(camarero));
         model.init();
 
-        assertEquals(List.of(er), model.completarEmpleadoRol("JOSE"));
-        assertEquals("José Pérez (Camarero)", model.obtenerTextoEmpleadoRol(er));
+        assertEquals(List.of(camarero), model.completarEmpleadoRol("JOSE"));
+        assertEquals("José Pérez (Camarero)", model.obtenerTextoEmpleadoRol(camarero));
     }
 
     @Test
     void elConverterDelBuscador_convierteIdYEntidad() {
         Empleado jose = empleado("José", true);
-        EmpleadoRol er = asignacion(jose, "Camarero", true, true);
+        EmpleadoRol camarero = asignacion(jose, "Camarero", true, true);
         when(empleadoDAO.findRange(0, 1000)).thenReturn(List.of(jose));
-        when(empleadoRolDAO.findRange(0, 1000)).thenReturn(List.of(er));
+        when(empleadoRolDAO.findRange(0, 1000)).thenReturn(List.of(camarero));
         model.init();
         Converter<EmpleadoRol> converter = model.getEmpleadoRolConverter();
 
-        String id = converter.getAsString(null, null, er);
+        String id = converter.getAsString(null, null, camarero);
 
-        assertEquals(er.getIdEmpleadoRol().toString(), id);
-        assertEquals(er, converter.getAsObject(null, null, id));
+        assertEquals(camarero.getIdEmpleadoRol().toString(), id);
+        assertEquals(camarero, converter.getAsObject(null, null, id));
         assertNull(converter.getAsObject(null, null, "no-es-un-uuid"));
     }
 
@@ -181,53 +162,56 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void agregarProducto_sinElegir_avisa() {
+    void agregarProducto_siElDaoLoRechaza_noGuarda() {
         model.seleccionarRegistro(orden(new Date()));
+        when(ordenProductoDAO.validarProductoElegido(null)).thenReturn("Seleccione un producto.");
 
         model.btnAgregarProductoHandler();
 
         verify(ordenProductoDAO, never()).save(any());
-        assertEquals("Seleccione un producto.", ultimoMensaje().getSummary());
+        assertEquals("Producto no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void laListaDeProductos_soloTraeActivos() {
-        Producto activo = producto("Café", "2.50", true);
-        when(productoDAO.findRange(0, 1000)).thenReturn(List.of(activo, producto("Té", "1.00", false)));
+    void laListaDeProductos_laTraeElDao() {
+        List<Producto> activos = List.of(producto("Café", "2.50", true));
+        when(productoDAO.findByActivo(Boolean.TRUE)).thenReturn(activos);
 
-        assertEquals(List.of(activo), model.getListaProducto());
+        assertEquals(activos, model.getListaProducto());
     }
 
     // ===================== Descuentos =====================
     @Test
-    void descuentoPorFechas_siLaOrdenEstaFueraDelRango_noSeAplicaANingunProducto() {
+    void siElDaoRechazaElDescuentoPorFecha_noSeAplicaANingunProducto() {
         Orden orden = orden(enDias(-10));
-        Producto cafe = producto("Café", "10.00", true);
-        OrdenProducto op = renglon(orden, cafe, "10.00");
-        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(op));
+        OrdenProducto detalle = detalle(orden, producto("Café", "10.00", true), "10.00");
+        Descuento navidad = descuento("Navidad", enDias(-5), enDias(5));
+        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(detalle));
+        when(ordenDAO.validarDescuentoEnFecha(orden, navidad)).thenReturn("El descuento Navidad no aplica.");
         model.seleccionarRegistro(orden);
-        model.setDescuentoSeleccionado(descuento("Navidad", enDias(-5), enDias(5)));
+        model.setDescuentoSeleccionado(navidad);
 
         model.btnAplicarDescuentoHandler();
 
         verify(ordenProductoDAO, never()).update(any());
-        assertEquals(new BigDecimal("10.00"), op.getPrecio());
-        assertTrue(ultimoMensaje().getSummary().startsWith("El descuento Navidad no aplica: la fecha de la orden"));
+        assertEquals(new BigDecimal("10.00"), detalle.getPrecio());
+        assertEquals("Descuento no aplicado", ultimoMensaje().getSummary());
     }
 
     @Test
-    void descuentoAbierto_seAplicaSoloAlProductoAutorizado_conMontoYComentario() {
+    void aplicaElDescuentoSoloAlProductoAutorizado_conMontoYComentario() {
         Orden orden = orden(new Date());
         Producto cafe = producto("Café", "10.00", true);
         Producto te = producto("Té", "5.00", true);
-        OrdenProducto conDescuento = renglon(orden, cafe, "10.00");
-        OrdenProducto sinDescuento = renglon(orden, te, "5.00");
-        Descuento abierto = descuento("Navidad", enDias(-1), null);
+        OrdenProducto conDescuento = detalle(orden, cafe, "10.00");
+        OrdenProducto sinDescuento = detalle(orden, te, "5.00");
+        Descuento navidad = descuento("Navidad", enDias(-1), null);
         when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(conDescuento, sinDescuento));
-        when(descuentoProductoDAO.findByDescuento(abierto))
-                .thenReturn(List.of(autorizacion(abierto, cafe, 20, enDias(-1), null)));
+        when(descuentoProductoDAO.buscarAutorizacion(navidad, cafe, orden.getFechaCreacion()))
+                .thenReturn(autorizacion(navidad, cafe, 20, enDias(-1), null));
+        when(ordenProductoDAO.calcularMontoDescuento(new BigDecimal("10.00"), 20)).thenReturn(new BigDecimal("2.00"));
         model.seleccionarRegistro(orden);
-        model.setDescuentoSeleccionado(abierto);
+        model.setDescuentoSeleccionado(navidad);
 
         model.btnAplicarDescuentoHandler();
 
@@ -240,15 +224,12 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void siLaAutorizacionDelProductoNoCubreLaFecha_noSeAplica() {
+    void siNingunProductoEstaAutorizado_avisa() {
         Orden orden = orden(new Date());
-        Producto cafe = producto("Café", "10.00", true);
-        Descuento d = descuento("Navidad", enDias(-1), null);
-        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(renglon(orden, cafe, "10.00")));
-        when(descuentoProductoDAO.findByDescuento(d))
-                .thenReturn(List.of(autorizacion(d, cafe, 20, enDias(2), enDias(5))));
+        Descuento navidad = descuento("Navidad", enDias(-1), null);
+        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(detalle(orden, producto("Café", "10.00", true), "10.00")));
         model.seleccionarRegistro(orden);
-        model.setDescuentoSeleccionado(d);
+        model.setDescuentoSeleccionado(navidad);
 
         model.btnAplicarDescuentoHandler();
 
@@ -257,16 +238,17 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void noAplicaDosDescuentosAlMismoProducto() {
+    void siElDaoDiceQueYaTieneDescuento_noAplicaOtro() {
         Orden orden = orden(new Date());
         Producto cafe = producto("Café", "10.00", true);
-        OrdenProducto op = renglon(orden, cafe, "8.00");
-        op.setObservaciones("Descuento Anterior (20%): -$2.00 (precio original $10.00)");
-        Descuento d = descuento("Navidad", enDias(-1), null);
-        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(op));
-        when(descuentoProductoDAO.findByDescuento(d)).thenReturn(List.of(autorizacion(d, cafe, 10, enDias(-1), null)));
+        OrdenProducto detalle = detalle(orden, cafe, "8.00");
+        Descuento navidad = descuento("Navidad", enDias(-1), null);
+        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(detalle));
+        when(descuentoProductoDAO.buscarAutorizacion(navidad, cafe, orden.getFechaCreacion()))
+                .thenReturn(autorizacion(navidad, cafe, 10, enDias(-1), null));
+        when(ordenProductoDAO.validarSinDescuento(detalle)).thenReturn("El producto ya tiene un descuento aplicado.");
         model.seleccionarRegistro(orden);
-        model.setDescuentoSeleccionado(d);
+        model.setDescuentoSeleccionado(navidad);
 
         model.btnAplicarDescuentoHandler();
 
@@ -275,16 +257,17 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void noAplicaDescuentoAUnProductoYaFacturado() {
+    void siElDaoDiceQueYaEstaFacturado_noAplicaElDescuento() {
         Orden orden = orden(new Date());
         Producto cafe = producto("Café", "10.00", true);
-        OrdenProducto op = renglon(orden, cafe, "10.00");
-        Descuento d = descuento("Navidad", enDias(-1), null);
-        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(op));
-        when(ordenProductoDAO.countFacturas(op)).thenReturn(1L);
-        when(descuentoProductoDAO.findByDescuento(d)).thenReturn(List.of(autorizacion(d, cafe, 20, enDias(-1), null)));
+        OrdenProducto detalle = detalle(orden, cafe, "10.00");
+        Descuento navidad = descuento("Navidad", enDias(-1), null);
+        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(detalle));
+        when(descuentoProductoDAO.buscarAutorizacion(navidad, cafe, orden.getFechaCreacion()))
+                .thenReturn(autorizacion(navidad, cafe, 20, enDias(-1), null));
+        when(ordenProductoDAO.validarNoFacturado(detalle)).thenReturn("Este producto ya está facturado.");
         model.seleccionarRegistro(orden);
-        model.setDescuentoSeleccionado(d);
+        model.setDescuentoSeleccionado(navidad);
 
         model.btnAplicarDescuentoHandler();
 
@@ -292,83 +275,83 @@ public class OrdenModelTest extends ModelTestBase {
     }
 
     @Test
-    void laListaDeDescuentos_soloTraeLosVigentesEnLaFechaDeLaOrden() {
-        Descuento vigente = descuento("Abierto", enDias(-1), null);
-        Descuento vencido = descuento("Vencido", enDias(-10), enDias(-5));
-        when(descuentoDAO.findRange(0, 1000)).thenReturn(List.of(vigente, vencido));
-        model.seleccionarRegistro(orden(new Date()));
+    void laListaDeDescuentos_laPideAlDaoConLaFechaDeLaOrden() {
+        Orden orden = orden(new Date());
+        List<Descuento> vigentes = List.of(descuento("Abierto", enDias(-1), null));
+        when(descuentoDAO.buscarVigentesEn(orden.getFechaCreacion())).thenReturn(vigentes);
+        model.seleccionarRegistro(orden);
 
-        assertEquals(List.of(vigente), model.getListaDescuento());
+        assertEquals(vigentes, model.getListaDescuento());
     }
 
     @Test
-    void elTotal_sumaLosPreciosDeLaOrden() {
+    void elTotal_loCalculaElDao() {
         Orden orden = orden(new Date());
-        when(ordenProductoDAO.findByOrden(orden)).thenReturn(List.of(
-                renglon(orden, producto("Café", "2.50", true), "2.50"),
-                renglon(orden, producto("Té", "1.00", true), "1.00")));
+        List<OrdenProducto> detalles = List.of(detalle(orden, producto("Café", "2.50", true), "2.50"));
+        when(ordenProductoDAO.findByOrden(orden)).thenReturn(detalles);
+        when(ordenProductoDAO.calcularTotal(detalles)).thenReturn(new BigDecimal("2.50"));
         model.seleccionarRegistro(orden);
 
-        assertEquals(new BigDecimal("3.50"), model.getTotal());
+        assertEquals(new BigDecimal("2.50"), model.getTotal());
     }
 
     // ===================== ayudantes =====================
     private Empleado empleado(String nombre, boolean activo) {
-        Empleado e = new Empleado(UUID.randomUUID());
-        e.setNombre(nombre);
-        e.setApellido("Pérez");
-        e.setActivo(activo);
-        return e;
+        Empleado empleado = new Empleado(UUID.randomUUID());
+        empleado.setNombre(nombre);
+        empleado.setApellido("Pérez");
+        empleado.setActivo(activo);
+        return empleado;
     }
 
-    private EmpleadoRol asignacion(Empleado e, String nombreRol, boolean rolActivo, boolean asignacionActiva) {
-        Rol r = new Rol(UUID.randomUUID());
-        r.setNombre(nombreRol);
-        r.setActivo(rolActivo);
-        EmpleadoRol er = new EmpleadoRol(UUID.randomUUID());
-        er.setIdEmpleado(e.getIdEmpleado());
-        er.setIdRol(r);
-        er.setActivo(asignacionActiva);
-        return er;
+    private EmpleadoRol asignacion(Empleado empleado, String nombreRol, boolean rolActivo, boolean asignacionActiva) {
+        Rol rol = new Rol(UUID.randomUUID());
+        rol.setNombre(nombreRol);
+        rol.setActivo(rolActivo);
+        EmpleadoRol asignacion = new EmpleadoRol(UUID.randomUUID());
+        asignacion.setIdEmpleado(empleado.getIdEmpleado());
+        asignacion.setIdRol(rol);
+        asignacion.setActivo(asignacionActiva);
+        return asignacion;
     }
 
-    private Orden orden(Date fecha) {
-        Orden o = new Orden(UUID.randomUUID());
-        o.setFechaCreacion(fecha);
-        return o;
+    private Orden orden(Date fechaCreacion) {
+        Orden orden = new Orden(UUID.randomUUID());
+        orden.setFechaCreacion(fechaCreacion);
+        return orden;
     }
 
     private Producto producto(String nombre, String precio, boolean activo) {
-        Producto p = new Producto(UUID.randomUUID());
-        p.setNombre(nombre);
-        p.setPrecioSugerido(new BigDecimal(precio));
-        p.setActivo(activo);
-        return p;
+        Producto producto = new Producto(UUID.randomUUID());
+        producto.setNombre(nombre);
+        producto.setPrecioSugerido(new BigDecimal(precio));
+        producto.setActivo(activo);
+        return producto;
     }
 
-    private OrdenProducto renglon(Orden o, Producto p, String precio) {
-        OrdenProducto op = new OrdenProducto(UUID.randomUUID());
-        op.setIdOrden(o);
-        op.setIdProducto(p);
-        op.setPrecio(new BigDecimal(precio));
-        return op;
+    private OrdenProducto detalle(Orden orden, Producto producto, String precio) {
+        OrdenProducto detalle = new OrdenProducto(UUID.randomUUID());
+        detalle.setIdOrden(orden);
+        detalle.setIdProducto(producto);
+        detalle.setPrecio(new BigDecimal(precio));
+        return detalle;
     }
 
-    private Descuento descuento(String nombre, Date desde, Date hasta) {
-        Descuento d = new Descuento(UUID.randomUUID());
-        d.setNombre(nombre);
-        d.setFechaDesde(desde);
-        d.setFechaHasta(hasta);
-        return d;
+    private Descuento descuento(String nombre, Date fechaDesde, Date fechaHasta) {
+        Descuento descuento = new Descuento(UUID.randomUUID());
+        descuento.setNombre(nombre);
+        descuento.setFechaDesde(fechaDesde);
+        descuento.setFechaHasta(fechaHasta);
+        return descuento;
     }
 
-    private DescuentoProducto autorizacion(Descuento d, Producto p, int valor, Date desde, Date hasta) {
-        DescuentoProducto dp = new DescuentoProducto(UUID.randomUUID());
-        dp.setIdDescuento(d);
-        dp.setIdProducto(p);
-        dp.setValor(valor);
-        dp.setFechaDesde(desde);
-        dp.setFechaHasta(hasta);
-        return dp;
+    private DescuentoProducto autorizacion(Descuento descuento, Producto producto, int porcentaje, Date fechaDesde, Date fechaHasta) {
+        DescuentoProducto autorizacion = new DescuentoProducto(UUID.randomUUID());
+        autorizacion.setIdDescuento(descuento);
+        autorizacion.setIdProducto(producto);
+        autorizacion.setValor(porcentaje);
+        autorizacion.setFechaDesde(fechaDesde);
+        autorizacion.setFechaHasta(fechaHasta);
+        return autorizacion;
     }
 }

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.CajaDAO;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.FacturaDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caja;
 
 /**
@@ -26,8 +25,6 @@ public class CajaModelTest extends ModelTestBase {
 
     @Mock
     private CajaDAO cajaDAO;
-    @Mock
-    private FacturaDAO facturaDAO;
 
     @Test
     void nuevaCaja_empiezaActiva() {
@@ -37,26 +34,24 @@ public class CajaModelTest extends ModelTestBase {
     }
 
     @Test
-    void noEliminaUnaCajaConFacturas() {
+    void noEliminaSiElDaoLaRechaza() {
         Caja caja = new Caja(UUID.randomUUID());
-        when(facturaDAO.countByCaja(caja)).thenReturn(2L);
+        when(cajaDAO.validarEliminar(caja)).thenReturn("La caja tiene facturas registradas.");
         model.seleccionarRegistro(caja);
 
         model.btnEliminarHandler();
 
         verify(cajaDAO, never()).delete(any());
-        assertEquals("No se puede eliminar: la caja tiene facturas registradas.", ultimoMensaje().getSummary());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void eliminaUnaCajaSinFacturas() {
+    void eliminaSiElDaoNoEncuentraErrores() {
         Caja caja = new Caja(UUID.randomUUID());
-        when(facturaDAO.countByCaja(caja)).thenReturn(0L);
         model.seleccionarRegistro(caja);
 
         model.btnEliminarHandler();
 
         verify(cajaDAO).delete(caja);
     }
-
 }

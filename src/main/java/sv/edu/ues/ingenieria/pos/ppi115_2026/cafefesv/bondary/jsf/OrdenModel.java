@@ -9,7 +9,6 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,16 +39,6 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
 
     private static final long serialVersionUID = 1L;
     private static final int MAX_SUGERENCIAS = 10;
-
-    /**
-     * Único rol que puede tomar órdenes (según la rúbrica).
-     */
-    private static final String ROL_PERMITIDO = "camarero";
-
-    /**
-     * Las observaciones de un producto con descuento empiezan con este texto.
-     */
-    private static final String PREFIJO_DESCUENTO = "Descuento ";
 
     @Inject
     private OrdenDAO ordenDAO;
@@ -95,16 +84,16 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     @PostConstruct
     public void init() {
         iniciar();
-        List<Empleado> listaEmp = empleadoDAO.findRange(0, 1000);
-        if (listaEmp != null) {
-            for (Empleado e : listaEmp) {
-                empleados.put(e.getIdEmpleado(), e);
+        List<Empleado> todosLosEmpleados = empleadoDAO.findRange(0, 1000);
+        if (todosLosEmpleados != null) {
+            for (Empleado empleado : todosLosEmpleados) {
+                empleados.put(empleado.getIdEmpleado(), empleado);
             }
         }
-        List<EmpleadoRol> listaER = empleadoRolDAO.findRange(0, 1000);
-        if (listaER != null) {
-            for (EmpleadoRol er : listaER) {
-                empleadosRol.put(er.getIdEmpleadoRol(), er);
+        List<EmpleadoRol> todasLasAsignaciones = empleadoRolDAO.findRange(0, 1000);
+        if (todasLasAsignaciones != null) {
+            for (EmpleadoRol asignacion : todasLasAsignaciones) {
+                empleadosRol.put(asignacion.getIdEmpleadoRol(), asignacion);
             }
         }
     }
@@ -125,40 +114,23 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     // ================= Pestaña "Datos de la orden" =================
     @Override
     public void btnCrearHandler() {
-        if (esValida()) {
+        if (sinError("Orden no válida", ordenDAO.validarOrden(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (esValida()) {
+        if (sinError("Orden no válida", ordenDAO.validarOrden(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null && ordenProductoDAO.countByOrden(registro) > 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede eliminar: la orden tiene productos.");
-            return;
+        if (sinError("No se puede eliminar", ordenDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
-    }
-
-    private boolean esValida() {
-        if (registro == null) {
-            return true;
-        }
-        if (registro.getFechaCreacion() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "La fecha de la orden es obligatoria.");
-            return false;
-        }
-        if (registro.getIdEmpleadoRol() == null || !esCamarero(registro.getIdEmpleadoRol())) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Solo un empleado con rol camarero puede tomar la orden.");
-            return false;
-        }
-        return true;
     }
 
     // ================= Pestaña "Productos" =================
@@ -183,77 +155,63 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
      * Agrega a la orden el producto elegido, con su precio sugerido.
      */
     public void btnAgregarProductoHandler() {
-        if (productoSeleccionado == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Seleccione un producto.");
+        if (!sinError("Producto no válido", ordenProductoDAO.validarProductoElegido(productoSeleccionado))) {
             return;
         }
-        OrdenProducto op = new OrdenProducto(UUID.randomUUID());
-        op.setIdOrden(registro);
-        op.setIdProducto(productoSeleccionado);
-        op.setPrecio(productoSeleccionado.getPrecioSugerido());
-        ordenProductoDAO.save(op);
+        OrdenProducto nuevoDetalle = new OrdenProducto(UUID.randomUUID());
+        nuevoDetalle.setIdOrden(registro);
+        nuevoDetalle.setIdProducto(productoSeleccionado);
+        nuevoDetalle.setPrecio(productoSeleccionado.getPrecioSugerido());
+        ordenProductoDAO.save(nuevoDetalle);
         mensaje(FacesMessage.SEVERITY_INFO, "Producto " + productoSeleccionado.getNombre() + " agregado.");
         productoSeleccionado = null;
         cargarProductos();
     }
 
     /**
-     * Aplica el descuento elegido a los productos de la orden que: 1) estén
-     * autorizados para ese descuento (DescuentoProducto), y 2) la fecha de la
-     * orden esté dentro del rango del descuento (si no tiene fecha hasta, es
-     * abierto y no vence). Baja el precio y escribe el detalle en las
-     * observaciones.
+     * Aplica el descuento elegido a los productos de la orden que estén
+     * autorizados para ese descuento en la fecha de la orden. Baja el precio y
+     * escribe el detalle en las observaciones. Las reglas las decide el DAO;
+     * aquí solo se recorre la orden y se guardan los cambios.
      */
     public void btnAplicarDescuentoHandler() {
-        if (descuentoSeleccionado == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Seleccione un descuento.");
+        if (!sinError("Descuento no aplicado", ordenDAO.validarDescuentoEnFecha(registro, descuentoSeleccionado))) {
             return;
         }
-        Descuento d = descuentoSeleccionado;
-        Date fechaOrden = registro.getFechaCreacion();
-
-        // 1) ¿La fecha de la orden está dentro del rango del descuento?
-        if (!dentroDeRango(fechaOrden, d.getFechaDesde(), d.getFechaHasta())) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El descuento " + d.getNombre()
-                    + " no aplica: la fecha de la orden (" + formatear(fechaOrden)
-                    + ") está fuera de su rango. No se aplicó a ningún producto.");
-            return;
-        }
-
-        // 2) ¿Qué productos de la orden están autorizados para este descuento?
-        List<DescuentoProducto> autorizados = descuentoProductoDAO.findByDescuento(d);
+        Descuento descuento = descuentoSeleccionado;
         int aplicados = 0;
-        int yaTenian = 0;
+        int yaTenianDescuento = 0;
 
-        for (OrdenProducto op : productosOrden) {
-            DescuentoProducto dp = buscarAutorizacion(autorizados, op.getIdProducto(), fechaOrden);
-            if (dp == null || dp.getValor() == null || op.getPrecio() == null) {
+        for (OrdenProducto detalle : productosOrden) {
+            DescuentoProducto autorizacion = descuentoProductoDAO.buscarAutorizacion(
+                    descuento, detalle.getIdProducto(), registro.getFechaCreacion());
+            if (autorizacion == null || detalle.getPrecio() == null) {
                 continue; // este producto no tiene este descuento
             }
-            if (yaTieneDescuento(op)) {
-                yaTenian++;
+            if (ordenProductoDAO.validarSinDescuento(detalle) != null) {
+                yaTenianDescuento++;
                 continue; // no se aplican dos descuentos al mismo producto
             }
-            if (ordenProductoDAO.countFacturas(op) > 0) {
+            if (ordenProductoDAO.validarNoFacturado(detalle) != null) {
                 continue; // ya facturado, no se cambia
             }
-            BigDecimal precioOriginal = op.getPrecio();
-            BigDecimal monto = calcularMonto(precioOriginal, dp.getValor());
-            op.setPrecio(precioOriginal.subtract(monto));
-            op.setObservaciones(PREFIJO_DESCUENTO + d.getNombre()
-                    + " (" + dp.getValor() + "%): -$" + monto
+            BigDecimal precioOriginal = detalle.getPrecio();
+            BigDecimal monto = ordenProductoDAO.calcularMontoDescuento(precioOriginal, autorizacion.getValor());
+            detalle.setPrecio(precioOriginal.subtract(monto));
+            detalle.setObservaciones(OrdenProductoDAO.PREFIJO_DESCUENTO + descuento.getNombre()
+                    + " (" + autorizacion.getValor() + "%): -$" + monto
                     + " (precio original $" + precioOriginal + ")");
-            ordenProductoDAO.update(op);
+            ordenProductoDAO.update(detalle);
             aplicados++;
         }
 
         if (aplicados > 0) {
-            mensaje(FacesMessage.SEVERITY_INFO, "Descuento " + d.getNombre()
+            mensaje(FacesMessage.SEVERITY_INFO, "Descuento " + descuento.getNombre()
                     + " aplicado a " + aplicados + " producto(s).");
-        } else if (yaTenian > 0) {
+        } else if (yaTenianDescuento > 0) {
             mensaje(FacesMessage.SEVERITY_WARN, "Los productos de este descuento ya tienen un descuento aplicado.");
         } else {
-            mensaje(FacesMessage.SEVERITY_WARN, "El descuento " + d.getNombre()
+            mensaje(FacesMessage.SEVERITY_WARN, "El descuento " + descuento.getNombre()
                     + " no aplica a ningún producto de esta orden.");
         }
         descuentoSeleccionado = null;
@@ -261,70 +219,24 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     }
 
     /**
-     * Busca si el producto está autorizado para el descuento en la fecha de la
-     * orden.
-     */
-    private DescuentoProducto buscarAutorizacion(List<DescuentoProducto> autorizados, Producto producto, Date fecha) {
-        for (DescuentoProducto dp : autorizados) {
-            if (producto != null && producto.equals(dp.getIdProducto())
-                    && dentroDeRango(fecha, dp.getFechaDesde(), dp.getFechaHasta())) {
-                return dp;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * true si la fecha está entre desde y hasta. Si hasta es null, el rango es
-     * abierto.
-     */
-    private boolean dentroDeRango(Date fecha, Date desde, Date hasta) {
-        if (fecha == null) {
-            return false;
-        }
-        boolean despuesDeInicio = (desde == null) || !fecha.before(desde);
-        boolean antesDeFin = (hasta == null) || !fecha.after(hasta);
-        return despuesDeInicio && antesDeFin;
-    }
-
-    /**
-     * Monto a descontar. valor = porcentaje (10 = 10%). Si fuera monto fijo,
-     * devolver BigDecimal.valueOf(valor).
-     */
-    private BigDecimal calcularMonto(BigDecimal precio, Integer valor) {
-        return precio.multiply(BigDecimal.valueOf(valor))
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-    }
-
-    private boolean yaTieneDescuento(OrdenProducto op) {
-        return op.getObservaciones() != null && op.getObservaciones().startsWith(PREFIJO_DESCUENTO);
-    }
-
-    /**
      * Total de la orden (suma de precios, ya con descuentos).
      */
     public BigDecimal getTotal() {
-        BigDecimal total = BigDecimal.ZERO;
-        for (OrdenProducto op : productosOrden) {
-            if (op.getPrecio() != null) {
-                total = total.add(op.getPrecio());
-            }
-        }
-        return total;
+        return ordenProductoDAO.calcularTotal(productosOrden);
     }
 
     /**
      * "Navidad (01/12/2026 - 31/12/2026)" o "Frecuente (desde 01/10/2026,
      * abierto)".
      */
-    public String etiquetaDescuento(Descuento d) {
-        if (d == null) {
+    public String etiquetaDescuento(Descuento descuento) {
+        if (descuento == null) {
             return "";
         }
-        String rango = (d.getFechaHasta() == null)
-                ? "desde " + formatear(d.getFechaDesde()) + ", abierto"
-                : formatear(d.getFechaDesde()) + " - " + formatear(d.getFechaHasta());
-        return d.getNombre() + " (" + rango + ")";
+        String rango = (descuento.getFechaHasta() == null)
+                ? "desde " + formatear(descuento.getFechaDesde()) + ", abierto"
+                : formatear(descuento.getFechaDesde()) + " - " + formatear(descuento.getFechaHasta());
+        return descuento.getNombre() + " (" + rango + ")";
     }
 
     private static String formatear(Date fecha) {
@@ -333,41 +245,41 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
 
     // ================= AutoComplete (solo camareros) =================
     public List<EmpleadoRol> completarEmpleadoRol(String consulta) {
-        String[] palabras = normalizar(consulta).split("\\s+");
+        String[] palabrasBuscadas = normalizar(consulta).split("\\s+");
         List<EmpleadoRol> resultado = new ArrayList<>();
-        for (EmpleadoRol er : empleadosRol.values()) {
-            if (!estaDisponible(er)) {
+        for (EmpleadoRol asignacion : empleadosRol.values()) {
+            if (!estaDisponible(asignacion)) {
                 continue;
             }
-            String texto = normalizar(obtenerTextoEmpleadoRol(er));
+            String textoAsignacion = normalizar(obtenerTextoEmpleadoRol(asignacion));
             boolean coincide = true;
-            for (String p : palabras) {
-                if (!texto.contains(p)) {
+            for (String palabra : palabrasBuscadas) {
+                if (!textoAsignacion.contains(palabra)) {
                     coincide = false;
                     break;
                 }
             }
             if (coincide) {
-                resultado.add(er);
+                resultado.add(asignacion);
             }
         }
-        resultado.sort((a, b) -> obtenerTextoEmpleadoRol(a).compareToIgnoreCase(obtenerTextoEmpleadoRol(b)));
+        resultado.sort((primera, segunda) -> obtenerTextoEmpleadoRol(primera).compareToIgnoreCase(obtenerTextoEmpleadoRol(segunda)));
         return resultado.size() > MAX_SUGERENCIAS ? resultado.subList(0, MAX_SUGERENCIAS) : resultado;
     }
 
     /**
      * "Nombre Apellido (Rol)" para la tabla y el AutoComplete.
      */
-    public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
-        if (er == null) {
+    public String obtenerTextoEmpleadoRol(EmpleadoRol asignacion) {
+        if (asignacion == null) {
             return "";
         }
-        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
-        String nombre = (e != null)
-                ? (texto(e.getNombre()) + " " + texto(e.getApellido())).trim()
+        Empleado empleado = (asignacion.getIdEmpleado() != null) ? empleados.get(asignacion.getIdEmpleado()) : null;
+        String nombre = (empleado != null)
+                ? (texto(empleado.getNombre()) + " " + texto(empleado.getApellido())).trim()
                 : "Empleado no encontrado";
-        String rol = (er.getIdRol() != null && er.getIdRol().getNombre() != null)
-                ? er.getIdRol().getNombre()
+        String rol = (asignacion.getIdRol() != null && asignacion.getIdRol().getNombre() != null)
+                ? asignacion.getIdRol().getNombre()
                 : "Sin rol";
         return nombre + " (" + rol + ")";
     }
@@ -375,7 +287,7 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
     public Converter<EmpleadoRol> getEmpleadoRolConverter() {
         return new Converter<EmpleadoRol>() {
             @Override
-            public EmpleadoRol getAsObject(FacesContext ctx, UIComponent comp, String valor) {
+            public EmpleadoRol getAsObject(FacesContext contexto, UIComponent componente, String valor) {
                 if (valor == null || valor.isBlank()) {
                     return null;
                 }
@@ -387,28 +299,22 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
             }
 
             @Override
-            public String getAsString(FacesContext ctx, UIComponent comp, EmpleadoRol er) {
-                return (er == null || er.getIdEmpleadoRol() == null) ? "" : er.getIdEmpleadoRol().toString();
+            public String getAsString(FacesContext contexto, UIComponent componente, EmpleadoRol asignacion) {
+                return (asignacion == null || asignacion.getIdEmpleadoRol() == null) ? "" : asignacion.getIdEmpleadoRol().toString();
             }
         };
     }
 
     /**
-     * Solo camareros: asignación activa, empleado activo y rol activo llamado
-     * "camarero".
+     * En el buscador solo salen camareros con la asignación activa y el
+     * empleado activo. La regla de "camarero" la decide el DAO.
      */
-    private boolean estaDisponible(EmpleadoRol er) {
-        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
-        return Boolean.TRUE.equals(er.getActivo())
-                && e != null
-                && Boolean.TRUE.equals(e.getActivo())
-                && esCamarero(er);
-    }
-
-    private boolean esCamarero(EmpleadoRol er) {
-        return er.getIdRol() != null
-                && Boolean.TRUE.equals(er.getIdRol().getActivo())
-                && normalizar(er.getIdRol().getNombre()).equals(ROL_PERMITIDO);
+    private boolean estaDisponible(EmpleadoRol asignacion) {
+        Empleado empleado = (asignacion.getIdEmpleado() != null) ? empleados.get(asignacion.getIdEmpleado()) : null;
+        return Boolean.TRUE.equals(asignacion.getActivo())
+                && empleado != null
+                && Boolean.TRUE.equals(empleado.getActivo())
+                && ordenDAO.validarCamarero(asignacion) == null;
     }
 
     // ================= Utilidades =================
@@ -416,15 +322,16 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
     }
 
-    private static String texto(String s) {
-        return s != null ? s : "";
+    private static String texto(String valor) {
+        return valor != null ? valor : "";
     }
 
-    private static String normalizar(String s) {
-        if (s == null) {
+    // Para el buscador: sin tildes, en minúsculas y sin espacios de los extremos.
+    private static String normalizar(String valor) {
+        if (valor == null) {
             return "";
         }
-        return Normalizer.normalize(s, Normalizer.Form.NFD)
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase()
                 .trim();
@@ -435,27 +342,15 @@ public class OrdenModel extends AbstractModel<Orden, UUID> {
      * Solo productos activos para el combo.
      */
     public List<Producto> getListaProducto() {
-        List<Producto> lista = new ArrayList<>();
-        for (Producto p : productoDAO.findRange(0, 1000)) {
-            if (Boolean.TRUE.equals(p.getActivo())) {
-                lista.add(p);
-            }
-        }
-        return lista;
+        return productoDAO.findByActivo(Boolean.TRUE);
     }
 
     /**
      * Solo los descuentos vigentes en la fecha de la orden.
      */
     public List<Descuento> getListaDescuento() {
-        List<Descuento> lista = new ArrayList<>();
         Date fechaOrden = (registro != null) ? registro.getFechaCreacion() : null;
-        for (Descuento d : descuentoDAO.findRange(0, 1000)) {
-            if (dentroDeRango(fechaOrden, d.getFechaDesde(), d.getFechaHasta())) {
-                lista.add(d);
-            }
-        }
-        return lista;
+        return descuentoDAO.buscarVigentesEn(fechaOrden);
     }
 
     public List<OrdenProducto> getProductosOrden() {
