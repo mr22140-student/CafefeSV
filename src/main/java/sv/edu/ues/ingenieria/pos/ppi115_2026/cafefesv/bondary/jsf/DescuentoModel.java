@@ -1,8 +1,6 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -14,6 +12,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoDescuentoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
+
 /**
  *
  * @author valen
@@ -52,66 +51,25 @@ public class DescuentoModel extends AbstractModel<Descuento, UUID> {
 
     @Override
     public void btnCrearHandler() {
-        if (fechasValidas() && tipoActivo()) {
+        if (sinError("Fechas inválidas", descuentoDAO.validarFechas(registro))
+                && sinError("Tipo inactivo", descuentoDAO.validarTipoActivo(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (fechasValidas() && tipoActivo()) {
+        if (sinError("Fechas inválidas", descuentoDAO.validarFechas(registro))
+                && sinError("Tipo inactivo", descuentoDAO.validarTipoActivo(registro))) {
             super.btnModificarHandler();
         }
     }
 
     /**
-     * La fecha hasta es opcional, pero si viene no puede ser anterior a la
-     * fecha desde.
+     * Estado del descuento para la columna de vigencia de la tabla.
      */
-    private boolean fechasValidas() {
-        if (registro != null && registro.getFechaDesde() != null && registro.getFechaHasta() != null
-                && registro.getFechaHasta().before(registro.getFechaDesde())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Fechas inválidas", "La fecha hasta no puede ser anterior a la fecha desde."));
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * No se puede guardar un descuento con un tipo inactivo.
-     */
-    private boolean tipoActivo() {
-        if (registro == null || registro.getIdTipoDescuento() == null) {
-            return true;
-        }
-        TipoDescuento actual = tipoDescuentoDAO.findById(registro.getIdTipoDescuento().getIdTipoDescuento());
-        if (actual == null || !Boolean.TRUE.equals(actual.getActivo())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Tipo inactivo",
-                    "El tipo \"" + registro.getIdTipoDescuento().getNombre()
-                    + "\" está inactivo. Seleccione un tipo activo."));
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Estado calculado del descuento según la fecha actual, para mostrarlo en
-     * la tabla.
-     */
-    public String vigencia(Descuento d) {
-        if (d == null || d.getFechaDesde() == null) {
-            return "SIN FECHA";
-        }
-        Date ahora = new Date();
-        if (ahora.before(d.getFechaDesde())) {
-            return "PROGRAMADO";
-        }
-        if (d.getFechaHasta() != null && ahora.after(d.getFechaHasta())) {
-            return "VENCIDO";
-        }
-        return "VIGENTE";
+    public String vigencia(Descuento descuento) {
+        return descuentoDAO.calcularVigencia(descuento);
     }
 
     public List<TipoDescuento> getListaTipoDescuento() {

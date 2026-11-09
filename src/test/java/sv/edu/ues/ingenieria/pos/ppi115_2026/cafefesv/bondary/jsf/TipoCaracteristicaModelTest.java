@@ -6,17 +6,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.CaracteristicaDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoCaracteristicaDAO;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 
 /**
+ * El model solo llama a las reglas del DAO. Las reglas en sí se prueban en
+ * TipoCaracteristicaDAOTest.
  *
  * @author valen
  */
@@ -28,12 +27,11 @@ public class TipoCaracteristicaModelTest extends ModelTestBase {
     @Mock
     private TipoCaracteristicaDAO tipoCaracteristicaDAO;
 
-    @Mock
-    private CaracteristicaDAO caracteristicaDAO;
-
     @Test
-    void rechazaExpresionRegularInvalida() {
-        model.setRegistro(tipo(true, "^\\d+("));   // falta cerrar el paréntesis
+    void noCreaSiLaExpresionEsInvalida() {
+        TipoCaracteristica tipoCaracteristica = tipoCaracteristica(true);
+        when(tipoCaracteristicaDAO.validarExpresion(tipoCaracteristica)).thenReturn("Falta cerrar el paréntesis.");
+        model.setRegistro(tipoCaracteristica);
 
         model.btnCrearHandler();
 
@@ -42,20 +40,22 @@ public class TipoCaracteristicaModelTest extends ModelTestBase {
     }
 
     @Test
-    void aceptaExpresionRegularValida() {
-        TipoCaracteristica tipo = tipo(true, "^\\d+(\\.\\d{1,2})?$");
-        model.setRegistro(tipo);
+    void creaSiLaExpresionEsValida() {
+        TipoCaracteristica tipoCaracteristica = tipoCaracteristica(true);
+        when(tipoCaracteristicaDAO.validarExpresion(tipoCaracteristica)).thenReturn(null);
+        model.setRegistro(tipoCaracteristica);
 
         model.btnCrearHandler();
 
-        verify(tipoCaracteristicaDAO).save(tipo);
+        verify(tipoCaracteristicaDAO).save(tipoCaracteristica);
     }
 
     @Test
     void noInactivaSiTieneCaracteristicasActivas() {
-        TipoCaracteristica tipo = tipo(false, null);
-        when(caracteristicaDAO.findByTipoCaracteristica(tipo)).thenReturn(List.of(caracteristica(true)));
-        model.setRegistro(tipo);
+        TipoCaracteristica tipoCaracteristica = tipoCaracteristica(false);
+        when(tipoCaracteristicaDAO.validarExpresion(tipoCaracteristica)).thenReturn(null);
+        when(tipoCaracteristicaDAO.validarInactivar(tipoCaracteristica)).thenReturn("Hay 1 característica activa con este tipo.");
+        model.setRegistro(tipoCaracteristica);
 
         model.btnModificarHandler();
 
@@ -64,31 +64,33 @@ public class TipoCaracteristicaModelTest extends ModelTestBase {
     }
 
     @Test
-    void inactivaSiSusCaracteristicasEstanInactivas() {
-        TipoCaracteristica tipo = tipo(false, null);
-        when(caracteristicaDAO.findByTipoCaracteristica(tipo)).thenReturn(List.of(caracteristica(false)));
-        model.setRegistro(tipo);
+    void modificaSiNingunaReglaDevuelveError() {
+        TipoCaracteristica tipoCaracteristica = tipoCaracteristica(false);
+        when(tipoCaracteristicaDAO.validarExpresion(tipoCaracteristica)).thenReturn(null);
+        when(tipoCaracteristicaDAO.validarInactivar(tipoCaracteristica)).thenReturn(null);
+        model.setRegistro(tipoCaracteristica);
 
         model.btnModificarHandler();
 
-        verify(tipoCaracteristicaDAO).update(tipo);
+        verify(tipoCaracteristicaDAO).update(tipoCaracteristica);
     }
 
-    private TipoCaracteristica tipo(boolean activo, String regex) {
-        TipoCaracteristica t = new TipoCaracteristica();
-        t.setIdTipoCaracteristica(UUID.randomUUID());
-        t.setNombre("Volumen");
-        t.setActivo(activo);
-        t.setExpresionRegular(regex);
-        return t;
+    @Test
+    void noEliminaSiElDaoDevuelveError() {
+        TipoCaracteristica tipoCaracteristica = tipoCaracteristica(true);
+        when(tipoCaracteristicaDAO.validarEliminar(tipoCaracteristica)).thenReturn("Hay características que usan este tipo.");
+        model.setRegistro(tipoCaracteristica);
+
+        model.btnEliminarHandler();
+
+        verify(tipoCaracteristicaDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
-    private Caracteristica caracteristica(boolean activa) {
-        Caracteristica c = new Caracteristica();
-        c.setIdCaracteristica(UUID.randomUUID());
-        c.setNombre("Onzas");
-        c.setActivo(activa);
-        return c;
+    private TipoCaracteristica tipoCaracteristica(boolean activo) {
+        TipoCaracteristica tipoCaracteristica = new TipoCaracteristica(UUID.randomUUID());
+        tipoCaracteristica.setNombre("Volumen");
+        tipoCaracteristica.setActivo(activo);
+        return tipoCaracteristica;
     }
-
 }

@@ -12,14 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.CaracteristicaDAO;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoCaracteristicaDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoCaracteristicaDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoCaracteristica;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 
 /**
+ * El model solo llama a las reglas del DAO. Las reglas en sí se prueban en
+ * CaracteristicaDAOTest y TipoCaracteristicaDAOTest.
  *
  * @author valen
  */
@@ -34,24 +33,19 @@ public class CaracteristicaModelTest extends ModelTestBase {
     @Mock
     private TipoCaracteristicaDAO tipoCaracteristicaDAO;
 
-    @Mock
-    private ProductoCaracteristicaDAO pcDAO;
-
     @Test
-    void elBuscadorSoloMuestraTiposActivos() {
-        TipoCaracteristica activo = tipo(true);
-        TipoCaracteristica inactivo = tipo(false);
-        when(tipoCaracteristicaDAO.findAll()).thenReturn(List.of(activo, inactivo));
-        model.setListaTipoCaracteristica(List.of(activo, inactivo));
+    void elBuscadorDevuelveLoQueEncuentraElDao() {
+        TipoCaracteristica volumen = new TipoCaracteristica(UUID.randomUUID());
+        when(tipoCaracteristicaDAO.buscarActivosPorNombre("vol")).thenReturn(List.of(volumen));
 
-        List<TipoCaracteristica> resultado = model.completarTipoCaracteristica("");
-
-        assertEquals(List.of(activo), resultado);
+        assertEquals(List.of(volumen), model.completarTipoCaracteristica("vol"));
     }
 
     @Test
-    void noGuardaCaracteristicaActivaConTipoInactivo() {
-        model.setRegistro(caracteristica(true, tipo(false)));
+    void noCreaSiElTipoEstaInactivo() {
+        Caracteristica caracteristica = caracteristica();
+        when(caracteristicaDAO.validarTipoActivo(caracteristica)).thenReturn("El tipo está inactivo.");
+        model.setRegistro(caracteristica);
 
         model.btnCrearHandler();
 
@@ -60,51 +54,32 @@ public class CaracteristicaModelTest extends ModelTestBase {
     }
 
     @Test
-    void permiteInactivarUnaCaracteristicaAunqueSuTipoEsteInactivo() {
-        Caracteristica c = caracteristica(false, tipo(false));
-        model.setRegistro(c);
+    void modificaSiElTipoEstaActivo() {
+        Caracteristica caracteristica = caracteristica();
+        when(caracteristicaDAO.validarTipoActivo(caracteristica)).thenReturn(null);
+        model.setRegistro(caracteristica);
 
         model.btnModificarHandler();
 
-        verify(caracteristicaDAO).update(c);
+        verify(caracteristicaDAO).update(caracteristica);
     }
 
     @Test
-    void permiteModificarAunqueUnProductoActivoLaUsa() {
-        Caracteristica c = caracteristica(false, tipo(true));
+    void noEliminaSiUnProductoLaTiene() {
+        Caracteristica caracteristica = caracteristica();
+        when(caracteristicaDAO.validarEliminar(caracteristica)).thenReturn("Hay productos que tienen esta característica.");
+        model.setRegistro(caracteristica);
 
-        Producto producto = new Producto(UUID.randomUUID());
-        producto.setActivo(true);
+        model.btnEliminarHandler();
 
-        ProductoCaracteristica pc = new ProductoCaracteristica(UUID.randomUUID());
-        pc.setIdProducto(producto);
-        pc.setIdCaracteristica(c);
-
-        when(pcDAO.findByCaracteristica(c)).thenReturn(List.of(pc));
-
-        model.setRegistro(c);
-
-        model.btnModificarHandler();
-
-        verify(caracteristicaDAO).update(c);
+        verify(caracteristicaDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
-    private TipoCaracteristica tipo(boolean activo) {
-        TipoCaracteristica t = new TipoCaracteristica();
-        t.setIdTipoCaracteristica(UUID.randomUUID());
-        t.setNombre(activo ? "Volumen" : "Colores");
-        t.setActivo(activo);
-        when(tipoCaracteristicaDAO.findById(t.getIdTipoCaracteristica())).thenReturn(t);
-        return t;
+    private Caracteristica caracteristica() {
+        Caracteristica caracteristica = new Caracteristica(UUID.randomUUID());
+        caracteristica.setNombre("Vaso grande");
+        caracteristica.setActivo(true);
+        return caracteristica;
     }
-
-    private Caracteristica caracteristica(boolean activa, TipoCaracteristica tipo) {
-        Caracteristica c = new Caracteristica();
-        c.setIdCaracteristica(UUID.randomUUID());
-        c.setNombre("Onzas");
-        c.setActivo(activa);
-        c.setIdTipoCaracteristica(tipo);
-        return c;
-    }
-
 }

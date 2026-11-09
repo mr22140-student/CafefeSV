@@ -33,9 +33,6 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
     @Inject
     private TipoCaracteristicaDAO tipoCaracteristicaDAO;
 
-    @Inject
-    private ProductoCaracteristicaDAO pcDAO;
-
     private List<TipoCaracteristica> listaTipoCaracteristica;
 
     @PostConstruct
@@ -61,27 +58,23 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
 
     @Override
     public void btnCrearHandler() {
-        if (tipoActivo()) {
+        if (sinError("Tipo inactivo", caracteristicaDAO.validarTipoActivo(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (tipoActivo()) {
+        if (sinError("Tipo inactivo", caracteristicaDAO.validarTipoActivo(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null && !pcDAO.findByCaracteristica(registro).isEmpty()) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                    "No se puede eliminar",
-                    "Hay productos que tienen esta característica. Quítesela primero."));
-            return;
+        if (sinError("No se puede eliminar", caracteristicaDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
     public List<TipoCaracteristica> getListaTipoCaracteristica() {
@@ -92,32 +85,11 @@ public class CaracteristicaModel extends AbstractModel<Caracteristica, UUID> imp
         this.listaTipoCaracteristica = listaTipoCaracteristica;
     }
 
-    /**
+        /**
      * Buscador del autoComplete: solo muestra tipos ACTIVOS.
      */
-    public List<TipoCaracteristica> completarTipoCaracteristica(String query) {
-        this.listaTipoCaracteristica = tipoCaracteristicaDAO.findAll();
-        String queryLower = query == null ? "" : query.toLowerCase().trim();
-        return this.listaTipoCaracteristica.stream()
-                .filter(tipo -> Boolean.TRUE.equals(tipo.getActivo()))
-                .filter(tipo -> tipo.getNombre() != null
-                        && tipo.getNombre().toLowerCase().contains(queryLower))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * No se puede guardar una característica con un tipo inactivo.
-     */
-    private boolean tipoActivo() {
-        if (registro != null && Boolean.TRUE.equals(registro.getActivo()) && registro.getIdTipoCaracteristica() != null
-                && !Boolean.TRUE.equals(registro.getIdTipoCaracteristica().getActivo())) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Tipo inactivo",
-                    "El tipo \"" + registro.getIdTipoCaracteristica().getNombre()
-                    + "\" está inactivo. Seleccione un tipo activo."));
-            return false;
-        }
-        return true;
+    public List<TipoCaracteristica> completarTipoCaracteristica(String textoBuscado) {
+        return tipoCaracteristicaDAO.buscarActivosPorNombre(textoBuscado);
     }
 
 }

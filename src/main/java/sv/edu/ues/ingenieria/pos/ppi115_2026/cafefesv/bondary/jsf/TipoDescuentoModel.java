@@ -22,10 +22,7 @@ public class TipoDescuentoModel extends AbstractModel<TipoDescuento, UUID> {
     private static final long serialVersionUID = 1L;
 
     @Inject
-    private TipoDescuentoDAO tdDAO;
-
-    @Inject
-    private DescuentoDAO descuentoDAO;
+    private TipoDescuentoDAO tipoDescuentoDAO;
 
     @PostConstruct
     public void init() {
@@ -34,7 +31,7 @@ public class TipoDescuentoModel extends AbstractModel<TipoDescuento, UUID> {
 
     @Override
     protected GenericDAO<TipoDescuento, UUID> getDAO() {
-        return tdDAO;
+        return tipoDescuentoDAO;
     }
 
     @Override
@@ -45,44 +42,18 @@ public class TipoDescuentoModel extends AbstractModel<TipoDescuento, UUID> {
         return nuevo;
     }
 
-    /**
-     * La base no tiene FK entre descuento y tipo_descuento, así que se valida
-     * aquí que el tipo no esté en uso antes de eliminarlo.
-     */
-    @Override
-    public void btnEliminarHandler() {
-        if (registro != null && descuentoDAO.countByTipoDescuento(registro) > 0) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(
-                    FacesMessage.SEVERITY_WARN, "No se puede eliminar",
-                    "Hay descuentos que usan este tipo. Modifícalos o márcalo como inactivo."));
-            return;
-        }
-        super.btnEliminarHandler();
-    }
-
-    @Override
+        @Override
     public void btnModificarHandler() {
-        if (puedeInactivar()) {
+        if (sinError("No se puede inactivar", tipoDescuentoDAO.validarInactivar(registro))) {
             super.btnModificarHandler();
         }
     }
 
-    /**
-     * No se puede inactivar un tipo mientras lo use algún descuento que no ha
-     * vencido.
-     */
-    private boolean puedeInactivar() {
-        if (registro == null || Boolean.TRUE.equals(registro.getActivo())) {
-            return true;
+    @Override
+    public void btnEliminarHandler() {
+        if (sinError("No se puede eliminar", tipoDescuentoDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
         }
-        long vigentes = descuentoDAO.countVigentesByTipoDescuento(registro);
-        if (vigentes > 0) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                    "No se puede inactivar",
-                    "Hay " + vigentes + " descuento(s) sin vencer con este tipo. "
-                    + "Cámbielos de tipo o espere a que venzan."));
-            return false;
-        }
-        return true;
     }
+
 }

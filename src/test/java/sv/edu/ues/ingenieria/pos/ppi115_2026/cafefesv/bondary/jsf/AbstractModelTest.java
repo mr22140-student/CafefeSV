@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -19,16 +21,15 @@ import org.mockito.Mock;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 
-
 /**
  *
  * @author valen
  */
-
 // Pruebas del comportamiento común de AbstractModel (estados y botones CRUD), usando una implementación mínima con TipoProducto y un DAO falso.
-
 public class AbstractModelTest extends ModelTestBase {
-     @Mock
+
+    @Mock
+
     private GenericDAO<TipoProducto, UUID> dao;
 
     private AbstractModel<TipoProducto, UUID> model;
@@ -49,7 +50,6 @@ public class AbstractModelTest extends ModelTestBase {
     }
 
     // ===================== iniciar / nuevo / seleccionar / cancelar =====================
-
     @Test
     void iniciar_cargaLosRegistrosYDejaElEstadoEnNinguno() {
         List<TipoProducto> lista = List.of(tipo());
@@ -107,7 +107,6 @@ public class AbstractModelTest extends ModelTestBase {
     }
 
     // ===================== crear =====================
-
     @Test
     void btnCrear_exitoso_guardaYVuelveAEstadoNinguno() {
         model.btnNuevoHandler();
@@ -144,7 +143,6 @@ public class AbstractModelTest extends ModelTestBase {
     }
 
     // ===================== modificar =====================
-
     @Test
     void btnModificar_exitoso_actualizaYVuelveAEstadoNinguno() {
         TipoProducto t = tipo();
@@ -178,7 +176,6 @@ public class AbstractModelTest extends ModelTestBase {
     }
 
     // ===================== eliminar =====================
-
     @Test
     void btnEliminar_exitoso_eliminaYVuelveAEstadoNinguno() {
         TipoProducto t = tipo();
@@ -209,11 +206,26 @@ public class AbstractModelTest extends ModelTestBase {
         verify(dao, never()).delete(any());
         assertEquals(FacesMessage.SEVERITY_WARN, ultimoMensaje().getSeverity());
     }
+    // ===================== sinError =====================
+
+    @Test
+    void sinError_conErrorNull_devuelveTrueYNoMuestraMensaje() {
+        assertTrue(model.sinError("No se puede inactivar", null));
+        verify(facesContext, never()).addMessage(any(), any());
+    }
+
+    @Test
+    void sinError_conError_muestraElAvisoYDevuelveFalse() {
+        assertFalse(model.sinError("No se puede inactivar", "Hay 2 productos activos con este tipo."));
+        assertEquals("No se puede inactivar", ultimoMensaje().getSummary());
+        assertEquals("Hay 2 productos activos con este tipo.", ultimoMensaje().getDetail());
+        assertEquals(FacesMessage.SEVERITY_WARN, ultimoMensaje().getSeverity());
+    }
 
     private TipoProducto tipo() {
         TipoProducto t = new TipoProducto(UUID.randomUUID());
         t.setNombre("Bebidas");
         return t;
     }
-    
+
 }

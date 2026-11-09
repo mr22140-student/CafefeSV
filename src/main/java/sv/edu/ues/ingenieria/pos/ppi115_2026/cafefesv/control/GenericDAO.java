@@ -28,28 +28,28 @@ import java.util.List;
  *       el log).</li>
  * </ul>
  *
- * @param <T>  tipo de la entidad administrada
+ * @param <Entidad>  tipo de la entidad administrada
  * @param <ID> tipo de la clave primaria de la entidad (por ejemplo
  *             {@code UUID}, o {@code ProductoTipoProductoPK} cuando la
  *             entidad usa clave compuesta)
  */
-public interface GenericDAO<T, ID> extends Serializable {
+public interface GenericDAO<Entidad, ID> extends Serializable {
  
     /**
      * Inserta una nueva entidad (equivalente a {@code EntityManager#persist}).
      */
-    void save(T entity) throws IllegalArgumentException, IllegalStateException;
+    void save(Entidad entity) throws IllegalArgumentException, IllegalStateException;
  
     /**
      * Actualiza (o adjunta) una entidad y devuelve la instancia administrada
      * resultante (equivalente a {@code EntityManager#merge}).
      */
-    T update(T entity) throws IllegalArgumentException, IllegalStateException;
+    Entidad update(Entidad entity) throws IllegalArgumentException, IllegalStateException;
  
     /**
      * Elimina la entidad indicada.
      */
-    void delete(T entity) throws IllegalArgumentException, IllegalStateException;
+    void delete(Entidad entity) throws IllegalArgumentException, IllegalStateException;
  
     /**
      * Busca y elimina la entidad con el id indicado. No hace nada si no existe.
@@ -62,12 +62,12 @@ public interface GenericDAO<T, ID> extends Serializable {
      * @return la entidad encontrada, o {@code null} si no existe (mismo
      *         comportamiento que {@code EntityManager#find}).
      */
-    T findById(ID id) throws IllegalArgumentException, IllegalStateException;
+    Entidad findById(ID id) throws IllegalArgumentException, IllegalStateException;
  
     /**
      * Devuelve todas las filas de la tabla asociada a la entidad.
      */
-    List<T> findAll() throws IllegalStateException;
+    List<Entidad> findAll() throws IllegalStateException;
  
     /**
      * Devuelve un subconjunto de filas, útil para paginación.
@@ -75,7 +75,7 @@ public interface GenericDAO<T, ID> extends Serializable {
      * @param start índice inicial (inclusive, base 0)
      * @param end   índice final (exclusive)
      */
-    List<T> findRange(int start, int end) throws IllegalArgumentException, IllegalStateException;
+    List<Entidad> findRange(int start, int end) throws IllegalArgumentException, IllegalStateException;
  
     /**
      * Cuenta el total de filas de la tabla asociada a la entidad.

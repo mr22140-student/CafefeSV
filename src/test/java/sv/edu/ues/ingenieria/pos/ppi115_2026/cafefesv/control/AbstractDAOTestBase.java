@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -41,24 +42,24 @@ import org.mockito.quality.Strictness;
  * qué entidad usar; el EntityManager es falso (Mockito), así que no se necesita
  * servidor ni base de datos.
  *
- * @param <T> entidad que administra el DAO
- * @param <D> D
+ * @param <Entidad> entidad que administra el DAO
+ * @param <Dao> Dao
  *
  * @author valen
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public abstract class AbstractDAOTestBase<T, D extends AbstractDAO<T, UUID>> {
+public abstract class AbstractDAOTestBase<Entidad, Dao extends AbstractDAO<Entidad, UUID>> {
 
     @Mock
     protected EntityManager em;
 
-    protected D dao;
-    protected T entidad;
+    protected Dao dao;
+    protected Entidad entidad;
 
-    protected abstract D crearDAO();
+    protected abstract Dao crearDAO();
 
-    protected abstract T crearEntidad();
+    protected abstract Entidad crearEntidad();
 
     @BeforeEach
     void prepararDAO() throws Exception {
@@ -246,6 +247,36 @@ public abstract class AbstractDAOTestBase<T, D extends AbstractDAO<T, UUID>> {
     }
 
     // ===================== ayudantes =====================
+    // Los métodos validar..., buscar... y calcular... tienen lógica propia y se
+    // prueban uno por uno en el test de cada DAO, no en la prueba genérica.
+    private static boolean esMetodoDeReglas(Method metodo) {
+        String nombre = metodo.getName();
+        return nombre.startsWith("validar") || nombre.startsWith("buscar") || nombre.startsWith("calcular");
+    }
+
+    // Hace que cualquier consulta COUNT del DAO responda con el total indicado.
+    @SuppressWarnings("unchecked")
+    protected void simularConteo(long totalEsperado) {
+        TypedQuery<Long> consulta = mock(TypedQuery.class, RETURNS_SELF);
+        when(consulta.getSingleResult()).thenReturn(totalEsperado);
+        doReturn(consulta).when(em).createQuery(anyString(), eq(Long.class));
+    }
+
+    // Hace que cualquier consulta (JPQL o con nombre) que devuelva la clase
+    // indicada responda con la lista dada.
+    @SuppressWarnings("unchecked")
+    protected <Resultado> void simularConsulta(Class<Resultado> claseResultado, List<Resultado> resultado) {
+        TypedQuery<Resultado> consulta = mock(TypedQuery.class, RETURNS_SELF);
+        when(consulta.getResultList()).thenReturn(resultado);
+        doReturn(consulta).when(em).createQuery(anyString(), eq(claseResultado));
+        doReturn(consulta).when(em).createNamedQuery(anyString(), eq(claseResultado));
+    }
+
+    // Fecha relativa a hoy: enDias(1) = mañana, enDias(-1) = ayer.
+    protected static Date enDias(int dias) {
+        return new Date(System.currentTimeMillis() + dias * 24L * 60 * 60 * 1000);
+    }
+
     // campo privado del DAO.
     private static void inyectarEntityManager(Object dao, EntityManager em) throws IllegalAccessException {
         for (Field campo : dao.getClass().getDeclaredFields()) {
@@ -262,7 +293,8 @@ public abstract class AbstractDAOTestBase<T, D extends AbstractDAO<T, UUID>> {
         List<Method> metodos = new ArrayList<>();
         for (Method m : dao.getClass().getDeclaredMethods()) {
             int mod = m.getModifiers();
-            if (Modifier.isPublic(mod) && !Modifier.isStatic(mod) && !m.isSynthetic()) {
+            if (Modifier.isPublic(mod) && !Modifier.isStatic(mod) && !m.isSynthetic()
+                    && !esMetodoDeReglas(m)) {
                 metodos.add(m);
             }
         }

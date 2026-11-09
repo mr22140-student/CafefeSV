@@ -6,18 +6,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoTipoProductoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoProductoDAO;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 
 /**
+ * El model solo llama a las reglas del DAO. Las reglas en sí se prueban en
+ * TipoProductoDAOTest.
  *
  * @author valen
  */
@@ -29,14 +27,11 @@ public class TipoProductoModelTest extends ModelTestBase {
     @Mock
     private TipoProductoDAO tipoProductoDAO;
 
-    @Mock
-    private ProductoTipoProductoDAO ptpDAO;
-
     @Test
-    void noInactivaSiUnProductoActivoLoUsa() {
-        TipoProducto tipo = tipo(false);
-        when(ptpDAO.findByTipoProducto(tipo)).thenReturn(List.of(asignacion(tipo, true)));
-        model.setRegistro(tipo);
+    void noInactivaSiElDaoDevuelveError() {
+        TipoProducto tipoProducto = tipoProducto(false);
+        when(tipoProductoDAO.validarInactivar(tipoProducto)).thenReturn("Hay 1 producto activo con este tipo.");
+        model.setRegistro(tipoProducto);
 
         model.btnModificarHandler();
 
@@ -45,21 +40,21 @@ public class TipoProductoModelTest extends ModelTestBase {
     }
 
     @Test
-    void inactivaSiSusProductosEstanInactivos() {
-        TipoProducto tipo = tipo(false);
-        when(ptpDAO.findByTipoProducto(tipo)).thenReturn(List.of(asignacion(tipo, false)));
-        model.setRegistro(tipo);
+    void modificaSiElDaoNoDevuelveError() {
+        TipoProducto tipoProducto = tipoProducto(false);
+        when(tipoProductoDAO.validarInactivar(tipoProducto)).thenReturn(null);
+        model.setRegistro(tipoProducto);
 
         model.btnModificarHandler();
 
-        verify(tipoProductoDAO).update(tipo);
+        verify(tipoProductoDAO).update(tipoProducto);
     }
 
     @Test
-    void noEliminaSiEstaAsignadoAUnProducto() {
-        TipoProducto tipo = tipo(true);
-        when(ptpDAO.findByTipoProducto(tipo)).thenReturn(List.of(asignacion(tipo, true)));
-        model.setRegistro(tipo);
+    void noEliminaSiElDaoDevuelveError() {
+        TipoProducto tipoProducto = tipoProducto(true);
+        when(tipoProductoDAO.validarEliminar(tipoProducto)).thenReturn("Hay productos que tienen asignado este tipo.");
+        model.setRegistro(tipoProducto);
 
         model.btnEliminarHandler();
 
@@ -67,20 +62,21 @@ public class TipoProductoModelTest extends ModelTestBase {
         assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
-    private TipoProducto tipo(boolean activo) {
-        TipoProducto t = new TipoProducto(UUID.randomUUID());
-        t.setNombre("Bebidas");
-        t.setActivo(activo);
-        return t;
+    @Test
+    void eliminaSiElDaoNoDevuelveError() {
+        TipoProducto tipoProducto = tipoProducto(true);
+        when(tipoProductoDAO.validarEliminar(tipoProducto)).thenReturn(null);
+        model.setRegistro(tipoProducto);
+
+        model.btnEliminarHandler();
+
+        verify(tipoProductoDAO).delete(tipoProducto);
     }
 
-    private ProductoTipoProducto asignacion(TipoProducto tipo, boolean productoActivo) {
-        Producto p = new Producto(UUID.randomUUID());
-        p.setActivo(productoActivo);
-        ProductoTipoProducto ptp = new ProductoTipoProducto(UUID.randomUUID());
-        ptp.setProducto(p);
-        ptp.setIdTipoProducto(tipo);
-        return ptp;
+    private TipoProducto tipoProducto(boolean activo) {
+        TipoProducto tipoProducto = new TipoProducto(UUID.randomUUID());
+        tipoProducto.setNombre("Bebidas");
+        tipoProducto.setActivo(activo);
+        return tipoProducto;
     }
-
 }

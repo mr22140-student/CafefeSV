@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
 
-public abstract class AbstractModel<T, ID> implements Serializable {
+public abstract class AbstractModel<Entidad, ID> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -15,17 +15,17 @@ public abstract class AbstractModel<T, ID> implements Serializable {
     public static final String ESTADO_CREAR = "CREAR";
     public static final String ESTADO_MODIFICAR = "MODIFICAR";
 
-    protected List<T> registros;
-    protected T registro;
-    protected T filaSeleccionada;
+    protected List<Entidad> registros;
+    protected Entidad registro;
+    protected Entidad filaSeleccionada;
     protected String estado = ESTADO_NINGUNO;
 
-    protected abstract GenericDAO<T, ID> getDAO();
+    protected abstract GenericDAO<Entidad, ID> getDAO();
 
-    protected abstract T crearNuevo();
+    protected abstract Entidad crearNuevo();
 
     public void iniciar() {
-        GenericDAO<T, ID> dao = getDAO();
+        GenericDAO<Entidad, ID> dao = getDAO();
         if (dao != null) {
             this.registros = dao.findRange(0, 1000);
         }
@@ -113,34 +113,51 @@ public abstract class AbstractModel<T, ID> implements Serializable {
         btnEliminarHandler();
     }
 
-    public void seleccionarRegistro(T entidad) {
+    public void seleccionarRegistro(Entidad entidad) {
         this.registro = entidad;
         if (this.registro != null) {
             this.estado = ESTADO_MODIFICAR;
         }
     }
 
-    public List<T> getRegistros() {
+    /**
+     * Revisa el resultado de una regla del DAO. Si trae un error, lo muestra
+     * con el título indicado.
+     *
+     * @param titulo título del aviso, por ejemplo "No se puede inactivar"
+     * @param error mensaje que devolvió el DAO, o null si la regla se cumple
+     * @return true si no hubo error y se puede continuar
+     */
+    protected boolean sinError(String titulo, String error) {
+        if (error == null) {
+            return true;
+        }
+        FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_WARN, titulo, error));
+        return false;
+    }
+
+    public List<Entidad> getRegistros() {
         return registros;
     }
 
-    public void setRegistros(List<T> registros) {
+    public void setRegistros(List<Entidad> registros) {
         this.registros = registros;
     }
 
-    public T getRegistro() {
+    public Entidad getRegistro() {
         return registro;
     }
 
-    public void setRegistro(T registro) {
+    public void setRegistro(Entidad registro) {
         this.registro = registro;
     }
 
-    public T getFilaSeleccionada() {
+    public Entidad getFilaSeleccionada() {
         return filaSeleccionada;
     }
 
-    public void setFilaSeleccionada(T filaSeleccionada) {
+    public void setFilaSeleccionada(Entidad filaSeleccionada) {
         this.filaSeleccionada = filaSeleccionada;
     }
 

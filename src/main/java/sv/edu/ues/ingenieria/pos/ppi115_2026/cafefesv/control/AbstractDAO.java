@@ -40,16 +40,16 @@ import java.util.logging.Logger;
  * genérico al usuario sin perder el detalle real del error en el log del
  * servidor.
  *
- * @param <T>  tipo de la entidad administrada
+ * @param <Entidad>  tipo de la entidad administrada
  * @param <ID> tipo de la clave primaria de la entidad
  */
-public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializable {
+public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID>, Serializable {
  
     private static final long serialVersionUID = 1L;
-    private final Class<T> entityClass;
+    private final Class<Entidad> entityClass;
     private final Logger logger = Logger.getLogger(getClass().getName());
  
-    protected AbstractDAO(Class<T> entityClass) {
+    protected AbstractDAO(Class<Entidad> entityClass) {
         this.entityClass = entityClass;
     }
  
@@ -60,7 +60,7 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
     protected abstract EntityManager getEntityManager();
  
     @Override
-    public void save(T entity) {
+    public void save(Entidad entity) {
         if (entity == null) {
             throw new IllegalArgumentException("La entidad a guardar no puede ser nula");
         }
@@ -73,7 +73,7 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
     }
  
     @Override
-    public T update(T entity) {
+    public Entidad update(Entidad entity) {
         if (entity == null) {
             throw new IllegalArgumentException("La entidad a actualizar no puede ser nula");
         }
@@ -86,7 +86,7 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
     }
  
     @Override
-    public void delete(T entity) {
+    public void delete(Entidad entity) {
         if (entity == null) {
             throw new IllegalArgumentException("La entidad a eliminar no puede ser nula");
         }
@@ -104,14 +104,14 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
-        T entity = findById(id);
+        Entidad entity = findById(id);
         if (entity != null) {
             delete(entity);
         }
     }
  
     @Override
-    public T findById(ID id) {
+    public Entidad findById(ID id) {
         if (id == null) {
             throw new IllegalArgumentException("El id no puede ser nulo");
         }
@@ -124,10 +124,10 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
     }
  
     @Override
-    public List<T> findAll() {
+    public List<Entidad> findAll() {
         try {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-            CriteriaQuery<T> cq = cb.createQuery(entityClass);
+            CriteriaQuery<Entidad> cq = cb.createQuery(entityClass);
             cq.select(cq.from(entityClass));
             return getEntityManager().createQuery(cq).getResultList();
         } catch (Exception e) {
@@ -137,15 +137,15 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
     }
  
     @Override
-    public List<T> findRange(int start, int end) {
+    public List<Entidad> findRange(int start, int end) {
         if (start < 0 || end < start) {
             throw new IllegalArgumentException("Rango inválido: start=" + start + ", end=" + end);
         }
         try {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-            CriteriaQuery<T> cq = cb.createQuery(entityClass);
+            CriteriaQuery<Entidad> cq = cb.createQuery(entityClass);
             cq.select(cq.from(entityClass));
-            TypedQuery<T> query = getEntityManager().createQuery(cq);
+            TypedQuery<Entidad> query = getEntityManager().createQuery(cq);
             query.setFirstResult(start);
             query.setMaxResults(end - start);
             return query.getResultList();
@@ -160,7 +160,7 @@ public abstract class AbstractDAO<T, ID> implements GenericDAO<T, ID>, Serializa
         try {
             CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
             CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-            Root<T> root = cq.from(entityClass);
+            Root<Entidad> root = cq.from(entityClass);
             cq.select(cb.count(root));
             return getEntityManager().createQuery(cq).getSingleResult();
         } catch (Exception e) {
