@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
+
 /**
  *
  * @author daniel
@@ -32,7 +34,41 @@ public class ProductoTipoProductoDAO extends AbstractDAO<ProductoTipoProducto, U
                 + "WHERE x.producto = :producto",
                 ProductoTipoProducto.class
         )
-        .setParameter("producto", producto)
-        .getResultList();
+                .setParameter("producto", producto)
+                .getResultList();
+    }
+
+    /**
+     * La asignación debe tener un tipo y ese tipo debe estar activo. El tipo se
+     * lee de la base para revisar su estado actual.
+     *
+     * @return el mensaje de error, o null si el tipo está bien
+     */
+    public String validarTipo(ProductoTipoProducto asignacion) {
+        if (asignacion == null || asignacion.getIdTipoProducto() == null
+                || asignacion.getIdTipoProducto().getIdTipoProducto() == null) {
+            return "Seleccione un tipo de producto.";
+        }
+        TipoProducto tipoEnLaBase = em.find(TipoProducto.class, asignacion.getIdTipoProducto().getIdTipoProducto());
+        if (tipoEnLaBase == null || !Boolean.TRUE.equals(tipoEnLaBase.getActivo())) {
+            return "El tipo \"" + asignacion.getIdTipoProducto().getNombre()
+                    + "\" está inactivo. Seleccione un tipo activo.";
+        }
+        return null;
+    }
+
+    /**
+     * Un producto no puede tener el mismo tipo asignado dos veces.
+     *
+     * @return el mensaje de error, o null si no está repetido
+     */
+    public String validarDuplicado(ProductoTipoProducto asignacion) {
+        if (asignacion == null || asignacion.getProducto() == null || asignacion.getIdTipoProducto() == null) {
+            return null;
+        }
+        boolean repetido = findByProducto(asignacion.getProducto()).stream()
+                .anyMatch(otraAsignacion -> !otraAsignacion.getIdProductoTipoProducto().equals(asignacion.getIdProductoTipoProducto())
+                        && asignacion.getIdTipoProducto().equals(otraAsignacion.getIdTipoProducto()));
+        return repetido ? "El producto ya tiene asignado ese tipo." : null;
     }
 }

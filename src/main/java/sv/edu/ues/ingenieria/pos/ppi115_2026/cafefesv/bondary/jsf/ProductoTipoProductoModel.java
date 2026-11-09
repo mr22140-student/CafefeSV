@@ -1,8 +1,6 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -27,7 +25,7 @@ public class ProductoTipoProductoModel extends AbstractModel<ProductoTipoProduct
     private static final long serialVersionUID = 1L;
 
     @Inject
-    private ProductoTipoProductoDAO ptpDAO;
+    private ProductoTipoProductoDAO productoTipoProductoDAO;
 
     @Inject
     private ProductoDAO productoDAO;
@@ -47,7 +45,7 @@ public class ProductoTipoProductoModel extends AbstractModel<ProductoTipoProduct
 
     @Override
     protected GenericDAO<ProductoTipoProducto, UUID> getDAO() {
-        return ptpDAO;
+        return productoTipoProductoDAO;
     }
 
     @Override
@@ -59,31 +57,22 @@ public class ProductoTipoProductoModel extends AbstractModel<ProductoTipoProduct
 
     @Override
     public void btnCrearHandler() {
-        if (!existeDuplicado()) {
+        if (asignacionValida()) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (!existeDuplicado()) {
+        if (asignacionValida()) {
             super.btnModificarHandler();
         }
     }
 
-    /** Evita asignar el mismo tipo dos veces al mismo producto. */
-    private boolean existeDuplicado() {
-        if (registro == null || registro.getProducto() == null || registro.getIdTipoProducto() == null) {
-            return false;
-        }
-        boolean duplicado = ptpDAO.findByProducto(registro.getProducto()).stream()
-                .anyMatch(x -> !x.getIdProductoTipoProducto().equals(registro.getIdProductoTipoProducto())
-                && registro.getIdTipoProducto().equals(x.getIdTipoProducto()));
-        if (duplicado) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                    "Registro duplicado", "El producto ya tiene asignado ese tipo de producto."));
-        }
-        return duplicado;
+      // Mismas reglas que la pestaña Tipos de Producto de Producto.
+    private boolean asignacionValida() {
+        return sinError("Tipo no válido", productoTipoProductoDAO.validarTipo(registro))
+                && sinError("Registro duplicado", productoTipoProductoDAO.validarDuplicado(registro));
     }
 
     public List<Producto> getListaProducto() {

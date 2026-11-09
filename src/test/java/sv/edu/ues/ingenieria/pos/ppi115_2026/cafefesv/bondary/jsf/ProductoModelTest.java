@@ -14,8 +14,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.*;
-import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.*;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.CaracteristicaDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.DescuentoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.DescuentoProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoCaracteristicaDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoTipoProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoCaracteristicaDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoDescuentoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoProductoDAO;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.DescuentoProducto;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoCaracteristica;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.ProductoTipoProducto;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
+import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 
 /**
  *
@@ -29,17 +45,17 @@ public class ProductoModelTest extends ModelTestBase {
     @Mock
     private ProductoDAO productoDAO;
     @Mock
-    private ProductoTipoProductoDAO ptpDAO;
+    private ProductoTipoProductoDAO productoTipoProductoDAO;
     @Mock
     private TipoProductoDAO tipoProductoDAO;
     @Mock
-    private ProductoCaracteristicaDAO pcDAO;
+    private ProductoCaracteristicaDAO productoCaracteristicaDAO;
     @Mock
     private TipoCaracteristicaDAO tipoCaracteristicaDAO;
     @Mock
     private CaracteristicaDAO caracteristicaDAO;
     @Mock
-    private DescuentoProductoDAO dpDAO;
+    private DescuentoProductoDAO descuentoProductoDAO;
     @Mock
     private TipoDescuentoDAO tipoDescuentoDAO;
     @Mock
@@ -57,14 +73,26 @@ public class ProductoModelTest extends ModelTestBase {
 
     // ===================== Generalidades =====================
     @Test
-    void noCreaProductoConPrecioCero() {
+    void noCreaElProductoSiElDaoRechazaElPrecio() {
         model.btnNuevoHandler();
         model.getRegistro().setNombre("Café");
         model.getRegistro().setPrecioSugerido(BigDecimal.ZERO);
+        when(productoDAO.validarPrecio(model.getRegistro())).thenReturn("El precio sugerido debe ser mayor que $0.00.");
 
         model.btnCrearHandler();
 
         verify(productoDAO, never()).save(any());
+        assertEquals("Precio inválido", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void noModificaElProductoSiElDaoRechazaElPrecio() {
+        model.seleccionarRegistro(producto);
+        when(productoDAO.validarPrecio(producto)).thenReturn("El precio sugerido debe ser mayor que $0.00.");
+
+        model.btnModificarHandler();
+
+        verify(productoDAO, never()).update(any());
         assertEquals("Precio inválido", ultimoMensaje().getSummary());
     }
 
@@ -83,119 +111,173 @@ public class ProductoModelTest extends ModelTestBase {
 
     // ===================== Tipos de producto =====================
     @Test
-    void noAsignaUnTipoInactivo() {
+    void noAsignaElTipoSiElDaoLoRechaza() {
         model.seleccionarRegistro(producto);
         model.nuevoTipo();
-        model.getRegistroTipo().setIdTipoProducto(tipoProducto(false));
+        model.getRegistroTipo().setIdTipoProducto(tipoProducto());
+        when(productoTipoProductoDAO.validarTipo(model.getRegistroTipo())).thenReturn("El tipo está inactivo.");
 
         model.guardarTipo();
 
-        verify(ptpDAO, never()).save(any());
-        assertEquals("Tipo inactivo", ultimoMensaje().getSummary());
+        verify(productoTipoProductoDAO, never()).save(any());
+        assertEquals("Tipo no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noAsignaElMismoTipoDosVeces() {
-        TipoProducto bebidas = tipoProducto(true);
-        ProductoTipoProducto existente = new ProductoTipoProducto(UUID.randomUUID());
-        existente.setProducto(producto);
-        existente.setIdTipoProducto(bebidas);
-        when(ptpDAO.findByProducto(producto)).thenReturn(List.of(existente));
-
+    void noAsignaElTipoSiElDaoLoEncuentraRepetido() {
         model.seleccionarRegistro(producto);
         model.nuevoTipo();
-        model.getRegistroTipo().setIdTipoProducto(bebidas);
+        model.getRegistroTipo().setIdTipoProducto(tipoProducto());
+        when(productoTipoProductoDAO.validarDuplicado(model.getRegistroTipo())).thenReturn("El producto ya tiene asignado ese tipo.");
+
         model.guardarTipo();
 
-        verify(ptpDAO, never()).save(any());
+        verify(productoTipoProductoDAO, never()).save(any());
         assertEquals("Registro duplicado", ultimoMensaje().getSummary());
     }
 
     @Test
-    void asignaUnTipoActivo() {
+    void asignaElTipoSiElDaoNoEncuentraErrores() {
         model.seleccionarRegistro(producto);
         model.nuevoTipo();
-        model.getRegistroTipo().setIdTipoProducto(tipoProducto(true));
+        model.getRegistroTipo().setIdTipoProducto(tipoProducto());
 
         model.guardarTipo();
 
-        verify(ptpDAO).save(any(ProductoTipoProducto.class));
+        verify(productoTipoProductoDAO).save(any(ProductoTipoProducto.class));
+    }
+
+    @Test
+    void elDialogoDeTiposSoloMuestraLosActivos() {
+        List<TipoProducto> tiposActivos = List.of(tipoProducto());
+        when(tipoProductoDAO.findByActivo(Boolean.TRUE)).thenReturn(tiposActivos);
+
+        model.abrirDialogoTipo();
+
+        assertEquals(tiposActivos, model.getListaTiposActivos());
     }
 
     // ===================== Características =====================
     @Test
-    void rechazaUnValorQueNoCumpleLaExpresionRegular() {
-        model.seleccionarRegistro(producto);
-        model.nuevaCaracteristica();
-        model.getRegistroCaracteristica().setIdCaracteristica(caracteristicaConExpresion("^\\d+(\\.\\d{1,2})?$"));
-        model.getRegistroCaracteristica().setValor("abc");
+    void noAsignaLaCaracteristicaSiElDaoLaRechaza() {
+        prepararCaracteristica("250");
+        when(productoCaracteristicaDAO.validarCaracteristica(model.getRegistroCaracteristica())).thenReturn("Está inactiva.");
 
         model.guardarCaracteristica();
 
-        verify(pcDAO, never()).save(any());
-        assertEquals("El valor no es válido", ultimoMensaje().getSummary());
+        verify(productoCaracteristicaDAO, never()).save(any());
+        assertEquals("Característica no válida", ultimoMensaje().getSummary());
     }
 
     @Test
-    void aceptaUnValorQueCumpleLaExpresionRegular() {
-        model.seleccionarRegistro(producto);
-        model.nuevaCaracteristica();
-        model.getRegistroCaracteristica().setIdCaracteristica(caracteristicaConExpresion("^\\d+(\\.\\d{1,2})?$"));
-        model.getRegistroCaracteristica().setValor("8.50");
+    void noAsignaLaCaracteristicaSiElDaoRechazaElValor() {
+        prepararCaracteristica("mucho");
+        when(productoCaracteristicaDAO.validarValor(model.getRegistroCaracteristica())).thenReturn("No cumple el formato.");
 
         model.guardarCaracteristica();
 
-        verify(pcDAO).save(any(ProductoCaracteristica.class));
+        verify(productoCaracteristicaDAO, never()).save(any());
+        assertEquals("Valor no válido", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void noAsignaLaCaracteristicaSiElDaoLaEncuentraRepetida() {
+        prepararCaracteristica("250");
+        when(productoCaracteristicaDAO.validarDuplicado(model.getRegistroCaracteristica())).thenReturn("El producto ya tiene esa característica.");
+
+        model.guardarCaracteristica();
+
+        verify(productoCaracteristicaDAO, never()).save(any());
+        assertEquals("Registro duplicado", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void asignaLaCaracteristicaSiElDaoNoEncuentraErrores() {
+        prepararCaracteristica("8.50");
+
+        model.guardarCaracteristica();
+
+        verify(productoCaracteristicaDAO).save(any(ProductoCaracteristica.class));
+    }
+
+    @Test
+    void elDialogoDeCaracteristicasPideAlDaoLosTiposYCaracteristicasActivas() {
+        Caracteristica onzas = caracteristica();
+        TipoCaracteristica volumen = onzas.getIdTipoCaracteristica();
+        when(tipoCaracteristicaDAO.findByActivo(Boolean.TRUE)).thenReturn(List.of(volumen));
+        when(caracteristicaDAO.buscarActivasPorTipo(volumen)).thenReturn(List.of(onzas));
+        model.seleccionarRegistro(producto);
+        model.nuevaCaracteristica();
+        model.getRegistroCaracteristica().setIdCaracteristica(onzas);
+
+        model.abrirDialogoCaracteristica();
+
+        assertEquals(List.of(volumen), model.getListaTiposCaracteristicaActivos());
+        assertEquals(List.of(onzas), model.getListaCaracteristicasDelTipo());
     }
 
     // ===================== Descuentos =====================
     @Test
-    void rechazaUnPorcentajeMayorAlMaximoDelTipo() {
-        prepararDescuento(descuento(30, enDias(-1), enDias(10)), 40, enDias(0), enDias(5));
+    void noAsignaElDescuentoSiElDaoLoRechaza() {
+        prepararDescuento(descuento(enDias(-1), enDias(10)), 10, enDias(0), enDias(5));
+        when(descuentoProductoDAO.validarDescuento(model.getRegistroDescuento())).thenReturn("El descuento terminó.");
 
         model.guardarDescuento();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("El valor no es válido", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Descuento no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void rechazaUnaFechaDeInicioAntesDeQueEmpieceElDescuento() {
-        prepararDescuento(descuento(30, enDias(2), enDias(10)), 10, enDias(1), enDias(5));
+    void noAsignaElDescuentoSiElDaoRechazaElPorcentaje() {
+        prepararDescuento(descuento(enDias(-1), enDias(10)), 40, enDias(0), enDias(5));
+        when(descuentoProductoDAO.validarValor(model.getRegistroDescuento())).thenReturn("Supera el máximo.");
 
         model.guardarDescuento();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("La fecha inicial no es válida", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Porcentaje no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void rechazaUnaFechaFinalPosteriorAlFinDelDescuento() {
-        prepararDescuento(descuento(30, enDias(-1), enDias(10)), 10, enDias(0), enDias(15));
+    void noAsignaElDescuentoSiElDaoRechazaLasFechas() {
+        prepararDescuento(descuento(enDias(2), enDias(10)), 10, enDias(1), enDias(5));
+        when(descuentoProductoDAO.validarFechas(model.getRegistroDescuento())).thenReturn("La fecha de inicio es anterior al descuento.");
 
         model.guardarDescuento();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("La fecha final no es válida", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Fechas no válidas", ultimoMensaje().getSummary());
     }
 
     @Test
-    void exigeFechaFinalSiElDescuentoTieneFin() {
-        prepararDescuento(descuento(30, enDias(-1), enDias(10)), 10, enDias(0), null);
+    void noAsignaElDescuentoSiElDaoLoEncuentraRepetido() {
+        prepararDescuento(descuento(enDias(-1), null), 10, enDias(0), null);
+        when(descuentoProductoDAO.validarDuplicado(model.getRegistroDescuento())).thenReturn("El producto ya tiene asignado ese descuento.");
 
         model.guardarDescuento();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("La fecha final no es válida", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Registro duplicado", ultimoMensaje().getSummary());
     }
 
     @Test
-    void aceptaUnDescuentoAbiertoSinFechaFinal() {
-        prepararDescuento(descuento(30, enDias(-1), null), 10, enDias(0), null);
+    void asignaElDescuentoSiElDaoNoEncuentraErrores() {
+        prepararDescuento(descuento(enDias(-1), null), 10, enDias(0), null);
 
         model.guardarDescuento();
 
-        verify(dpDAO).save(any(DescuentoProducto.class));
+        verify(descuentoProductoDAO).save(any(DescuentoProducto.class));
+    }
+
+    @Test
+    void elDialogoDeDescuentosSoloMuestraTiposActivos() {
+        TipoDescuento temporada = descuento(enDias(-1), null).getIdTipoDescuento();
+        when(tipoDescuentoDAO.findByActivo(Boolean.TRUE)).thenReturn(List.of(temporada));
+
+        model.abrirDialogoDescuento();
+
+        assertEquals(List.of(temporada), model.getListaTiposDescuentoActivos());
     }
 
     @Test
@@ -204,7 +286,7 @@ public class ProductoModelTest extends ModelTestBase {
         Date fin = enDias(10);
         model.seleccionarRegistro(producto);
         model.nuevoDescuento();
-        model.setDescuentoElegido(descuento(30, inicio, fin));
+        model.setDescuentoElegido(descuento(inicio, fin));
 
         model.confirmarDescuento();
 
@@ -213,49 +295,52 @@ public class ProductoModelTest extends ModelTestBase {
     }
 
     // ===================== Ayudantes =====================
-    private TipoProducto tipoProducto(boolean activo) {
-        TipoProducto t = new TipoProducto(UUID.randomUUID());
-        t.setNombre(activo ? "Bebidas" : "Postres");
-        t.setActivo(activo);
-        return t;
+    private TipoProducto tipoProducto() {
+        TipoProducto bebidas = new TipoProducto(UUID.randomUUID());
+        bebidas.setNombre("Bebidas");
+        bebidas.setActivo(true);
+        return bebidas;
     }
 
-    private Caracteristica caracteristicaConExpresion(String regex) {
-        TipoCaracteristica tipo = new TipoCaracteristica();
-        tipo.setIdTipoCaracteristica(UUID.randomUUID());
-        tipo.setNombre("Volumen");
-        tipo.setActivo(true);
-        tipo.setExpresionRegular(regex);
-
-        Caracteristica c = new Caracteristica();
-        c.setIdCaracteristica(UUID.randomUUID());
-        c.setNombre("Onzas");
-        c.setActivo(true);
-        c.setIdTipoCaracteristica(tipo);
-        return c;
+    private Caracteristica caracteristica() {
+        TipoCaracteristica volumen = new TipoCaracteristica(UUID.randomUUID());
+        volumen.setNombre("Volumen");
+        volumen.setActivo(true);
+        volumen.setExpresionRegular("^\\d+(\\.\\d{1,2})?$");
+        Caracteristica onzas = new Caracteristica(UUID.randomUUID());
+        onzas.setNombre("Onzas");
+        onzas.setActivo(true);
+        onzas.setIdTipoCaracteristica(volumen);
+        return onzas;
     }
 
-    private Descuento descuento(int maximo, Date desde, Date hasta) {
-        TipoDescuento tipo = new TipoDescuento(UUID.randomUUID());
-        tipo.setNombre("Temporada");
-        tipo.setActivo(true);
-        tipo.setDescuentoMaximo(maximo);
-
-        Descuento d = new Descuento(UUID.randomUUID());
-        d.setNombre("Navidad");
-        d.setIdTipoDescuento(tipo);
-        d.setFechaDesde(desde);
-        d.setFechaHasta(hasta);
-        return d;
+    private Descuento descuento(Date fechaDesde, Date fechaHasta) {
+        TipoDescuento temporada = new TipoDescuento(UUID.randomUUID());
+        temporada.setNombre("Temporada");
+        temporada.setActivo(true);
+        temporada.setDescuentoMaximo(30);
+        Descuento navidad = new Descuento(UUID.randomUUID());
+        navidad.setNombre("Navidad");
+        navidad.setIdTipoDescuento(temporada);
+        navidad.setFechaDesde(fechaDesde);
+        navidad.setFechaHasta(fechaHasta);
+        return navidad;
     }
 
-    private void prepararDescuento(Descuento d, Integer valor, Date desde, Date hasta) {
+    private void prepararCaracteristica(String valor) {
+        model.seleccionarRegistro(producto);
+        model.nuevaCaracteristica();
+        model.getRegistroCaracteristica().setIdCaracteristica(caracteristica());
+        model.getRegistroCaracteristica().setValor(valor);
+    }
+
+    private void prepararDescuento(Descuento descuento, Integer porcentaje, Date fechaDesde, Date fechaHasta) {
         model.seleccionarRegistro(producto);
         model.nuevoDescuento();
-        model.getRegistroDescuento().setIdDescuento(d);
-        model.getRegistroDescuento().setValor(valor);
-        model.getRegistroDescuento().setFechaDesde(desde);
-        model.getRegistroDescuento().setFechaHasta(hasta);
+        model.getRegistroDescuento().setIdDescuento(descuento);
+        model.getRegistroDescuento().setValor(porcentaje);
+        model.getRegistroDescuento().setFechaDesde(fechaDesde);
+        model.getRegistroDescuento().setFechaHasta(fechaHasta);
     }
 
 }

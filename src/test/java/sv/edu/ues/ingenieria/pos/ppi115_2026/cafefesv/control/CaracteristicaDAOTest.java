@@ -1,5 +1,6 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,7 +36,6 @@ class CaracteristicaDAOTest extends AbstractDAOTestBase<Caracteristica, Caracter
     }
 
     // ===================== countProductos =====================
-
     @Test
     void countProductos_devuelveLoQueCuentaLaBase() {
         simularConteo(3);
@@ -44,7 +44,6 @@ class CaracteristicaDAOTest extends AbstractDAOTestBase<Caracteristica, Caracter
     }
 
     // ===================== validarTipoActivo =====================
-
     @Test
     void validarTipoActivo_caracteristicaActivaConTipoInactivo_devuelveError() {
         TipoCaracteristica tipoInactivo = tipoCaracteristica(false);
@@ -68,7 +67,6 @@ class CaracteristicaDAOTest extends AbstractDAOTestBase<Caracteristica, Caracter
     }
 
     // ===================== validarEliminar =====================
-
     @Test
     void validarEliminar_usadaPorProductos_devuelveError() {
         simularConteo(1);
@@ -82,9 +80,19 @@ class CaracteristicaDAOTest extends AbstractDAOTestBase<Caracteristica, Caracter
 
         assertNull(dao.validarEliminar(caracteristica(true, tipoCaracteristica(true))));
     }
+    // ===================== buscarActivasPorTipo =====================
+
+    @Test
+    void buscarActivasPorTipo_soloDevuelveLasActivas() {
+        TipoCaracteristica volumen = tipoCaracteristica(true);
+        Caracteristica vasoGrande = caracteristica(true, volumen);
+        Caracteristica vasoMediano = caracteristica(false, volumen);
+        simularConsulta(Caracteristica.class, List.of(vasoGrande, vasoMediano));
+
+        assertEquals(List.of(vasoGrande), dao.buscarActivasPorTipo(volumen));
+    }
 
     // ===================== ayudantes =====================
-
     private TipoCaracteristica tipoCaracteristica(boolean activo) {
         TipoCaracteristica tipoCaracteristica = new TipoCaracteristica(UUID.randomUUID());
         tipoCaracteristica.setNombre(activo ? "Volumen" : "Colores");

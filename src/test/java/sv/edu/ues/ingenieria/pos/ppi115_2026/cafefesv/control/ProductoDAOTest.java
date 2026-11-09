@@ -1,6 +1,12 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -16,6 +22,31 @@ public class ProductoDAOTest extends AbstractDAOTestBase<Producto, ProductoDAO> 
     @Override
     protected Producto crearEntidad() {
         return new Producto();
+    }
+    // ===================== validarPrecio =====================
+
+    @Test
+    void validarPrecio_cero_devuelveError() {
+        assertNotNull(dao.validarPrecio(producto(BigDecimal.ZERO)));
+    }
+
+    @Test
+    void validarPrecio_negativo_devuelveError() {
+        assertNotNull(dao.validarPrecio(producto(new BigDecimal("-1.00"))));
+    }
+
+    @Test
+    void validarPrecio_mayorQueCero_devuelveNull() {
+        assertNull(dao.validarPrecio(producto(new BigDecimal("2.50"))));
+    }
+
+    // ===================== ayudantes =====================
+    private Producto producto(BigDecimal precioSugerido) {
+        Producto producto = new Producto(UUID.randomUUID());
+        producto.setNombre("Café latte");
+        producto.setActivo(true);
+        producto.setPrecioSugerido(precioSugerido);
+        return producto;
     }
 
 }

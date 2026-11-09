@@ -30,55 +30,68 @@ public class DescuentoProductoModelTest extends ModelTestBase {
     private DescuentoProductoModel model;
 
     @Mock
-    private DescuentoProductoDAO dpDAO;
+    private DescuentoProductoDAO descuentoProductoDAO;
     @Mock
     private DescuentoDAO descuentoDAO;
     @Mock
     private ProductoDAO productoDAO;
 
     @Test
-    void rechazaUnValorMayorAlMaximoDelTipo() {
-        model.setRegistro(registro(descuento(30, enDias(-1), enDias(10)), 40, enDias(0), enDias(5)));
+    void noGuardaSiElDaoRechazaElDescuento() {
+        DescuentoProducto asignacion = registro(descuento(30, enDias(-1), enDias(10)), 10, enDias(0), enDias(5));
+        when(descuentoProductoDAO.validarDescuento(asignacion)).thenReturn("El descuento terminó.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("Valor inválido", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Descuento no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void rechazaFechaHastaAnteriorAFechaDesde() {
-        model.setRegistro(registro(descuento(30, enDias(-1), null), 10, enDias(5), enDias(1)));
+    void noGuardaSiElDaoRechazaElPorcentaje() {
+        DescuentoProducto asignacion = registro(descuento(30, enDias(-1), enDias(10)), 40, enDias(0), enDias(5));
+        when(descuentoProductoDAO.validarValor(asignacion)).thenReturn("Supera el máximo.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(dpDAO, never()).save(any());
-        assertEquals("Fechas inválidas", ultimoMensaje().getSummary());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Porcentaje no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaElMismoDescuentoDosVeces() {
-        Descuento d = descuento(30, enDias(-1), null);
-        DescuentoProducto existente = registro(d, 5, enDias(0), null);
-        when(dpDAO.findByProducto(existente.getIdProducto())).thenReturn(List.of(existente));
-        DescuentoProducto nuevo = registro(d, 10, enDias(0), null);
-        nuevo.setIdProducto(existente.getIdProducto());
-        model.setRegistro(nuevo);
+    void noGuardaSiElDaoRechazaLasFechas() {
+        DescuentoProducto asignacion = registro(descuento(30, enDias(-1), null), 10, enDias(5), enDias(1));
+        when(descuentoProductoDAO.validarFechas(asignacion)).thenReturn("La fecha final es anterior a la inicial.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(dpDAO, never()).save(any());
+        verify(descuentoProductoDAO, never()).save(any());
+        assertEquals("Fechas no válidas", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void noGuardaSiElDaoEncuentraElDescuentoRepetido() {
+        DescuentoProducto asignacion = registro(descuento(30, enDias(-1), null), 10, enDias(0), null);
+        when(descuentoProductoDAO.validarDuplicado(asignacion)).thenReturn("El producto ya tiene asignado ese descuento.");
+        model.setRegistro(asignacion);
+
+        model.btnCrearHandler();
+
+        verify(descuentoProductoDAO, never()).save(any());
         assertEquals("Registro duplicado", ultimoMensaje().getSummary());
     }
 
     @Test
-    void guardaUnDescuentoValido() {
-        DescuentoProducto dp = registro(descuento(30, enDias(-1), null), 10, enDias(0), null);
-        model.setRegistro(dp);
+    void guardaSiElDaoNoEncuentraErrores() {
+        DescuentoProducto asignacion = registro(descuento(30, enDias(-1), null), 10, enDias(0), null);
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(dpDAO).save(dp);
+        verify(descuentoProductoDAO).save(asignacion);
     }
 
     @Test
@@ -104,26 +117,26 @@ public class DescuentoProductoModelTest extends ModelTestBase {
         assertEquals("Descuento vencido", ultimoMensaje().getSummary());
     }
 
-    private Descuento descuento(int maximo, Date desde, Date hasta) {
-        TipoDescuento tipo = new TipoDescuento(UUID.randomUUID());
-        tipo.setActivo(true);
-        tipo.setDescuentoMaximo(maximo);
-        Descuento d = new Descuento(UUID.randomUUID());
-        d.setNombre("Navidad");
-        d.setIdTipoDescuento(tipo);
-        d.setFechaDesde(desde);
-        d.setFechaHasta(hasta);
-        return d;
+    private Descuento descuento(int descuentoMaximo, Date fechaDesde, Date fechaHasta) {
+        TipoDescuento temporada = new TipoDescuento(UUID.randomUUID());
+        temporada.setActivo(true);
+        temporada.setDescuentoMaximo(descuentoMaximo);
+        Descuento navidad = new Descuento(UUID.randomUUID());
+        navidad.setNombre("Navidad");
+        navidad.setIdTipoDescuento(temporada);
+        navidad.setFechaDesde(fechaDesde);
+        navidad.setFechaHasta(fechaHasta);
+        return navidad;
     }
 
-    private DescuentoProducto registro(Descuento d, Integer valor, Date desde, Date hasta) {
-        DescuentoProducto dp = new DescuentoProducto(UUID.randomUUID());
-        dp.setIdProducto(new Producto(UUID.randomUUID()));
-        dp.setIdDescuento(d);
-        dp.setValor(valor);
-        dp.setFechaDesde(desde);
-        dp.setFechaHasta(hasta);
-        return dp;
+    private DescuentoProducto registro(Descuento descuento, Integer porcentaje, Date fechaDesde, Date fechaHasta) {
+        DescuentoProducto asignacion = new DescuentoProducto(UUID.randomUUID());
+        asignacion.setIdProducto(new Producto(UUID.randomUUID()));
+        asignacion.setIdDescuento(descuento);
+        asignacion.setValor(porcentaje);
+        asignacion.setFechaDesde(fechaDesde);
+        asignacion.setFechaHasta(fechaHasta);
+        return asignacion;
     }
 
 }

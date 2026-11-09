@@ -1,15 +1,11 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.faces.application.FacesMessage;
-import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.CaracteristicaDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
@@ -30,7 +26,7 @@ public class ProductoCaracteristicaModel extends AbstractModel<ProductoCaracteri
     private static final long serialVersionUID = 1L;
 
     @Inject
-    private ProductoCaracteristicaDAO pcDAO;
+    private ProductoCaracteristicaDAO productoCaracteristicaDAO;
 
     @Inject
     private ProductoDAO productoDAO;
@@ -50,7 +46,7 @@ public class ProductoCaracteristicaModel extends AbstractModel<ProductoCaracteri
 
     @Override
     protected GenericDAO<ProductoCaracteristica, UUID> getDAO() {
-        return pcDAO;
+        return productoCaracteristicaDAO;
     }
 
     @Override
@@ -60,64 +56,24 @@ public class ProductoCaracteristicaModel extends AbstractModel<ProductoCaracteri
 
     @Override
     public void btnCrearHandler() {
-        if (valorValido() && !existeDuplicado()) {
+        if (asignacionValida()) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (valorValido() && !existeDuplicado()) {
+        if (asignacionValida()) {
             super.btnModificarHandler();
         }
     }
 
-    /**
-     * Un producto no debe tener la misma caracteristica repetida.
-     */
-    private boolean existeDuplicado() {
-        if (registro == null || registro.getIdProducto() == null || registro.getIdCaracteristica() == null) {
-            return false;
-        }
-        boolean duplicado = pcDAO.findByProducto(registro.getIdProducto()).stream()
-                .anyMatch(x -> !x.getIdProductoCaracteristica().equals(registro.getIdProductoCaracteristica())
-                        && registro.getIdCaracteristica().equals(x.getIdCaracteristica()));
-        if (duplicado) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                    "Registro duplicado", "El producto ya tiene asignada esa característica."));
-        }
-        return duplicado;
+        // Mismas reglas que la pestaña Características de Producto.
+    private boolean asignacionValida() {
+        return sinError("Característica no válida", productoCaracteristicaDAO.validarCaracteristica(registro))
+                && sinError("Valor no válido", productoCaracteristicaDAO.validarValor(registro))
+                && sinError("Registro duplicado", productoCaracteristicaDAO.validarDuplicado(registro));
     }
-
-    /**
-     * El valor debe cumplir la expresión regular del tipo de la característica.
-     */
-    private boolean valorValido() {
-        if (registro == null || registro.getIdCaracteristica() == null) {
-            return true;
-        }
-        TipoCaracteristica tipo = registro.getIdCaracteristica().getIdTipoCaracteristica();
-        if (tipo == null || tipo.getExpresionRegular() == null || tipo.getExpresionRegular().isBlank()) {
-            return true;
-        }
-        String valor = registro.getValor() == null ? "" : registro.getValor().trim();
-        try {
-            if (!Pattern.matches(tipo.getExpresionRegular(), valor)) {
-                FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                        "El valor no es válido",
-                        "El valor no cumple la validación de " + tipo.getNombre() + ": " + tipo.getExpresionRegular()));
-                return false;
-            }
-            registro.setValor(valor);
-            return true;
-        } catch (PatternSyntaxException ex) {
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Expresión regular mal configurada",
-                    "Revise la expresión regular del tipo " + tipo.getNombre() + "."));
-            return false;
-        }
-    }
-
     /**
      * Texto de ayuda con el formato esperado, para mostrarlo junto al campo
      * Valor.

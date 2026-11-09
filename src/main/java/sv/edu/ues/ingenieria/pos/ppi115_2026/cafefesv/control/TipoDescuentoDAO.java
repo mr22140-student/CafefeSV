@@ -6,6 +6,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.UUID;
 import jakarta.persistence.TemporalType;
 import java.util.Date;
+import java.util.List;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 
 /**
@@ -81,6 +82,12 @@ public class TipoDescuentoDAO extends AbstractDAO<TipoDescuento, UUID> {
             return "Hay descuentos que usan este tipo. Modifícalos o márcalo como inactivo.";
         }
         return null;
+    }
+
+    public List<TipoDescuento> findByActivo(Boolean activo) {
+        return em.createNamedQuery("TipoDescuento.findByActivo", TipoDescuento.class)
+                .setParameter("activo", activo)
+                .getResultList();
     }
 
 }

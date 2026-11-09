@@ -28,7 +28,7 @@ public class DescuentoProductoModel extends AbstractModel<DescuentoProducto, UUI
     private static final long serialVersionUID = 1L;
 
     @Inject
-    private DescuentoProductoDAO dpDAO;
+    private DescuentoProductoDAO descuentoProductoDAO;
 
     @Inject
     private DescuentoDAO descuentoDAO;
@@ -48,7 +48,7 @@ public class DescuentoProductoModel extends AbstractModel<DescuentoProducto, UUI
 
     @Override
     protected GenericDAO<DescuentoProducto, UUID> getDAO() {
-        return dpDAO;
+        return descuentoProductoDAO;
     }
 
     @Override
@@ -100,52 +100,24 @@ public class DescuentoProductoModel extends AbstractModel<DescuentoProducto, UUI
 
     @Override
     public void btnCrearHandler() {
-        if (valido()) {
+        if (asignacionValida()) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (valido()) {
+        if (asignacionValida()) {
             super.btnModificarHandler();
         }
     }
 
-    private boolean valido() {
-        if (registro == null) {
-            return true;
-        }
-        FacesContext ctx = FacesContext.getCurrentInstance();
-
-        // 1. Fecha hasta no puede ser anterior a fecha desde
-        if (registro.getFechaDesde() != null && registro.getFechaHasta() != null
-                && registro.getFechaHasta().before(registro.getFechaDesde())) {
-            ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Fechas inválidas", "La fecha hasta no puede ser anterior a la fecha desde."));
-            return false;
-        }
-
-        // 2. El valor no puede superar el máximo del tipo de descuento
-        Integer maximo = getDescuentoMaximo();
-        if (maximo != null && registro.getValor() != null && registro.getValor() > maximo) {
-            ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                    "Valor inválido", "El valor no puede superar el máximo del tipo de descuento (" + maximo + " %)."));
-            return false;
-        }
-
-        // 3. Un producto no puede tener el mismo descuento dos veces
-        if (registro.getIdProducto() != null && registro.getIdDescuento() != null) {
-            boolean duplicado = dpDAO.findByProducto(registro.getIdProducto()).stream()
-                    .anyMatch(x -> !x.getIdDescuentoProducto().equals(registro.getIdDescuentoProducto())
-                            && registro.getIdDescuento().equals(x.getIdDescuento()));
-            if (duplicado) {
-                ctx.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
-                        "Registro duplicado", "El producto ya tiene asignado ese descuento."));
-                return false;
-            }
-        }
-        return true;
+        // Mismas reglas que la pestaña Descuentos de Producto.
+    private boolean asignacionValida() {
+        return sinError("Descuento no válido", descuentoProductoDAO.validarDescuento(registro))
+                && sinError("Porcentaje no válido", descuentoProductoDAO.validarValor(registro))
+                && sinError("Fechas no válidas", descuentoProductoDAO.validarFechas(registro))
+                && sinError("Registro duplicado", descuentoProductoDAO.validarDuplicado(registro));
     }
 
     public List<Descuento> getListaDescuento() {

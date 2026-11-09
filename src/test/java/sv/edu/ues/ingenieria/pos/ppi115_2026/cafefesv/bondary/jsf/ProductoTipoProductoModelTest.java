@@ -6,11 +6,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoTipoProductoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoProductoDAO;
@@ -24,11 +24,11 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
  */
 public class ProductoTipoProductoModelTest extends ModelTestBase {
 
-    @InjectMocks
+        @InjectMocks
     private ProductoTipoProductoModel model;
 
     @Mock
-    private ProductoTipoProductoDAO ptpDAO;
+    private ProductoTipoProductoDAO productoTipoProductoDAO;
     @Mock
     private ProductoDAO productoDAO;
     @Mock
@@ -39,38 +39,47 @@ public class ProductoTipoProductoModelTest extends ModelTestBase {
         model.btnNuevoHandler();
 
         assertEquals(AbstractModel.ESTADO_CREAR, model.getEstado());
-        org.junit.jupiter.api.Assertions.assertNotNull(model.getRegistro().getFechaCreacion());
+        assertNotNull(model.getRegistro().getFechaCreacion());
     }
 
     @Test
-    void noGuardaElMismoTipoDosVecesEnUnProducto() {
-        Producto producto = new Producto(UUID.randomUUID());
-        TipoProducto tipo = new TipoProducto(UUID.randomUUID());
-        when(ptpDAO.findByProducto(producto)).thenReturn(List.of(asignacion(producto, tipo)));
-        model.setRegistro(asignacion(producto, tipo));
+    void noGuardaSiElDaoRechazaElTipo() {
+        ProductoTipoProducto asignacion = asignacion();
+        when(productoTipoProductoDAO.validarTipo(asignacion)).thenReturn("El tipo está inactivo.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(ptpDAO, never()).save(any());
+        verify(productoTipoProductoDAO, never()).save(any());
+        assertEquals("Tipo no válido", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void noGuardaSiElDaoEncuentraElTipoRepetido() {
+        ProductoTipoProducto asignacion = asignacion();
+        when(productoTipoProductoDAO.validarDuplicado(asignacion)).thenReturn("El producto ya tiene asignado ese tipo.");
+        model.setRegistro(asignacion);
+
+        model.btnCrearHandler();
+
+        verify(productoTipoProductoDAO, never()).save(any());
         assertEquals("Registro duplicado", ultimoMensaje().getSummary());
     }
 
     @Test
-    void guardaSiElTipoNoEstaRepetido() {
-        Producto producto = new Producto(UUID.randomUUID());
-        ProductoTipoProducto nuevo = asignacion(producto, new TipoProducto(UUID.randomUUID()));
-        model.setRegistro(nuevo);
+    void guardaSiElDaoNoEncuentraErrores() {
+        ProductoTipoProducto asignacion = asignacion();
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(ptpDAO).save(nuevo);
+        verify(productoTipoProductoDAO).save(asignacion);
     }
 
-    private ProductoTipoProducto asignacion(Producto p, TipoProducto t) {
-        ProductoTipoProducto ptp = new ProductoTipoProducto(UUID.randomUUID());
-        ptp.setProducto(p);
-        ptp.setIdTipoProducto(t);
-        return ptp;
+    private ProductoTipoProducto asignacion() {
+        ProductoTipoProducto asignacion = new ProductoTipoProducto(UUID.randomUUID());
+        asignacion.setProducto(new Producto(UUID.randomUUID()));
+        asignacion.setIdTipoProducto(new TipoProducto(UUID.randomUUID()));
+        return asignacion;
     }
-
 }

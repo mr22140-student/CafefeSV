@@ -6,6 +6,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 
@@ -82,5 +83,15 @@ public class CaracteristicaDAO extends AbstractDAO<Caracteristica, UUID> {
             return "Hay productos que tienen esta característica. Quítesela primero.";
         }
         return null;
+    }
+
+    /**
+     * Características ACTIVAS de un tipo. Llena el segundo combo del diálogo de
+     * características de Producto.
+     */
+    public List<Caracteristica> buscarActivasPorTipo(TipoCaracteristica tipoCaracteristica) {
+        return findByTipoCaracteristica(tipoCaracteristica).stream()
+                .filter(caracteristica -> Boolean.TRUE.equals(caracteristica.getActivo()))
+                .collect(Collectors.toList());
     }
 }

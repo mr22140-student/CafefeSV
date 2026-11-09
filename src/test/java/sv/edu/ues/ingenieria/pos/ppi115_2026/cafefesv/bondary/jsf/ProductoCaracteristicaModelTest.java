@@ -6,7 +6,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -25,78 +24,84 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
  */
 public class ProductoCaracteristicaModelTest extends ModelTestBase {
 
-    private static final String DECIMAL = "^\\d+(\\.\\d{1,2})?$";
+    private static final String SOLO_NUMEROS = "^\\d+(\\.\\d{1,2})?$";
 
     @InjectMocks
     private ProductoCaracteristicaModel model;
 
     @Mock
-    private ProductoCaracteristicaDAO pcDAO;
+    private ProductoCaracteristicaDAO productoCaracteristicaDAO;
     @Mock
     private ProductoDAO productoDAO;
     @Mock
     private CaracteristicaDAO caracteristicaDAO;
 
     @Test
-    void rechazaUnValorQueNoCumpleLaExpresion() {
-        model.setRegistro(registro(new Producto(UUID.randomUUID()), caracteristica(DECIMAL), "abc"));
+    void noGuardaSiElDaoRechazaLaCaracteristica() {
+        ProductoCaracteristica asignacion = asignacion("250");
+        when(productoCaracteristicaDAO.validarCaracteristica(asignacion)).thenReturn("Está inactiva.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(pcDAO, never()).save(any());
-        assertEquals("El valor no es válido", ultimoMensaje().getSummary());
+        verify(productoCaracteristicaDAO, never()).save(any());
+        assertEquals("Característica no válida", ultimoMensaje().getSummary());
     }
 
     @Test
-    void guardaUnValorQueCumpleLaExpresion() {
-        ProductoCaracteristica pc = registro(new Producto(UUID.randomUUID()), caracteristica(DECIMAL), "8.50");
-        model.setRegistro(pc);
+    void noGuardaSiElDaoRechazaElValor() {
+        ProductoCaracteristica asignacion = asignacion("mucho");
+        when(productoCaracteristicaDAO.validarValor(asignacion)).thenReturn("No cumple el formato.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(pcDAO).save(pc);
+        verify(productoCaracteristicaDAO, never()).save(any());
+        assertEquals("Valor no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaLaMismaCaracteristicaDosVeces() {
-        Producto producto = new Producto(UUID.randomUUID());
-        Caracteristica c = caracteristica(DECIMAL);
-        when(pcDAO.findByProducto(producto)).thenReturn(List.of(registro(producto, c, "1")));
-        model.setRegistro(registro(producto, c, "2"));
+    void noGuardaSiElDaoEncuentraLaCaracteristicaRepetida() {
+        ProductoCaracteristica asignacion = asignacion("250");
+        when(productoCaracteristicaDAO.validarDuplicado(asignacion)).thenReturn("El producto ya tiene esa característica.");
+        model.setRegistro(asignacion);
 
         model.btnCrearHandler();
 
-        verify(pcDAO, never()).save(any());
+        verify(productoCaracteristicaDAO, never()).save(any());
         assertEquals("Registro duplicado", ultimoMensaje().getSummary());
     }
 
     @Test
+    void guardaSiElDaoNoEncuentraErrores() {
+        ProductoCaracteristica asignacion = asignacion("8.50");
+        model.setRegistro(asignacion);
+
+        model.btnCrearHandler();
+
+        verify(productoCaracteristicaDAO).save(asignacion);
+    }
+
+    @Test
     void muestraElFormatoEsperado() {
-        model.setRegistro(registro(new Producto(UUID.randomUUID()), caracteristica(DECIMAL), null));
+        model.setRegistro(asignacion(null));
 
-        assertEquals("Formato: " + DECIMAL, model.getFormatoValor());
+        assertEquals("Formato: " + SOLO_NUMEROS, model.getFormatoValor());
     }
 
-    private Caracteristica caracteristica(String regex) {
-        TipoCaracteristica tipo = new TipoCaracteristica();
-        tipo.setIdTipoCaracteristica(UUID.randomUUID());
-        tipo.setNombre("Volumen");
-        tipo.setActivo(true);
-        tipo.setExpresionRegular(regex);
-        Caracteristica c = new Caracteristica();
-        c.setIdCaracteristica(UUID.randomUUID());
-        c.setNombre("Onzas");
-        c.setActivo(true);
-        c.setIdTipoCaracteristica(tipo);
-        return c;
+    private ProductoCaracteristica asignacion(String valor) {
+        TipoCaracteristica volumen = new TipoCaracteristica(UUID.randomUUID());
+        volumen.setNombre("Volumen");
+        volumen.setActivo(true);
+        volumen.setExpresionRegular(SOLO_NUMEROS);
+        Caracteristica onzas = new Caracteristica(UUID.randomUUID());
+        onzas.setNombre("Onzas");
+        onzas.setActivo(true);
+        onzas.setIdTipoCaracteristica(volumen);
+        ProductoCaracteristica asignacion = new ProductoCaracteristica(UUID.randomUUID());
+        asignacion.setIdProducto(new Producto(UUID.randomUUID()));
+        asignacion.setIdCaracteristica(onzas);
+        asignacion.setValor(valor);
+        return asignacion;
     }
-
-    private ProductoCaracteristica registro(Producto p, Caracteristica c, String valor) {
-        ProductoCaracteristica pc = new ProductoCaracteristica(UUID.randomUUID());
-        pc.setIdProducto(p);
-        pc.setIdCaracteristica(c);
-        pc.setValor(valor);
-        return pc;
-    }
-
 }
