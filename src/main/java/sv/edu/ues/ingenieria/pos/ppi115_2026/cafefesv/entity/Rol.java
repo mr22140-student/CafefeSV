@@ -4,12 +4,12 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
@@ -89,6 +89,7 @@ public class Rol implements Serializable {
         this.observaciones = observaciones;
     }
 
+    @JsonbTransient
     public List<EmpleadoRol> getEmpleadoRolList() {
         return empleadoRolList;
     }

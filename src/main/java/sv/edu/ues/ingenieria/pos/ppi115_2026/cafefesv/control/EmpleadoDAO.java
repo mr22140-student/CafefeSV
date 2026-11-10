@@ -60,4 +60,21 @@ public class EmpleadoDAO extends AbstractDAO<Empleado, UUID> {
         }
         return null;
     }
+    
+        /**
+     * Elimina el empleado junto con sus asignaciones de rol (empleado_rol no
+     * tiene FK hacia empleado, así que hay que borrarlas a mano). Antes se
+     * debe llamar a validarEliminar.
+     */
+    public void eliminarConRoles(Empleado empleado) {
+        if (empleado == null) {
+            throw new IllegalArgumentException("El empleado no puede ser nulo");
+        }
+        em.createQuery("DELETE FROM EmpleadoRol x WHERE x.idEmpleado = :idEmpleado")
+                .setParameter("idEmpleado", empleado.getIdEmpleado())
+                .executeUpdate();
+        delete(empleado);
+    }
 }
+
+

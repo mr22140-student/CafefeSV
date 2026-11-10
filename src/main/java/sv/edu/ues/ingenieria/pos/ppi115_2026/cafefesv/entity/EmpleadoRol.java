@@ -4,13 +4,13 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
@@ -102,6 +102,7 @@ public class EmpleadoRol implements Serializable {
         this.idRol = idRol;
     }
 
+    @JsonbTransient
     public List<Factura> getFacturaList() {
         return facturaList;
     }
@@ -110,6 +111,7 @@ public class EmpleadoRol implements Serializable {
         this.facturaList = facturaList;
     }
 
+    @JsonbTransient
     public List<Orden> getOrdenList() {
         return ordenList;
     }

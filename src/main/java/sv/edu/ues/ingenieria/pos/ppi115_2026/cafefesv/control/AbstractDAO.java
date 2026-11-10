@@ -121,6 +121,25 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalStateException("Error al buscar el registro por id", e);
         }
     }
+    
+        /**
+     * Busca una entidad de CUALQUIER tipo por su id. La usan los recursos
+     * REST para cambiar una relación que llega solo con su id por la entidad
+     * real de la base.
+     *
+     * @return la entidad, o null si no existe
+     */
+    public <R> R buscarReferencia(Class<R> tipo, Object id) {
+        if (tipo == null || id == null) {
+            throw new IllegalArgumentException("El tipo y el id no pueden ser nulos");
+        }
+        try {
+            return getEntityManager().find(tipo, id);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error al buscar la referencia", e);
+            throw new IllegalStateException("Error al buscar la referencia", e);
+        }
+    }
 
     @Override
     public List<Entidad> findAll() {
