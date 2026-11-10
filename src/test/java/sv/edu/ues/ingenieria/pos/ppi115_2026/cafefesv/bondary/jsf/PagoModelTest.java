@@ -1,13 +1,12 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,44 +21,36 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Pago;
  * @author valen
  */
 public class PagoModelTest extends ModelTestBase {
+
     @InjectMocks
     private PagoModel model;
 
-    @Mock private PagoDAO pagoDAO;
-    @Mock private FacturaDAO facturaDAO;
+    @Mock
+    private PagoDAO pagoDAO;
+    @Mock
+    private FacturaDAO facturaDAO;
 
     @Test
     void nuevoPago_empiezaPendiente() {
         model.btnNuevoHandler();
 
-        assertEquals(PagoModel.PENDIENTE, model.getRegistro().getEstado());
+        assertEquals(PagoDAO.PENDIENTE, model.getRegistro().getEstado());
     }
 
     @Test
-    void noGuardaSinFactura() {
+    void noGuardaSiElDaoRechazaElPago() {
         model.btnNuevoHandler();
+        Pago pago = model.getRegistro();
+        when(pagoDAO.validarPago(pago)).thenReturn("Debe seleccionar la factura.");
 
         model.btnCrearHandler();
 
         verify(pagoDAO, never()).save(any());
-        assertEquals("Debe seleccionar la factura.", ultimoMensaje().getSummary());
+        assertEquals("Pago no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaSiLaFacturaYaTieneUnPagoActivo() {
-        when(pagoDAO.existePagoActivo(any(), any())).thenReturn(true);
-        model.btnNuevoHandler();
-        model.getRegistro().setIdFactura(factura());
-
-        model.btnCrearHandler();
-
-        verify(pagoDAO, never()).save(any());
-        assertEquals("Esa factura ya tiene un pago registrado que no está anulado.", ultimoMensaje().getSummary());
-    }
-
-    @Test
-    void guardaUnPagoValido() {
-        when(pagoDAO.existePagoActivo(any(), any())).thenReturn(false);
+    void guardaSiElDaoNoEncuentraErrores() {
         model.btnNuevoHandler();
         Pago pago = model.getRegistro();
         pago.setIdFactura(factura());
@@ -70,67 +61,88 @@ public class PagoModelTest extends ModelTestBase {
     }
 
     @Test
-    void noModificaUnPagoAnulado() {
-        model.seleccionarRegistro(pago(PagoModel.ANULADO, factura()));
+    void noModificaSiElDaoRechazaElCambioDeEstado() {
+        Pago anulado = pago(PagoDAO.ANULADO, factura());
+        when(pagoDAO.validarCambioDeEstado(PagoDAO.ANULADO, PagoDAO.ANULADO)).thenReturn("No se puede modificar un pago ANULADO.");
+        model.seleccionarRegistro(anulado);
 
         model.btnModificarHandler();
 
         verify(pagoDAO, never()).update(any());
-        assertEquals("No se puede modificar un pago ANULADO.", ultimoMensaje().getSummary());
+        assertEquals("No se puede modificar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noCompletaSiNoSeHaPagadoElTotal() {
-        Pago p = pago(PagoModel.PENDIENTE, factura());
-        model.seleccionarRegistro(p);
-        p.setEstado(PagoModel.COMPLETADO);
-        when(pagoDAO.totalFactura(p.getIdFactura())).thenReturn(new BigDecimal("10.00"));
-        when(pagoDAO.sumaMontos(p)).thenReturn(new BigDecimal("5.00"));
+    void noCompletaSiElDaoDiceQueNoSeCubreElTotal() {
+        Pago pago = pago(PagoDAO.PENDIENTE, factura());
+        model.seleccionarRegistro(pago);
+        pago.setEstado(PagoDAO.COMPLETADO);
+        when(pagoDAO.validarCompletar(pago, PagoDAO.PENDIENTE)).thenReturn("No se puede completar: se han pagado $5.00 de $10.00.");
 
         model.btnModificarHandler();
 
         verify(pagoDAO, never()).update(any());
-        assertTrue(ultimoMensaje().getSummary().startsWith("No se puede completar"));
+        assertEquals("No se puede completar", ultimoMensaje().getSummary());
     }
 
     @Test
-    void alCompletarElPago_laFacturaQuedaPagada() {
-        Factura f = factura();
-        Pago p = pago(PagoModel.PENDIENTE, f);
-        model.seleccionarRegistro(p);
-        p.setEstado(PagoModel.COMPLETADO);
-        when(pagoDAO.totalFactura(f)).thenReturn(new BigDecimal("10.00"));
-        when(pagoDAO.sumaMontos(p)).thenReturn(new BigDecimal("10.00"));
+    void alCompletarElPago_guardaLaFacturaConElEstadoQueCalculaElDao() {
+        Factura factura = factura();
+        Pago pago = pago(PagoDAO.PENDIENTE, factura);
+        model.seleccionarRegistro(pago);
+        pago.setEstado(PagoDAO.COMPLETADO);
+        when(pagoDAO.calcularEstadoFactura(PagoDAO.PENDIENTE, PagoDAO.COMPLETADO)).thenReturn(FacturaDAO.PAGADA);
 
         model.btnModificarHandler();
 
-        verify(pagoDAO).update(p);
-        verify(facturaDAO).update(f);
-        assertEquals(FacturaModel.PAGADA, f.getEstado());
+        verify(pagoDAO).update(pago);
+        verify(facturaDAO).update(factura);
+        assertEquals(FacturaDAO.PAGADA, factura.getEstado());
     }
 
     @Test
-    void noEliminaUnPagoConMontosRegistrados() {
-        Pago p = pago(PagoModel.PENDIENTE, factura());
-        when(pagoDAO.countDetalles(p)).thenReturn(2L);
-        model.seleccionarRegistro(p);
+    void siElDaoDiceQueLaFacturaNoCambia_noLaActualiza() {
+        Pago pago = pago(PagoDAO.PENDIENTE, factura());
+        model.seleccionarRegistro(pago);
+
+        model.btnModificarHandler();
+
+        verify(pagoDAO).update(pago);
+        verify(facturaDAO, never()).update(any());
+    }
+
+    @Test
+    void noEliminaSiElDaoLoRechaza() {
+        Pago pago = pago(PagoDAO.PENDIENTE, factura());
+        when(pagoDAO.validarEliminar(pago, PagoDAO.PENDIENTE)).thenReturn("El pago tiene montos registrados.");
+        model.seleccionarRegistro(pago);
 
         model.btnEliminarHandler();
 
         verify(pagoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void alIniciar_lasFacturasPendientesLasTraeElDao() {
+        Factura pendiente = factura();
+        when(facturaDAO.buscarPendientes()).thenReturn(List.of(pendiente));
+
+        model.init();
+
+        assertEquals(List.of(pendiente), model.getListaFacturaPendiente());
     }
 
     private Factura factura() {
-        Factura f = new Factura(UUID.randomUUID());
-        f.setEstado(FacturaModel.PENDIENTE);
-        return f;
+        Factura factura = new Factura(UUID.randomUUID());
+        factura.setEstado(FacturaDAO.PENDIENTE);
+        return factura;
     }
 
-    private Pago pago(String estado, Factura f) {
-        Pago p = new Pago(UUID.randomUUID());
-        p.setEstado(estado);
-        p.setIdFactura(f);
-        return p;
+    private Pago pago(String estado, Factura factura) {
+        Pago pago = new Pago(UUID.randomUUID());
+        pago.setEstado(estado);
+        pago.setIdFactura(factura);
+        return pago;
     }
-    
 }

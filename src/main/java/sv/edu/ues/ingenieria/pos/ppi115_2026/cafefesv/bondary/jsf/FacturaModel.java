@@ -1,7 +1,6 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.faces.application.FacesMessage;
 import jakarta.faces.component.UIComponent;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.convert.Converter;
@@ -10,7 +9,6 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,11 +30,6 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Factura;
 public class FacturaModel extends AbstractModel<Factura, UUID> {
 
     private static final long serialVersionUID = 1L;
-
-    public static final String PENDIENTE = "PENDIENTE";
-    public static final String PAGADA = "PAGADA";
-    public static final String ANULADA = "ANULADA";
-    public static final List<String> ESTADOS = Arrays.asList(PENDIENTE, PAGADA, ANULADA);
 
     private static final String CLIENTE_DEFECTO = "Consumidor final";
     private static final int MAX_SUGERENCIAS = 10;
@@ -62,24 +55,17 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
 
     @PostConstruct
     public void init() {
-        List<Caja> cajas = cajaDAO.findRange(0, 1000);
-        if (cajas != null) {
-            for (Caja c : cajas) {
-                if (Boolean.TRUE.equals(c.getActivo())) {
-                    listaCaja.add(c);
-                }
+        listaCaja = new ArrayList<>(cajaDAO.findByActivo(Boolean.TRUE));
+        List<Empleado> todosLosEmpleados = empleadoDAO.findRange(0, 1000);
+        if (todosLosEmpleados != null) {
+            for (Empleado empleado : todosLosEmpleados) {
+                empleados.put(empleado.getIdEmpleado(), empleado);
             }
         }
-        List<Empleado> emps = empleadoDAO.findRange(0, 1000);
-        if (emps != null) {
-            for (Empleado e : emps) {
-                empleados.put(e.getIdEmpleado(), e);
-            }
-        }
-        List<EmpleadoRol> ers = empleadoRolDAO.findRange(0, 1000);
-        if (ers != null) {
-            for (EmpleadoRol er : ers) {
-                empleadosRol.put(er.getIdEmpleadoRol(), er);
+        List<EmpleadoRol> todasLasAsignaciones = empleadoRolDAO.findRange(0, 1000);
+        if (todasLasAsignaciones != null) {
+            for (EmpleadoRol asignacion : todasLasAsignaciones) {
+                empleadosRol.put(asignacion.getIdEmpleadoRol(), asignacion);
             }
         }
         iniciar();
@@ -105,7 +91,7 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
     protected Factura crearNuevo() {
         Factura nueva = new Factura(UUID.randomUUID());
         nueva.setFechaFacturacion(new Date());
-        nueva.setEstado(PENDIENTE);
+        nueva.setEstado(FacturaDAO.PENDIENTE);
         nueva.setCliente(CLIENTE_DEFECTO);
         estadoOriginal = null;
         return nueva;
@@ -126,33 +112,32 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
     @Override
     public void btnCrearHandler() {
         if (registro != null) {
-            registro.setEstado(PENDIENTE); // toda factura nueva inicia pendiente
+            registro.setEstado(FacturaDAO.PENDIENTE); // toda factura nueva inicia pendiente
+            completarDatosPorDefecto();
         }
-        if (esValida()) {
+        if (sinError("Factura no válida", facturaDAO.validarFactura(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (ANULADA.equals(estadoOriginal)) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede modificar una factura ANULADA.");
+        if (!sinError("No se puede modificar", facturaDAO.validarModificable(estadoOriginal))) {
             return;
         }
-        if (esValida()) {
+        if (registro != null) {
+            completarDatosPorDefecto();
+        }
+        if (sinError("Factura no válida", facturaDAO.validarFactura(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null
-                && (facturaDAO.countProductos(registro) > 0 || facturaDAO.countPagos(registro) > 0)) {
-            mensaje(FacesMessage.SEVERITY_WARN,
-                    "No se puede eliminar: la factura tiene productos o pagos. Puede cambiar su estado a ANULADA.");
-            return;
+        if (sinError("No se puede eliminar", facturaDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
     @Override
@@ -161,70 +146,54 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
         estadoOriginal = null;
     }
 
-    private boolean esValida() {
-        if (registro == null) {
-            return true; // AbstractModel muestra su propio mensaje
-        }
-        if (registro.getIdCaja() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar la caja.");
-            return false;
-        }
-        if (registro.getIdEmpleadoRol() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el cajero.");
-            return false;
-        }
+    /**
+     * Arregla lo que el usuario dejó vacío en el formulario: sin cliente se
+     * guarda como "Consumidor final" y sin fecha se usa la fecha actual.
+     */
+    private void completarDatosPorDefecto() {
         String cliente = (registro.getCliente() != null) ? registro.getCliente().trim() : "";
         registro.setCliente(cliente.isEmpty() ? CLIENTE_DEFECTO : cliente);
-        if (registro.getCliente().length() > 155) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El nombre del cliente no puede superar 155 caracteres.");
-            return false;
-        }
-        if (!ESTADOS.contains(registro.getEstado())) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El estado no es válido.");
-            return false;
-        }
         if (registro.getFechaFacturacion() == null) {
             registro.setFechaFacturacion(new Date());
         }
-        return true;
     }
 
     // ================= AutoComplete del cajero (igual que en Orden) =================
 
     public List<EmpleadoRol> completarEmpleadoRol(String consulta) {
-        String[] palabras = normalizar(consulta).split("\\s+");
+        String[] palabrasBuscadas = normalizar(consulta).split("\\s+");
         List<EmpleadoRol> resultado = new ArrayList<>();
-        for (EmpleadoRol er : empleadosRol.values()) {
-            if (!estaDisponible(er)) {
+        for (EmpleadoRol asignacion : empleadosRol.values()) {
+            if (!estaDisponible(asignacion)) {
                 continue;
             }
-            String texto = normalizar(obtenerTextoEmpleadoRol(er));
+            String textoAsignacion = normalizar(obtenerTextoEmpleadoRol(asignacion));
             boolean coincide = true;
-            for (String p : palabras) {
-                if (!texto.contains(p)) {
+            for (String palabra : palabrasBuscadas) {
+                if (!textoAsignacion.contains(palabra)) {
                     coincide = false;
                     break;
                 }
             }
             if (coincide) {
-                resultado.add(er);
+                resultado.add(asignacion);
             }
         }
-        resultado.sort((a, b) -> obtenerTextoEmpleadoRol(a).compareToIgnoreCase(obtenerTextoEmpleadoRol(b)));
+        resultado.sort((primera, segunda) -> obtenerTextoEmpleadoRol(primera).compareToIgnoreCase(obtenerTextoEmpleadoRol(segunda)));
         return resultado.size() > MAX_SUGERENCIAS ? resultado.subList(0, MAX_SUGERENCIAS) : resultado;
     }
 
     /** "Nombre Apellido (Rol)". */
-    public String obtenerTextoEmpleadoRol(EmpleadoRol er) {
-        if (er == null) {
+    public String obtenerTextoEmpleadoRol(EmpleadoRol asignacion) {
+        if (asignacion == null) {
             return "";
         }
-        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
-        String nombre = (e != null)
-                ? (texto(e.getNombre()) + " " + texto(e.getApellido())).trim()
+        Empleado empleado = (asignacion.getIdEmpleado() != null) ? empleados.get(asignacion.getIdEmpleado()) : null;
+        String nombre = (empleado != null)
+                ? (texto(empleado.getNombre()) + " " + texto(empleado.getApellido())).trim()
                 : "Empleado no encontrado";
-        String rol = (er.getIdRol() != null && er.getIdRol().getNombre() != null)
-                ? er.getIdRol().getNombre()
+        String rol = (asignacion.getIdRol() != null && asignacion.getIdRol().getNombre() != null)
+                ? asignacion.getIdRol().getNombre()
                 : "Sin rol";
         return nombre + " (" + rol + ")";
     }
@@ -232,7 +201,7 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
     public Converter<EmpleadoRol> getEmpleadoRolConverter() {
         return new Converter<EmpleadoRol>() {
             @Override
-            public EmpleadoRol getAsObject(FacesContext ctx, UIComponent comp, String valor) {
+            public EmpleadoRol getAsObject(FacesContext contexto, UIComponent componente, String valor) {
                 if (valor == null || valor.isBlank()) {
                     return null;
                 }
@@ -244,8 +213,8 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
             }
 
             @Override
-            public String getAsString(FacesContext ctx, UIComponent comp, EmpleadoRol er) {
-                return (er == null || er.getIdEmpleadoRol() == null) ? "" : er.getIdEmpleadoRol().toString();
+            public String getAsString(FacesContext contexto, UIComponent componente, EmpleadoRol asignacion) {
+                return (asignacion == null || asignacion.getIdEmpleadoRol() == null) ? "" : asignacion.getIdEmpleadoRol().toString();
             }
         };
     }
@@ -253,39 +222,37 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
     // ================= Utilidades =================
 
     /** Color de la etiqueta del estado en la tabla. */
-    public String severidadEstado(String estado) {
-        if (PAGADA.equals(estado)) {
+    public String severidadEstado(String estadoFactura) {
+        if (FacturaDAO.PAGADA.equals(estadoFactura)) {
             return "success";
         }
-        if (ANULADA.equals(estado)) {
+        if (FacturaDAO.ANULADA.equals(estadoFactura)) {
             return "danger";
         }
         return "warning";
     }
 
-    private boolean estaDisponible(EmpleadoRol er) {
-        Empleado e = (er.getIdEmpleado() != null) ? empleados.get(er.getIdEmpleado()) : null;
-        return Boolean.TRUE.equals(er.getActivo())
-                && e != null
-                && Boolean.TRUE.equals(e.getActivo());
+    // En el buscador solo salen asignaciones activas de empleados activos.
+    private boolean estaDisponible(EmpleadoRol asignacion) {
+        Empleado empleado = (asignacion.getIdEmpleado() != null) ? empleados.get(asignacion.getIdEmpleado()) : null;
+        return Boolean.TRUE.equals(asignacion.getActivo())
+                && empleado != null
+                && Boolean.TRUE.equals(empleado.getActivo());
     }
 
-    private static String texto(String s) {
-        return s != null ? s : "";
+    private static String texto(String valor) {
+        return valor != null ? valor : "";
     }
 
-    private static String normalizar(String s) {
-        if (s == null) {
+    // Para el buscador: sin tildes, en minúsculas y sin espacios de los extremos.
+    private static String normalizar(String valor) {
+        if (valor == null) {
             return "";
         }
-        return Normalizer.normalize(s, Normalizer.Form.NFD)
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase()
                 .trim();
-    }
-
-    private void mensaje(FacesMessage.Severity severidad, String texto) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
     }
 
     // ================= Getters =================
@@ -295,6 +262,6 @@ public class FacturaModel extends AbstractModel<Factura, UUID> {
     }
 
     public List<String> getEstados() {
-        return ESTADOS;
+        return FacturaDAO.ESTADOS;
     }
 }

@@ -1,8 +1,10 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.jsf;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,92 +36,94 @@ public class PagoDetalleModelTest extends ModelTestBase {
     private PagoDAO pagoDAO;
 
     /**
-     * Por defecto: la factura cuesta $10 y no se ha pagado nada.
+     * Por defecto: faltan $10 por pagar.
      */
     @BeforeEach
-    void totalesPorDefecto() {
-        when(pagoDAO.totalFactura(any())).thenReturn(new BigDecimal("10.00"));
-        when(pagoDAO.sumaMontos(any())).thenReturn(BigDecimal.ZERO);
+    void saldoPorDefecto() {
+        when(pagoDAO.calcularSaldo(any(), any())).thenReturn(new BigDecimal("10.00"));
     }
 
     @Test
-    void noAgregaMontosAUnPagoQueNoEstaPendiente() {
-        prepararDetalle(pago(PagoModel.COMPLETADO), PagoDetalleModel.EFECTIVO, "5.00", null);
+    void noGuardaSiElDaoRechazaElMonto() {
+        PagoDetalle detalle = prepararDetalle(pago(PagoDAO.PENDIENTE), PagoDetalleDAO.EFECTIVO, "15.00", null);
+        when(pagoDetalleDAO.validarDetalle(eq(detalle), any())).thenReturn("El monto supera lo que falta por pagar ($10.00).");
 
         model.btnCrearHandler();
 
         verify(pagoDetalleDAO, never()).save(any());
-        assertEquals("El pago está COMPLETADO; solo se pueden cambiar montos de pagos PENDIENTES.",
-                ultimoMensaje().getSummary());
+        assertEquals("Monto no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noGuardaUnMontoDeCero() {
-        prepararDetalle(pago(PagoModel.PENDIENTE), PagoDetalleModel.EFECTIVO, "0", null);
+    void lePasaAlDaoLoQueFaltaPorPagar() {
+        PagoDetalle detalle = prepararDetalle(pago(PagoDAO.PENDIENTE), PagoDetalleDAO.EFECTIVO, "4.00", null);
 
         model.btnCrearHandler();
 
-        verify(pagoDetalleDAO, never()).save(any());
-        assertEquals("El monto debe ser mayor a cero.", ultimoMensaje().getSummary());
-    }
-
-    @Test
-    void conTarjeta_exigeReferencia() {
-        prepararDetalle(pago(PagoModel.PENDIENTE), PagoDetalleModel.TARJETA, "5.00", "  ");
-
-        model.btnCrearHandler();
-
-        verify(pagoDetalleDAO, never()).save(any());
-        assertEquals("Para TARJETA debe indicar la referencia (número de autorización o transferencia).",
-                ultimoMensaje().getSummary());
-    }
-
-    @Test
-    void noPermitePagarMasDeLoQueFalta() {
-        prepararDetalle(pago(PagoModel.PENDIENTE), PagoDetalleModel.EFECTIVO, "15.00", null);
-
-        model.btnCrearHandler();
-
-        verify(pagoDetalleDAO, never()).save(any());
-        assertTrue(ultimoMensaje().getSummary().startsWith("El monto supera lo que falta por pagar"));
-    }
-
-    @Test
-    void guardaUnMontoValidoEnEfectivo() {
-        PagoDetalle detalle = prepararDetalle(pago(PagoModel.PENDIENTE), PagoDetalleModel.EFECTIVO, "4.00", null);
-
-        model.btnCrearHandler();
-
+        verify(pagoDetalleDAO).validarDetalle(detalle, new BigDecimal("10.00"));
         verify(pagoDetalleDAO).save(detalle);
     }
 
     @Test
+    void limpiaLaReferenciaAntesDeValidar() {
+        PagoDetalle detalle = prepararDetalle(pago(PagoDAO.PENDIENTE), PagoDetalleDAO.TARJETA, "5.00", "   ");
+
+        model.btnCrearHandler();
+
+        assertNull(detalle.getReferenciaExterna());
+    }
+
+    @Test
+    void noModificaSiElPagoOriginalYaNoSePuedeCambiar() {
+        Pago completado = pago(PagoDAO.COMPLETADO);
+        PagoDetalle detalle = new PagoDetalle(UUID.randomUUID());
+        detalle.setIdPago(completado);
+        when(pagoDetalleDAO.validarPagoEditable(completado))
+                .thenReturn("El pago está COMPLETADO; solo se pueden cambiar montos de pagos PENDIENTES.");
+        model.seleccionarRegistro(detalle);
+
+        model.btnModificarHandler();
+
+        verify(pagoDetalleDAO, never()).update(any());
+        assertEquals("No se puede modificar", ultimoMensaje().getSummary());
+    }
+
+    @Test
     void avisaCuandoSeCubreElTotalDeLaFactura() {
-        Pago pago = pago(PagoModel.PENDIENTE);
-        // 1.ª consulta (validar): no se ha pagado nada. 2.ª (después de guardar): ya se pagaron $10
-        when(pagoDAO.sumaMontos(pago)).thenReturn(BigDecimal.ZERO, new BigDecimal("10.00"));
-        prepararDetalle(pago, PagoDetalleModel.EFECTIVO, "10.00", null);
+        Pago pago = pago(PagoDAO.PENDIENTE);
+        // 1.ª vez (validar): faltan $10. 2.ª (después de guardar): ya no falta nada
+        when(pagoDAO.calcularSaldo(eq(pago), any())).thenReturn(new BigDecimal("10.00"), BigDecimal.ZERO);
+        prepararDetalle(pago, PagoDetalleDAO.EFECTIVO, "10.00", null);
 
         model.btnCrearHandler();
 
         assertTrue(ultimoMensaje().getSummary().startsWith("Ya se cubrió el total de la factura"));
     }
 
-    private Pago pago(String estado) {
-        Pago p = new Pago(UUID.randomUUID());
-        p.setEstado(estado);
-        p.setIdFactura(new Factura(UUID.randomUUID()));
-        return p;
-    }
-
-    private PagoDetalle prepararDetalle(Pago pago, String tipo, String monto, String referencia) {
+    @Test
+    void alElegirElPago_proponeComoMontoLoQueFalta() {
         model.btnNuevoHandler();
-        PagoDetalle d = model.getRegistro();
-        d.setIdPago(pago);
-        d.setTipoPago(tipo);
-        d.setMonto(new BigDecimal(monto));
-        d.setReferenciaExterna(referencia);
-        return d;
+        model.getRegistro().setIdPago(pago(PagoDAO.PENDIENTE));
+
+        model.pagoSeleccionadoHandler();
+
+        assertEquals(new BigDecimal("10.00"), model.getRegistro().getMonto());
     }
 
+    private Pago pago(String estado) {
+        Pago pago = new Pago(UUID.randomUUID());
+        pago.setEstado(estado);
+        pago.setIdFactura(new Factura(UUID.randomUUID()));
+        return pago;
+    }
+
+    private PagoDetalle prepararDetalle(Pago pago, String tipoPago, String monto, String referencia) {
+        model.btnNuevoHandler();
+        PagoDetalle detalle = model.getRegistro();
+        detalle.setIdPago(pago);
+        detalle.setTipoPago(tipoPago);
+        detalle.setMonto(new BigDecimal(monto));
+        detalle.setReferenciaExterna(referencia);
+        return detalle;
+    }
 }

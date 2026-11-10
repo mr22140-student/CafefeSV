@@ -36,64 +36,99 @@ public class FacturaOrdenProductoModelTest extends ModelTestBase {
     private EmpleadoDAO empleadoDAO;
 
     @Test
-    void noAgregaProductosAUnaFacturaQueNoEstaPendiente() {
-        model.setRegistro(registro(factura(FacturaModel.PAGADA), new OrdenProducto(UUID.randomUUID())));
+    void noGuardaSiElDaoRechazaElDetalle() {
+        FacturaOrdenProducto detalle = detalle(factura(FacturaDAO.PAGADA), new OrdenProducto(UUID.randomUUID()));
+        when(facturaOrdenProductoDAO.validarDetalle(detalle))
+                .thenReturn("La factura está PAGADA; solo se pueden cambiar facturas PENDIENTES.");
+        model.setRegistro(detalle);
 
         model.btnCrearHandler();
 
         verify(facturaOrdenProductoDAO, never()).save(any());
-        assertEquals("La factura está PAGADA; solo se pueden cambiar facturas PENDIENTES.",
-                ultimoMensaje().getSummary());
+        assertEquals("Producto no válido", ultimoMensaje().getSummary());
     }
 
     @Test
-    void noFacturaDosVecesElMismoProductoDeLaOrden() {
-        OrdenProducto op = new OrdenProducto(UUID.randomUUID());
-        when(facturaOrdenProductoDAO.findByOrdenProducto(op))
-                .thenReturn(List.of(registro(factura(FacturaModel.PENDIENTE), op)));
-        model.setRegistro(registro(factura(FacturaModel.PENDIENTE), op));
+    void guardaSiElDaoNoEncuentraErrores() {
+        FacturaOrdenProducto detalle = detalle(factura(FacturaDAO.PENDIENTE), new OrdenProducto(UUID.randomUUID()));
+        model.setRegistro(detalle);
 
         model.btnCrearHandler();
 
-        verify(facturaOrdenProductoDAO, never()).save(any());
-        assertEquals("Ese producto de la orden ya está facturado.", ultimoMensaje().getSummary());
+        verify(facturaOrdenProductoDAO).save(detalle);
     }
 
     @Test
-    void guardaUnProductoValido() {
-        FacturaOrdenProducto fop = registro(factura(FacturaModel.PENDIENTE), new OrdenProducto(UUID.randomUUID()));
-        model.setRegistro(fop);
+    void noModificaSiLaFacturaOriginalYaNoSePuedeCambiar() {
+        Factura pagada = factura(FacturaDAO.PAGADA);
+        FacturaOrdenProducto detalle = detalle(pagada, new OrdenProducto(UUID.randomUUID()));
+        when(facturaOrdenProductoDAO.validarFacturaEditable(pagada))
+                .thenReturn("La factura está PAGADA; solo se pueden cambiar facturas PENDIENTES.");
+        model.seleccionarRegistro(detalle);
 
-        model.btnCrearHandler();
+        model.btnModificarHandler();
 
-        verify(facturaOrdenProductoDAO).save(fop);
+        verify(facturaOrdenProductoDAO, never()).update(any());
+        assertEquals("No se puede modificar", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void noEliminaSiLaFacturaYaNoSePuedeCambiar() {
+        Factura pagada = factura(FacturaDAO.PAGADA);
+        FacturaOrdenProducto detalle = detalle(pagada, new OrdenProducto(UUID.randomUUID()));
+        when(facturaOrdenProductoDAO.validarFacturaEditable(pagada))
+                .thenReturn("La factura está PAGADA; solo se pueden cambiar facturas PENDIENTES.");
+        model.seleccionarRegistro(detalle);
+
+        model.btnEliminarHandler();
+
+        verify(facturaOrdenProductoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
     }
 
     @Test
     void alElegirElProducto_copiaElPrecioDeLaOrden() {
-        OrdenProducto op = new OrdenProducto(UUID.randomUUID());
-        op.setPrecio(new BigDecimal("4.25"));
-        FacturaOrdenProducto fop = new FacturaOrdenProducto(UUID.randomUUID());
-        fop.setIdOrdenProducto(op);
-        model.setRegistro(fop);
+        OrdenProducto cafeDeLaOrden = new OrdenProducto(UUID.randomUUID());
+        cafeDeLaOrden.setPrecio(new BigDecimal("4.25"));
+        FacturaOrdenProducto detalle = new FacturaOrdenProducto(UUID.randomUUID());
+        detalle.setIdOrdenProducto(cafeDeLaOrden);
+        model.setRegistro(detalle);
 
         model.ordenProductoSeleccionadoHandler();
 
-        assertEquals(new BigDecimal("4.25"), fop.getPrecio());
+        assertEquals(new BigDecimal("4.25"), detalle.getPrecio());
+    }
+
+    @Test
+    void alIniciar_lasFacturasPendientesLasTraeElDao() {
+        Factura pendiente = factura(FacturaDAO.PENDIENTE);
+        when(facturaDAO.buscarPendientes()).thenReturn(List.of(pendiente));
+
+        model.init();
+
+        assertEquals(List.of(pendiente), model.getListaFacturaPendiente());
+    }
+
+    @Test
+    void elTotal_loCalculaElDao() {
+        List<FacturaOrdenProducto> detalles = List.of(new FacturaOrdenProducto(UUID.randomUUID()));
+        model.setRegistros(detalles);
+        when(facturaOrdenProductoDAO.calcularTotal(detalles)).thenReturn(new BigDecimal("3.50"));
+
+        assertEquals(new BigDecimal("3.50"), model.getTotal());
     }
 
     private Factura factura(String estado) {
-        Factura f = new Factura(UUID.randomUUID());
-        f.setEstado(estado);
-        return f;
+        Factura factura = new Factura(UUID.randomUUID());
+        factura.setEstado(estado);
+        return factura;
     }
 
-    private FacturaOrdenProducto registro(Factura f, OrdenProducto op) {
-        FacturaOrdenProducto fop = new FacturaOrdenProducto(UUID.randomUUID());
-        fop.setIdFactura(f);
-        fop.setIdOrdenProducto(op);
-        fop.setPrecio(new BigDecimal("2.50"));
-        return fop;
+    private FacturaOrdenProducto detalle(Factura factura, OrdenProducto detalleOrden) {
+        FacturaOrdenProducto detalle = new FacturaOrdenProducto(UUID.randomUUID());
+        detalle.setIdFactura(factura);
+        detalle.setIdOrdenProducto(detalleOrden);
+        detalle.setPrecio(new BigDecimal("2.50"));
+        return detalle;
     }
-
 }

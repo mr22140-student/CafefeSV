@@ -40,29 +40,40 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
     @Inject
     private EmpleadoDAO empleadoDAO;
 
-    /** Todas las facturas (para el filtro). */
+    /**
+     * Todas las facturas (para el filtro).
+     */
     private List<Factura> listaFactura = new ArrayList<>();
 
-    /** Solo facturas PENDIENTES (para el formulario). */
+    /**
+     * Solo facturas PENDIENTES (para el formulario).
+     */
     private List<Factura> listaFacturaPendiente = new ArrayList<>();
 
-    /** Productos de ordenes que aun no se han facturado. */
+    /**
+     * Productos de ordenes que aun no se han facturado.
+     */
     private List<OrdenProducto> listaOrdenProducto = new ArrayList<>();
 
     private Map<UUID, Empleado> empleados = new HashMap<>();
 
-    /** Factura elegida arriba de la tabla; null = todas. */
+    /**
+     * Factura elegida arriba de la tabla; null = todas.
+     */
     private Factura facturaFiltro;
 
-    /** Factura que tenia el registro al seleccionarlo (para validar al modificar/eliminar). */
+    /**
+     * Factura que tenia el registro al seleccionarlo (para validar al
+     * modificar/eliminar).
+     */
     private Factura facturaOriginal;
 
     @PostConstruct
     public void init() {
-        List<Empleado> emps = empleadoDAO.findRange(0, 1000);
-        if (emps != null) {
-            for (Empleado e : emps) {
-                empleados.put(e.getIdEmpleado(), e);
+        List<Empleado> todosLosEmpleados = empleadoDAO.findRange(0, 1000);
+        if (todosLosEmpleados != null) {
+            for (Empleado empleado : todosLosEmpleados) {
+                empleados.put(empleado.getIdEmpleado(), empleado);
             }
         }
 
@@ -71,17 +82,16 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
             listaFactura = new ArrayList<>(facturas);
             listaFactura.sort(Comparator.comparing(Factura::getFechaFacturacion,
                     Comparator.nullsLast(Comparator.reverseOrder())));
-            for (Factura f : listaFactura) {
-                if (FacturaModel.PENDIENTE.equals(f.getEstado())) {
-                    listaFacturaPendiente.add(f);
-                }
-            }
         }
+        listaFacturaPendiente = new ArrayList<>(facturaDAO.buscarPendientes());
 
         iniciar();
     }
 
-    /** Carga la tabla (filtrada si hay factura elegida) y los productos disponibles. */
+    /**
+     * Carga la tabla (filtrada si hay factura elegida) y los productos
+     * disponibles.
+     */
     @Override
     public void iniciar() {
         if (facturaFiltro != null) {
@@ -103,7 +113,7 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
     protected FacturaOrdenProducto crearNuevo() {
         FacturaOrdenProducto nuevo = new FacturaOrdenProducto(UUID.randomUUID());
         // Si la factura filtrada esta pendiente, ya viene seleccionada
-        if (facturaFiltro != null && FacturaModel.PENDIENTE.equals(facturaFiltro.getEstado())) {
+        if (facturaFiltro != null && FacturaDAO.PENDIENTE.equals(facturaFiltro.getEstado())) {
             nuevo.setIdFactura(facturaFiltro);
         }
         facturaOriginal = null;
@@ -127,12 +137,13 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
     }
 
     // ================= Handlers de la vista =================
-
     public void filtrarHandler() {
         iniciar();
     }
 
-    /** Al elegir el producto de la orden, copia su precio (se puede editar). */
+    /**
+     * Al elegir el producto de la orden, copia su precio (se puede editar).
+     */
     public void ordenProductoSeleccionadoHandler() {
         if (registro != null && registro.getIdOrdenProducto() != null) {
             registro.setPrecio(registro.getIdOrdenProducto().getPrecio());
@@ -140,30 +151,27 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
     }
 
     // ================= Crear / Modificar / Eliminar =================
-
     @Override
     public void btnCrearHandler() {
-        if (esValido()) {
+        if (sinError("Producto no válido", facturaOrdenProductoDAO.validarDetalle(registro))) {
             super.btnCrearHandler();
         }
     }
 
     @Override
     public void btnModificarHandler() {
-        if (!facturaEditable(facturaOriginal)) {
-            return;
-        }
-        if (esValido()) {
+        if (sinError("No se puede modificar", facturaOrdenProductoDAO.validarFacturaEditable(facturaOriginal))
+                && sinError("Producto no válido", facturaOrdenProductoDAO.validarDetalle(registro))) {
             super.btnModificarHandler();
         }
     }
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null && !facturaEditable(registro.getIdFactura())) {
-            return;
+        Factura facturaDelRegistro = (registro != null) ? registro.getIdFactura() : null;
+        if (sinError("No se puede eliminar", facturaOrdenProductoDAO.validarFacturaEditable(facturaDelRegistro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
     @Override
@@ -172,110 +180,65 @@ public class FacturaOrdenProductoModel extends AbstractModel<FacturaOrdenProduct
         facturaOriginal = null;
     }
 
-    private boolean esValido() {
-        if (registro == null) {
-            return true; // AbstractModel muestra su propio mensaje
-        }
-        if (registro.getIdFactura() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar la factura.");
-            return false;
-        }
-        if (!facturaEditable(registro.getIdFactura())) {
-            return false;
-        }
-        if (registro.getIdOrdenProducto() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el producto de la orden.");
-            return false;
-        }
-        if (registro.getPrecio() == null || registro.getPrecio().signum() < 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El precio debe ser mayor o igual a cero.");
-            return false;
-        }
-        // No facturar dos veces el mismo producto de una orden
-        for (FacturaOrdenProducto otro : facturaOrdenProductoDAO.findByOrdenProducto(registro.getIdOrdenProducto())) {
-            if (!otro.getIdFacturaOrdenProducto().equals(registro.getIdFacturaOrdenProducto())) {
-                mensaje(FacesMessage.SEVERITY_WARN, "Ese producto de la orden ya está facturado.");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Solo se pueden tocar productos de facturas PENDIENTES. */
-    private boolean facturaEditable(Factura f) {
-        if (f != null && !FacturaModel.PENDIENTE.equals(f.getEstado())) {
-            mensaje(FacesMessage.SEVERITY_WARN,
-                    "La factura está " + f.getEstado() + "; solo se pueden cambiar facturas PENDIENTES.");
-            return false;
-        }
-        return true;
-    }
-
     // ================= Etiquetas =================
-
-    /** "dd/MM/yyyy HH:mm - Cliente (ESTADO)". */
-    public String etiquetaFactura(Factura f) {
-        if (f == null) {
+    /**
+     * /** "dd/MM/yyyy HH:mm - Cliente (ESTADO)".
+     */
+    public String etiquetaFactura(Factura factura) {
+        if (factura == null) {
             return "Sin asignación";
         }
-        String fecha = (f.getFechaFacturacion() != null)
-                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(f.getFechaFacturacion())
+        String fecha = (factura.getFechaFacturacion() != null)
+                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(factura.getFechaFacturacion())
                 : "Sin fecha";
-        String cliente = (f.getCliente() != null) ? f.getCliente() : "Sin cliente";
-        return fecha + " - " + cliente + " (" + f.getEstado() + ")";
+        String cliente = (factura.getCliente() != null) ? factura.getCliente() : "Sin cliente";
+        return fecha + " - " + cliente + " (" + factura.getEstado() + ")";
     }
 
-    /** "Producto - Orden dd/MM HH:mm - Empleado". */
-    public String etiquetaOrdenProducto(OrdenProducto op) {
-        if (op == null) {
+    /**
+     * "Producto - Orden dd/MM HH:mm - Empleado".
+     */
+    public String etiquetaOrdenProducto(OrdenProducto detalleOrden) {
+        if (detalleOrden == null) {
             return "Sin asignación";
         }
-        String producto = (op.getIdProducto() != null) ? op.getIdProducto().getNombre() : "Sin producto";
-        return producto + " - " + etiquetaOrden(op.getIdOrden());
+        String producto = (detalleOrden.getIdProducto() != null) ? detalleOrden.getIdProducto().getNombre() : "Sin producto";
+        return producto + " - " + etiquetaOrden(detalleOrden.getIdOrden());
     }
 
-    /** "Orden dd/MM HH:mm - Nombre Apellido". */
-    public String etiquetaOrden(Orden o) {
-        if (o == null) {
+    /**
+     * "Orden dd/MM HH:mm - Nombre Apellido".
+     */
+    public String etiquetaOrden(Orden orden) {
+        if (orden == null) {
             return "Sin orden";
         }
-        String fecha = (o.getFechaCreacion() != null)
-                ? new SimpleDateFormat("dd/MM HH:mm").format(o.getFechaCreacion())
+        String fecha = (orden.getFechaCreacion() != null)
+                ? new SimpleDateFormat("dd/MM HH:mm").format(orden.getFechaCreacion())
                 : "sin fecha";
-        String empleado = "";
-        EmpleadoRol er = o.getIdEmpleadoRol();
-        if (er != null && er.getIdEmpleado() != null) {
-            Empleado e = empleados.get(er.getIdEmpleado());
-            if (e != null) {
-                empleado = " - " + (texto(e.getNombre()) + " " + texto(e.getApellido())).trim();
+        String nombreEmpleado = "";
+        EmpleadoRol asignacion = orden.getIdEmpleadoRol();
+        if (asignacion != null && asignacion.getIdEmpleado() != null) {
+            Empleado empleado = empleados.get(asignacion.getIdEmpleado());
+            if (empleado != null) {
+                nombreEmpleado = " - " + (texto(empleado.getNombre()) + " " + texto(empleado.getApellido())).trim();
             }
         }
-        return "Orden " + fecha + empleado;
+        return "Orden " + fecha + nombreEmpleado;
     }
 
-    /** Suma de lo que se ve en la tabla (util al filtrar por factura). */
+    /**
+     * Suma de lo que se ve en la tabla (util al filtrar por factura).
+     */
     public BigDecimal getTotal() {
-        BigDecimal total = BigDecimal.ZERO;
-        if (registros != null) {
-            for (FacturaOrdenProducto fop : registros) {
-                if (fop.getPrecio() != null) {
-                    total = total.add(fop.getPrecio());
-                }
-            }
-        }
-        return total;
+        return facturaOrdenProductoDAO.calcularTotal(registros);
     }
 
-    private static String texto(String s) {
-        return s != null ? s : "";
-    }
-
-    private void mensaje(FacesMessage.Severity severidad, String texto) {
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(severidad, texto, null));
+    private static String texto(String valor) {
+        return valor != null ? valor : "";
     }
 
     // ================= Getters / Setters =================
-
     public List<Factura> getListaFactura() {
         return listaFactura;
     }

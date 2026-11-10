@@ -9,7 +9,6 @@ import jakarta.inject.Named;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.GenericDAO;
@@ -28,11 +27,6 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.PagoDetalle;
 public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
 
     private static final long serialVersionUID = 1L;
-
-    public static final String EFECTIVO = "EFECTIVO";
-    public static final String TARJETA = "TARJETA";
-    public static final String TRANSFERENCIA = "TRANSFERENCIA";
-    public static final List<String> TIPOS_PAGO = Arrays.asList(EFECTIVO, TARJETA, TRANSFERENCIA);
 
     @Inject
     private PagoDetalleDAO pagoDetalleDAO;
@@ -64,17 +58,9 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
     }
 
     private void cargarPagos() {
-        listaPago = new ArrayList<>();
-        listaPagoPendiente = new ArrayList<>();
         List<Pago> pagos = pagoDAO.findRange(0, 1000);
-        if (pagos != null) {
-            for (Pago p : pagos) {
-                listaPago.add(p);
-                if (PagoModel.PENDIENTE.equals(p.getEstado())) {
-                    listaPagoPendiente.add(p);
-                }
-            }
-        }
+        listaPago = (pagos != null) ? new ArrayList<>(pagos) : new ArrayList<>();
+        listaPagoPendiente = new ArrayList<>(pagoDAO.findByEstado(PagoDAO.PENDIENTE));
     }
 
     /** Carga la tabla (filtrada si hay pago elegido) y el resumen. */
@@ -83,7 +69,9 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
         if (pagoFiltro != null) {
             registros = pagoDetalleDAO.findByPago(pagoFiltro);
             estado = ESTADO_NINGUNO;
-            totalFiltro = totalFactura(pagoFiltro);
+            totalFiltro = (pagoFiltro.getIdFactura() != null)
+                    ? pagoDAO.totalFactura(pagoFiltro.getIdFactura())
+                    : BigDecimal.ZERO;
             pagadoFiltro = pagoDAO.sumaMontos(pagoFiltro);
         } else {
             super.iniciar();
@@ -100,11 +88,11 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
     @Override
     protected PagoDetalle crearNuevo() {
         PagoDetalle nuevo = new PagoDetalle(UUID.randomUUID());
-        nuevo.setTipoPago(EFECTIVO);
+        nuevo.setTipoPago(PagoDetalleDAO.EFECTIVO);
         // Si el pago filtrado esta pendiente, ya viene seleccionado con el saldo como monto
-        if (pagoFiltro != null && PagoModel.PENDIENTE.equals(pagoFiltro.getEstado())) {
+        if (pagoFiltro != null && PagoDAO.PENDIENTE.equals(pagoFiltro.getEstado())) {
             nuevo.setIdPago(pagoFiltro);
-            BigDecimal saldo = saldo(pagoFiltro, BigDecimal.ZERO);
+            BigDecimal saldo = pagoDAO.calcularSaldo(pagoFiltro, BigDecimal.ZERO);
             if (saldo.signum() > 0) {
                 nuevo.setMonto(saldo);
             }
@@ -136,7 +124,7 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
     /** Al elegir el pago, propone como monto lo que falta por pagar. */
     public void pagoSeleccionadoHandler() {
         if (registro != null && registro.getIdPago() != null) {
-            BigDecimal saldo = saldo(registro.getIdPago(), montoActualEnBD(registro.getIdPago()));
+            BigDecimal saldo = pagoDAO.calcularSaldo(registro.getIdPago(), montoActualEnBD(registro.getIdPago()));
             registro.setMonto(saldo.signum() > 0 ? saldo : null);
         }
     }
@@ -146,7 +134,7 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
     @Override
     public void btnCrearHandler() {
         Pago pago = (registro != null) ? registro.getIdPago() : null;
-        if (esValido()) {
+        if (montoValido()) {
             super.btnCrearHandler();
             avisarSiCompleto(pago);
         }
@@ -154,11 +142,11 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
 
     @Override
     public void btnModificarHandler() {
-        if (!pagoEditable(pagoOriginal)) {
+        if (!sinError("No se puede modificar", pagoDetalleDAO.validarPagoEditable(pagoOriginal))) {
             return;
         }
         Pago pago = (registro != null) ? registro.getIdPago() : null;
-        if (esValido()) {
+        if (montoValido()) {
             super.btnModificarHandler();
             avisarSiCompleto(pago);
         }
@@ -166,10 +154,10 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null && !pagoEditable(registro.getIdPago())) {
-            return;
+        Pago pagoDelRegistro = (registro != null) ? registro.getIdPago() : null;
+        if (sinError("No se puede eliminar", pagoDetalleDAO.validarPagoEditable(pagoDelRegistro))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
     @Override
@@ -179,70 +167,29 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
         montoOriginal = null;
     }
 
-    private boolean esValido() {
+    /**
+     * Limpia la referencia que se escribió y le pide al DAO que revise el
+     * monto contra lo que falta por pagar.
+     */
+    private boolean montoValido() {
         if (registro == null) {
             return true; // AbstractModel muestra su propio mensaje
         }
-        Pago pago = registro.getIdPago();
-        if (pago == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el pago.");
-            return false;
-        }
-        if (!pagoEditable(pago)) {
-            return false;
-        }
-        if (!TIPOS_PAGO.contains(registro.getTipoPago())) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar el tipo de pago.");
-            return false;
-        }
-        if (registro.getMonto() == null || registro.getMonto().signum() <= 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El monto debe ser mayor a cero.");
-            return false;
-        }
-        String ref = (registro.getReferenciaExterna() != null) ? registro.getReferenciaExterna().trim() : "";
-        registro.setReferenciaExterna(ref.isEmpty() ? null : ref);
-        if (!EFECTIVO.equals(registro.getTipoPago()) && ref.isEmpty()) {
-            mensaje(FacesMessage.SEVERITY_WARN,
-                    "Para " + registro.getTipoPago() + " debe indicar la referencia (número de autorización o transferencia).");
-            return false;
-        }
-        // La suma de montos no puede pasar del total de la factura
-        BigDecimal saldo = saldo(pago, montoActualEnBD(pago));
-        if (registro.getMonto().compareTo(saldo) > 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El monto supera lo que falta por pagar ($" + saldo + ").");
-            return false;
-        }
-        return true;
-    }
-
-    /** Solo se pueden tocar montos de pagos PENDIENTES. */
-    private boolean pagoEditable(Pago p) {
-        if (p != null && !PagoModel.PENDIENTE.equals(p.getEstado())) {
-            mensaje(FacesMessage.SEVERITY_WARN,
-                    "El pago está " + p.getEstado() + "; solo se pueden cambiar montos de pagos PENDIENTES.");
-            return false;
-        }
-        return true;
+        String referencia = (registro.getReferenciaExterna() != null) ? registro.getReferenciaExterna().trim() : "";
+        registro.setReferenciaExterna(referencia.isEmpty() ? null : referencia);
+        BigDecimal saldo = (registro.getIdPago() != null)
+                ? pagoDAO.calcularSaldo(registro.getIdPago(), montoActualEnBD(registro.getIdPago()))
+                : null;
+        return sinError("Monto no válido", pagoDetalleDAO.validarDetalle(registro, saldo));
     }
 
     /** Si ya se cubrio el total, recuerda completar el pago. */
     private void avisarSiCompleto(Pago pago) {
         if (registro == null && pago != null   // registro null = se guardo con exito
-                && saldo(pago, BigDecimal.ZERO).signum() <= 0) {
+                && pagoDAO.calcularSaldo(pago, BigDecimal.ZERO).signum() <= 0) {
             mensaje(FacesMessage.SEVERITY_INFO,
                     "Ya se cubrió el total de la factura. Puede marcar el pago como COMPLETADO en la página de Pagos.");
         }
-    }
-
-    // ================= Calculos =================
-
-    /**
-     * Lo que falta por pagar. "descontar" es el monto del registro que se esta
-     * modificando (ya incluido en la BD), para no contarlo dos veces.
-     */
-    private BigDecimal saldo(Pago pago, BigDecimal descontar) {
-        BigDecimal pagado = pagoDAO.sumaMontos(pago).subtract(descontar);
-        return totalFactura(pago).subtract(pagado);
     }
 
     /** Monto que el registro en edicion ya tiene guardado en ese pago (0 si es nuevo). */
@@ -253,28 +200,22 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
         return BigDecimal.ZERO;
     }
 
-    private BigDecimal totalFactura(Pago pago) {
-        return (pago != null && pago.getIdFactura() != null)
-                ? pagoDAO.totalFactura(pago.getIdFactura())
-                : BigDecimal.ZERO;
-    }
-
     // ================= Etiquetas =================
 
     /** "dd/MM/yyyy HH:mm - Cliente (ESTADO)". */
-    public String etiquetaPago(Pago p) {
-        if (p == null) {
+    public String etiquetaPago(Pago pago) {
+        if (pago == null) {
             return "Sin asignación";
         }
-        Factura f = p.getIdFactura();
-        String texto = "Sin factura";
-        if (f != null) {
-            String fecha = (f.getFechaFacturacion() != null)
-                    ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(f.getFechaFacturacion())
+        Factura factura = pago.getIdFactura();
+        String descripcion = "Sin factura";
+        if (factura != null) {
+            String fecha = (factura.getFechaFacturacion() != null)
+                    ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(factura.getFechaFacturacion())
                     : "Sin fecha";
-            texto = fecha + " - " + (f.getCliente() != null ? f.getCliente() : "Sin cliente");
+            descripcion = fecha + " - " + (factura.getCliente() != null ? factura.getCliente() : "Sin cliente");
         }
-        return texto + " (" + p.getEstado() + ")";
+        return descripcion + " (" + pago.getEstado() + ")";
     }
 
     private void mensaje(FacesMessage.Severity severidad, String texto) {
@@ -292,7 +233,7 @@ public class PagoDetalleModel extends AbstractModel<PagoDetalle, UUID> {
     }
 
     public List<String> getTiposPago() {
-        return TIPOS_PAGO;
+        return PagoDetalleDAO.TIPOS_PAGO;
     }
 
     public Pago getPagoFiltro() {

@@ -9,8 +9,6 @@ import jakarta.inject.Named;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +20,9 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Factura;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Pago;
 
 /**
- * El pago no guarda montos: los montos estan en PagoDetalle.
- * Al marcar un pago como COMPLETADO la factura pasa a PAGADA;
- * al ANULAR un pago completado, la factura regresa a PENDIENTE.
+ * El pago no guarda montos: los montos estan en PagoDetalle. Al marcar un pago
+ * como COMPLETADO la factura pasa a PAGADA; al ANULAR un pago completado, la
+ * factura regresa a PENDIENTE.
  */
 @Named("pagoModel")
 @ViewScoped
@@ -32,25 +30,26 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String PENDIENTE = "PENDIENTE";
-    public static final String COMPLETADO = "COMPLETADO";
-    public static final String ANULADO = "ANULADO";
-    public static final List<String> ESTADOS = Arrays.asList(PENDIENTE, COMPLETADO, ANULADO);
-
     @Inject
     private PagoDAO pagoDAO;
 
     @Inject
     private FacturaDAO facturaDAO;
 
-    /** Facturas PENDIENTES que se pueden elegir en el formulario. */
+    /**
+     * Facturas PENDIENTES que se pueden elegir en el formulario.
+     */
     private List<Factura> listaFacturaPendiente = new ArrayList<>();
 
-    /** Totales calculados una vez por carga (evita consultas por cada fila). */
+    /**
+     * Totales calculados una vez por carga (evita consultas por cada fila).
+     */
     private Map<UUID, BigDecimal> pagadoPorPago = new HashMap<>();
     private Map<UUID, BigDecimal> totalPorFactura = new HashMap<>();
 
-    /** Estado que tenia el pago en la BD al seleccionarlo. */
+    /**
+     * Estado que tenia el pago en la BD al seleccionarlo.
+     */
     private String estadoOriginal;
 
     @PostConstruct
@@ -60,31 +59,23 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
     }
 
     private void cargarFacturas() {
-        listaFacturaPendiente = new ArrayList<>();
-        List<Factura> facturas = facturaDAO.findRange(0, 1000);
-        if (facturas != null) {
-            for (Factura f : facturas) {
-                if (FacturaModel.PENDIENTE.equals(f.getEstado())) {
-                    listaFacturaPendiente.add(f);
-                }
-            }
-            listaFacturaPendiente.sort(Comparator.comparing(Factura::getFechaFacturacion,
-                    Comparator.nullsLast(Comparator.reverseOrder())));
-        }
+        listaFacturaPendiente = new ArrayList<>(facturaDAO.buscarPendientes());
     }
 
-    /** Carga los pagos y calcula sus totales. */
+    /**
+     * Carga los pagos y calcula sus totales.
+     */
     @Override
     public void iniciar() {
         super.iniciar();
         pagadoPorPago.clear();
         totalPorFactura.clear();
         if (registros != null) {
-            for (Pago p : registros) {
-                pagadoPorPago.put(p.getIdPago(), pagoDAO.sumaMontos(p));
-                Factura f = p.getIdFactura();
-                if (f != null && !totalPorFactura.containsKey(f.getIdFactura())) {
-                    totalPorFactura.put(f.getIdFactura(), pagoDAO.totalFactura(f));
+            for (Pago pago : registros) {
+                pagadoPorPago.put(pago.getIdPago(), pagoDAO.sumaMontos(pago));
+                Factura factura = pago.getIdFactura();
+                if (factura != null && !totalPorFactura.containsKey(factura.getIdFactura())) {
+                    totalPorFactura.put(factura.getIdFactura(), pagoDAO.totalFactura(factura));
                 }
             }
         }
@@ -98,7 +89,7 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
     @Override
     protected Pago crearNuevo() {
         Pago nuevo = new Pago(UUID.randomUUID());
-        nuevo.setEstado(PENDIENTE);
+        nuevo.setEstado(PagoDAO.PENDIENTE);
         estadoOriginal = null;
         return nuevo;
     }
@@ -115,13 +106,12 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
     }
 
     // ================= Crear / Modificar / Eliminar =================
-
     @Override
     public void btnCrearHandler() {
         if (registro != null) {
-            registro.setEstado(PENDIENTE); // todo pago nuevo inicia pendiente
+            registro.setEstado(PagoDAO.PENDIENTE); // todo pago nuevo inicia pendiente
         }
-        if (esValido()) {
+        if (sinError("Pago no válido", pagoDAO.validarPago(registro))) {
             super.btnCrearHandler();
         }
     }
@@ -132,28 +122,19 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
             super.btnModificarHandler();
             return;
         }
-        if (ANULADO.equals(estadoOriginal)) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede modificar un pago ANULADO.");
-            return;
-        }
-        String nuevoEstado = registro.getEstado();
-        if (COMPLETADO.equals(estadoOriginal) && !COMPLETADO.equals(nuevoEstado) && !ANULADO.equals(nuevoEstado)) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Un pago COMPLETADO solo puede cambiarse a ANULADO.");
-            return;
-        }
-        if (!esValido()) {
-            return;
-        }
-        if (COMPLETADO.equals(nuevoEstado) && !COMPLETADO.equals(estadoOriginal) && !cubreTotal()) {
+        String estadoNuevo = registro.getEstado();
+        if (!sinError("No se puede modificar", pagoDAO.validarCambioDeEstado(estadoOriginal, estadoNuevo))
+                || !sinError("Pago no válido", pagoDAO.validarPago(registro))
+                || !sinError("No se puede completar", pagoDAO.validarCompletar(registro, estadoOriginal))) {
             return;
         }
 
         Factura factura = registro.getIdFactura();
-        String anterior = estadoOriginal;
+        String estadoAnterior = estadoOriginal;
         super.btnModificarHandler();
 
         if (registro == null) { // AbstractModel limpia registro solo si guardo con exito
-            actualizarEstadoFactura(factura, anterior, nuevoEstado);
+            actualizarEstadoFactura(factura, pagoDAO.calcularEstadoFactura(estadoAnterior, estadoNuevo));
             cargarFacturas();
             iniciar();
             estadoOriginal = null;
@@ -162,17 +143,9 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
 
     @Override
     public void btnEliminarHandler() {
-        if (registro != null) {
-            if (COMPLETADO.equals(estadoOriginal)) {
-                mensaje(FacesMessage.SEVERITY_WARN, "No se puede eliminar un pago COMPLETADO. Puede cambiarlo a ANULADO.");
-                return;
-            }
-            if (pagoDAO.countDetalles(registro) > 0) {
-                mensaje(FacesMessage.SEVERITY_WARN, "No se puede eliminar: el pago tiene montos registrados. Puede cambiarlo a ANULADO.");
-                return;
-            }
+        if (sinError("No se puede eliminar", pagoDAO.validarEliminar(registro, estadoOriginal))) {
+            super.btnEliminarHandler();
         }
-        super.btnEliminarHandler();
     }
 
     @Override
@@ -181,57 +154,12 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
         estadoOriginal = null;
     }
 
-    private boolean esValido() {
-        if (registro == null) {
-            return true; // AbstractModel muestra su propio mensaje
-        }
-        if (registro.getIdFactura() == null) {
-            mensaje(FacesMessage.SEVERITY_WARN, "Debe seleccionar la factura.");
-            return false;
-        }
-        if (!ESTADOS.contains(registro.getEstado())) {
-            mensaje(FacesMessage.SEVERITY_WARN, "El estado no es válido.");
-            return false;
-        }
-        // Una factura solo puede tener un pago activo (no anulado)
-        if (!ANULADO.equals(registro.getEstado())) {
-            UUID excluir = ESTADO_MODIFICAR.equals(estado) ? registro.getIdPago() : null;
-            if (pagoDAO.existePagoActivo(registro.getIdFactura(), excluir)) {
-                mensaje(FacesMessage.SEVERITY_WARN, "Esa factura ya tiene un pago registrado que no está anulado.");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Para marcar COMPLETADO, los montos deben cubrir el total de la factura. */
-    private boolean cubreTotal() {
-        BigDecimal total = pagoDAO.totalFactura(registro.getIdFactura());
-        BigDecimal pagado = pagoDAO.sumaMontos(registro);
-        if (total.signum() <= 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "La factura no tiene productos; no se puede completar el pago.");
-            return false;
-        }
-        if (pagado.compareTo(total) < 0) {
-            mensaje(FacesMessage.SEVERITY_WARN, "No se puede completar: se han pagado $" + pagado
-                    + " de $" + total + ". Registre los montos en Detalle de pago.");
-            return false;
-        }
-        return true;
-    }
-
-    /** COMPLETADO -> factura PAGADA;  COMPLETADO a ANULADO -> factura PENDIENTE. */
-    private void actualizarEstadoFactura(Factura factura, String anterior, String nuevo) {
-        if (factura == null) {
-            return;
-        }
-        String estadoFactura = null;
-        if (COMPLETADO.equals(nuevo) && !COMPLETADO.equals(anterior)) {
-            estadoFactura = FacturaModel.PAGADA;
-        } else if (COMPLETADO.equals(anterior) && ANULADO.equals(nuevo)) {
-            estadoFactura = FacturaModel.PENDIENTE;
-        }
-        if (estadoFactura == null) {
+    /**
+     * Guarda el nuevo estado de la factura que calculó el DAO (null = no
+     * cambia).
+     */
+    private void actualizarEstadoFactura(Factura factura, String estadoFactura) {
+        if (factura == null || estadoFactura == null) {
             return;
         }
         try {
@@ -243,40 +171,42 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
         }
     }
 
-    // ================= Etiquetas y totales =================
-
-    /** "dd/MM/yyyy HH:mm - Cliente". */
-    public String etiquetaFactura(Factura f) {
-        if (f == null) {
+    /**
+     * "dd/MM/yyyy HH:mm - Cliente".
+     */
+    public String etiquetaFactura(Factura factura) {
+        if (factura == null) {
             return "Sin asignación";
         }
-        String fecha = (f.getFechaFacturacion() != null)
-                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(f.getFechaFacturacion())
+        String fecha = (factura.getFechaFacturacion() != null)
+                ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(factura.getFechaFacturacion())
                 : "Sin fecha";
-        String cliente = (f.getCliente() != null) ? f.getCliente() : "Sin cliente";
+        String cliente = (factura.getCliente() != null) ? factura.getCliente() : "Sin cliente";
         return fecha + " - " + cliente;
     }
 
-    public BigDecimal totalFactura(Factura f) {
-        if (f == null) {
+    public BigDecimal totalFactura(Factura factura) {
+        if (factura == null) {
             return BigDecimal.ZERO;
         }
-        return totalPorFactura.getOrDefault(f.getIdFactura(), BigDecimal.ZERO);
+        return totalPorFactura.getOrDefault(factura.getIdFactura(), BigDecimal.ZERO);
     }
 
-    public BigDecimal pagado(Pago p) {
-        if (p == null) {
+    public BigDecimal pagado(Pago pago) {
+        if (pago == null) {
             return BigDecimal.ZERO;
         }
-        return pagadoPorPago.getOrDefault(p.getIdPago(), BigDecimal.ZERO);
+        return pagadoPorPago.getOrDefault(pago.getIdPago(), BigDecimal.ZERO);
     }
 
-    /** Color de la etiqueta del estado en la tabla. */
-    public String severidadEstado(String estado) {
-        if (COMPLETADO.equals(estado)) {
+    /**
+     * Color de la etiqueta del estado en la tabla.
+     */
+    public String severidadEstado(String estadoPago) {
+        if (PagoDAO.COMPLETADO.equals(estadoPago)) {
             return "success";
         }
-        if (ANULADO.equals(estado)) {
+        if (PagoDAO.ANULADO.equals(estadoPago)) {
             return "danger";
         }
         return "warning";
@@ -287,12 +217,11 @@ public class PagoModel extends AbstractModel<Pago, UUID> {
     }
 
     // ================= Getters =================
-
     public List<Factura> getListaFacturaPendiente() {
         return listaFacturaPendiente;
     }
 
     public List<String> getEstados() {
-        return ESTADOS;
+        return PagoDAO.ESTADOS;
     }
 }
