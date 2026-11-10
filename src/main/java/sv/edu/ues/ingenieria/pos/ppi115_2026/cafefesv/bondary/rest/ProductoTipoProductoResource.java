@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 public class ProductoTipoProductoResource extends AbstractResource<ProductoTipoProducto> {
 
     @Inject
-    ProductoTipoProductoDAO dao;
+    ProductoTipoProductoDAO productoTipoProductoDAO;
 
     public ProductoTipoProductoResource() {
         super(ProductoTipoProducto.class);
@@ -32,7 +32,7 @@ public class ProductoTipoProductoResource extends AbstractResource<ProductoTipoP
 
     @Override
     protected AbstractDAO<ProductoTipoProducto, UUID> dao() {
-        return dao;
+        return productoTipoProductoDAO;
     }
 
     @Override
@@ -63,12 +63,12 @@ public class ProductoTipoProductoResource extends AbstractResource<ProductoTipoP
     /** El tipo debe ser válido y el producto no puede tener ese tipo dos veces. */
     @Override
     protected String validarCrear(ProductoTipoProducto nuevo) {
-        return primerError(dao.validarTipo(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(productoTipoProductoDAO.validarTipo(nuevo), productoTipoProductoDAO.validarDuplicado(nuevo));
     }
 
     @Override
     protected String validarModificar(ProductoTipoProducto nuevo, ProductoTipoProducto guardado) {
-        return primerError(dao.validarTipo(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(productoTipoProductoDAO.validarTipo(nuevo), productoTipoProductoDAO.validarDuplicado(nuevo));
     }
 
     /** GET /producto_tipo_producto/producto/{id}: los tipos de un producto. */
@@ -76,6 +76,6 @@ public class ProductoTipoProductoResource extends AbstractResource<ProductoTipoP
     @Path("producto/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porProducto(@PathParam("id") String id) {
-        return listarPorPadre(id, Producto.class, dao::findByProducto);
+        return listarPorPadre(id, Producto.class, productoTipoProductoDAO::findByProducto);
     }
 }

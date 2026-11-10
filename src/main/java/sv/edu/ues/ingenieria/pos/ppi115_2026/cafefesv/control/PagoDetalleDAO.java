@@ -36,8 +36,8 @@ public class PagoDetalleDAO extends AbstractDAO<PagoDetalle, UUID> {
 
     public List<PagoDetalle> findByPago(Pago pago) {
         return em.createQuery(
-                "SELECT x FROM PagoDetalle x "
-                + "WHERE x.idPago = :pago",
+                "SELECT detalle FROM PagoDetalle detalle "
+                + "WHERE detalle.idPago = :pago",
                 PagoDetalle.class
         )
                 .setParameter("pago", pago)

@@ -109,6 +109,27 @@ public class ProductoModelTest extends ModelTestBase {
         assertEquals(1, model.getTabActiva());
     }
 
+    @Test
+    void noEliminaElProductoSiElDaoDevuelveError() {
+        when(productoDAO.validarEliminar(producto)).thenReturn("El producto ya se ha pedido en órdenes.");
+        model.setRegistro(producto);
+
+        model.btnEliminarHandler();
+
+        verify(productoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void eliminaElProductoSiElDaoNoDevuelveError() {
+        when(productoDAO.validarEliminar(producto)).thenReturn(null);
+        model.setRegistro(producto);
+
+        model.btnEliminarHandler();
+
+        verify(productoDAO).delete(producto);
+    }
+
     // ===================== Tipos de producto =====================
     @Test
     void noAsignaElTipoSiElDaoLoRechaza() {

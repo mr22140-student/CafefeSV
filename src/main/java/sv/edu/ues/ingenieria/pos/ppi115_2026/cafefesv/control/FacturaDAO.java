@@ -44,7 +44,7 @@ public class FacturaDAO extends AbstractDAO<Factura, UUID> {
      */
     public long countProductos(Factura factura) {
         return em.createQuery(
-                "SELECT COUNT(x) FROM FacturaOrdenProducto x WHERE x.idFactura = :factura", Long.class)
+                "SELECT COUNT(detalle) FROM FacturaOrdenProducto detalle WHERE detalle.idFactura = :factura", Long.class)
                 .setParameter("factura", factura)
                 .getSingleResult();
     }
@@ -54,7 +54,7 @@ public class FacturaDAO extends AbstractDAO<Factura, UUID> {
      */
     public long countPagos(Factura factura) {
         return em.createQuery(
-                "SELECT COUNT(x) FROM Pago x WHERE x.idFactura = :factura", Long.class)
+                "SELECT COUNT(pago) FROM Pago pago WHERE pago.idFactura = :factura", Long.class)
                 .setParameter("factura", factura)
                 .getSingleResult();
     }

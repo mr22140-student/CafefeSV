@@ -16,7 +16,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 public class TipoCaracteristicaResource extends AbstractResource<TipoCaracteristica> {
 
     @Inject
-    TipoCaracteristicaDAO dao;
+    TipoCaracteristicaDAO tipoCaracteristicaDAO;
 
     public TipoCaracteristicaResource() {
         super(TipoCaracteristica.class);
@@ -24,7 +24,7 @@ public class TipoCaracteristicaResource extends AbstractResource<TipoCaracterist
 
     @Override
     protected AbstractDAO<TipoCaracteristica, UUID> dao() {
-        return dao;
+        return tipoCaracteristicaDAO;
     }
 
     @Override
@@ -47,18 +47,18 @@ public class TipoCaracteristicaResource extends AbstractResource<TipoCaracterist
     /** La expresión regular debe compilar. */
     @Override
     protected String validarCrear(TipoCaracteristica nuevo) {
-        return dao.validarExpresion(nuevo);
+        return tipoCaracteristicaDAO.validarExpresion(nuevo);
     }
 
     /** Expresión válida y no desactivar un tipo con características activas. */
     @Override
     protected String validarModificar(TipoCaracteristica nuevo, TipoCaracteristica guardado) {
-        return primerError(dao.validarExpresion(nuevo), dao.validarInactivar(nuevo));
+        return primerError(tipoCaracteristicaDAO.validarExpresion(nuevo), tipoCaracteristicaDAO.validarInactivar(nuevo));
     }
 
     /** Un tipo con características no se puede eliminar. */
     @Override
     protected String validarEliminar(TipoCaracteristica guardado) {
-        return dao.validarEliminar(guardado);
+        return tipoCaracteristicaDAO.validarEliminar(guardado);
     }
 }

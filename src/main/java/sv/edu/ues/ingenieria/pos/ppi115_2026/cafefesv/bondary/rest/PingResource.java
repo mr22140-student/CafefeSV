@@ -7,13 +7,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 /**
- *
- * @author daniel
- */ 
-
-/**
  * GET /resources/v1/ping: comprueba que la API está viva. Reemplaza al
  * JakartaEE11Resource que generó NetBeans.
+ * 
+ * @author daniel
  */
 @Path("ping")
 public class PingResource {

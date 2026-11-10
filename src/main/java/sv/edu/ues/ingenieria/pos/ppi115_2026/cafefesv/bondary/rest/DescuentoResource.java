@@ -18,7 +18,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 public class DescuentoResource extends AbstractResource<Descuento> {
 
     @Inject
-    DescuentoDAO dao;
+    DescuentoDAO descuentoDAO;
 
     public DescuentoResource() {
         super(Descuento.class);
@@ -26,7 +26,7 @@ public class DescuentoResource extends AbstractResource<Descuento> {
 
     @Override
     protected AbstractDAO<Descuento, UUID> dao() {
-        return dao;
+        return descuentoDAO;
     }
 
     @Override
@@ -45,7 +45,9 @@ public class DescuentoResource extends AbstractResource<Descuento> {
                 TipoDescuento::getIdTipoDescuento, "idTipoDescuento"));
     }
 
-    /** Sin fecha de inicio, empieza hoy (igual que DescuentoModel). */
+    /**
+     * Sin fecha de inicio, empieza hoy (igual que DescuentoModel).
+     */
     @Override
     protected void prepararNuevo(Descuento registro) {
         if (registro.getFechaDesde() == null) {
@@ -53,14 +55,24 @@ public class DescuentoResource extends AbstractResource<Descuento> {
         }
     }
 
-    /** Fecha hasta >= fecha desde y el tipo debe estar activo. */
+    /**
+     * Fecha hasta >= fecha desde y el tipo debe estar activo.
+     */
     @Override
     protected String validarCrear(Descuento nuevo) {
-        return primerError(dao.validarFechas(nuevo), dao.validarTipoActivo(nuevo));
+        return primerError(descuentoDAO.validarFechas(nuevo), descuentoDAO.validarTipoActivo(nuevo));
     }
 
     @Override
     protected String validarModificar(Descuento nuevo, Descuento guardado) {
-        return primerError(dao.validarFechas(nuevo), dao.validarTipoActivo(nuevo));
+        return primerError(descuentoDAO.validarFechas(nuevo), descuentoDAO.validarTipoActivo(nuevo));
+    }
+
+    /**
+     * Asignado a productos no se puede eliminar.
+     */
+    @Override
+    protected String validarEliminar(Descuento guardado) {
+        return descuentoDAO.validarEliminar(guardado);
     }
 }

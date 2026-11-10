@@ -82,9 +82,9 @@ public class EntityConverterTest {
     }
 
     private TipoProducto tipo(String nombre) {
-        TipoProducto t = new TipoProducto(UUID.randomUUID());
-        t.setNombre(nombre);
-        return t;
+        TipoProducto tipoProducto = new TipoProducto(UUID.randomUUID());
+        tipoProducto.setNombre(nombre);
+        return tipoProducto;
     }
 
 }

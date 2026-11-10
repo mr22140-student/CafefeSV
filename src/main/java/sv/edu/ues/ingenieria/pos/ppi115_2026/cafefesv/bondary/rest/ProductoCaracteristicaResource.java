@@ -23,7 +23,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 public class ProductoCaracteristicaResource extends AbstractResource<ProductoCaracteristica> {
 
     @Inject
-    ProductoCaracteristicaDAO dao;
+    ProductoCaracteristicaDAO productoCaracteristicaDAO;
 
     public ProductoCaracteristicaResource() {
         super(ProductoCaracteristica.class);
@@ -31,7 +31,7 @@ public class ProductoCaracteristicaResource extends AbstractResource<ProductoCar
 
     @Override
     protected AbstractDAO<ProductoCaracteristica, UUID> dao() {
-        return dao;
+        return productoCaracteristicaDAO;
     }
 
     @Override
@@ -54,12 +54,12 @@ public class ProductoCaracteristicaResource extends AbstractResource<ProductoCar
     /** Característica válida, valor que cumpla la expresión regular y sin duplicados. */
     @Override
     protected String validarCrear(ProductoCaracteristica nuevo) {
-        return primerError(dao.validarCaracteristica(nuevo), dao.validarValor(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(productoCaracteristicaDAO.validarCaracteristica(nuevo), productoCaracteristicaDAO.validarValor(nuevo), productoCaracteristicaDAO.validarDuplicado(nuevo));
     }
 
     @Override
     protected String validarModificar(ProductoCaracteristica nuevo, ProductoCaracteristica guardado) {
-        return primerError(dao.validarCaracteristica(nuevo), dao.validarValor(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(productoCaracteristicaDAO.validarCaracteristica(nuevo), productoCaracteristicaDAO.validarValor(nuevo), productoCaracteristicaDAO.validarDuplicado(nuevo));
     }
 
     /** GET /producto_caracteristica/producto/{id}: las características de un producto. */
@@ -67,6 +67,6 @@ public class ProductoCaracteristicaResource extends AbstractResource<ProductoCar
     @Path("producto/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porProducto(@PathParam("id") String id) {
-        return listarPorPadre(id, Producto.class, dao::findByProducto);
+        return listarPorPadre(id, Producto.class, productoCaracteristicaDAO::findByProducto);
     }
 }

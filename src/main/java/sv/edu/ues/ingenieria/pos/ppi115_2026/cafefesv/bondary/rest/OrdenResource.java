@@ -19,7 +19,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
 public class OrdenResource extends AbstractResource<Orden> {
 
     @Inject
-    OrdenDAO dao;
+    OrdenDAO ordenDAO;
 
     public OrdenResource() {
         super(Orden.class);
@@ -27,7 +27,7 @@ public class OrdenResource extends AbstractResource<Orden> {
 
     @Override
     protected AbstractDAO<Orden, UUID> dao() {
-        return dao;
+        return ordenDAO;
     }
 
     @Override
@@ -57,17 +57,17 @@ public class OrdenResource extends AbstractResource<Orden> {
     /** Fecha obligatoria y solo un camarero puede tomar la orden. */
     @Override
     protected String validarCrear(Orden nuevo) {
-        return dao.validarOrden(nuevo);
+        return ordenDAO.validarOrden(nuevo);
     }
 
     @Override
     protected String validarModificar(Orden nuevo, Orden guardado) {
-        return dao.validarOrden(nuevo);
+        return ordenDAO.validarOrden(nuevo);
     }
 
     /** Una orden con productos no se puede eliminar. */
     @Override
     protected String validarEliminar(Orden guardado) {
-        return dao.validarEliminar(guardado);
+        return ordenDAO.validarEliminar(guardado);
     }
 }

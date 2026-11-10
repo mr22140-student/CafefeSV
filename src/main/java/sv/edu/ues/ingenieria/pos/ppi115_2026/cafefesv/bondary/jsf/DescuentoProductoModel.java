@@ -68,18 +68,18 @@ public class DescuentoProductoModel extends AbstractModel<DescuentoProducto, UUI
         if (registro == null || registro.getIdDescuento() == null) {
             return;
         }
-        Descuento d = registro.getIdDescuento();
+        Descuento descuentoElegido = registro.getIdDescuento();
         Date ahora = new Date();
 
-        if (d.getFechaDesde() != null && d.getFechaDesde().after(ahora)) {
-            registro.setFechaDesde(d.getFechaDesde());
+        if (descuentoElegido.getFechaDesde() != null && descuentoElegido.getFechaDesde().after(ahora)) {
+            registro.setFechaDesde(descuentoElegido.getFechaDesde());
         } else if (registro.getFechaDesde() == null) {
             registro.setFechaDesde(ahora);
         }
 
-        registro.setFechaHasta(d.getFechaHasta());
+        registro.setFechaHasta(descuentoElegido.getFechaHasta());
 
-        if (d.getFechaHasta() != null && d.getFechaHasta().before(ahora)) {
+        if (descuentoElegido.getFechaHasta() != null && descuentoElegido.getFechaHasta().before(ahora)) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN,
                     "Descuento vencido",
                     "El descuento seleccionado ya terminó. Elige otro o cambia sus fechas en Descuentos."));

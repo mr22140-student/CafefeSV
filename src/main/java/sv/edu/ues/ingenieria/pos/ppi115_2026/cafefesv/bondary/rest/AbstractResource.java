@@ -31,11 +31,6 @@ import java.util.logging.Logger;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.AbstractDAO;
 
 /**
- *
- * @author daniel
- */ 
-
-/**
  * CRUD REST generico. Cada recurso (RolResource, CajaResource...) hereda de
  * esta clase y solo agrega lo propio de su entidad, igual que los models
  * heredan de AbstractModel.
@@ -48,41 +43,53 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.AbstractDAO;
  * DELETE /recurso/{id}              elimina (204)
  * </pre>
  *
- * Codigos: 200 ok, 201 creado, 204 eliminado, 404 no existe, 422 dato
- * invalido o regla de negocio (header Wrong-Parameter con el campo y el
- * mensaje en el cuerpo), 500 error del servidor (header App-Error).
+ * Codigos: 200 ok, 201 creado, 204 eliminado, 404 no existe, 422 dato invalido
+ * o regla de negocio (header Wrong-Parameter con el campo y el mensaje en el
+ * cuerpo), 500 error del servidor (header App-Error).
  *
  * Las reglas de negocio NO se escriben aqui: los recursos llaman a los
  * validarXxx de sus DAOs, los mismos que usan los models de JSF.
+ *
+ * @author daniel
  */
-public abstract class AbstractResource<T> {
+public abstract class AbstractResource<Entidad> {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractResource.class.getName());
 
-    /** Maximo de registros por pagina en el GET de la lista. */
+    /**
+     * Maximo de registros por pagina en el GET de la lista.
+     */
     protected static final int MAX_POR_PAGINA = 100;
 
-    /** Convierte el JSON que llega en el cuerpo (POST y PUT) a la entidad. */
+    /**
+     * Convierte el JSON que llega en el cuerpo (POST y PUT) a la entidad.
+     */
     private static final Jsonb JSONB = JsonbBuilder.create();
 
     @Inject
     protected Validator validator;
 
-    private final Class<T> clase;
+    private final Class<Entidad> claseEntidad;
 
-    protected AbstractResource(Class<T> clase) {
-        this.clase = clase;
+    protected AbstractResource(Class<Entidad> claseEntidad) {
+        this.claseEntidad = claseEntidad;
     }
 
     // ===================== Lo que cada recurso debe implementar =====================
-    /** El DAO de la entidad. */
-    protected abstract AbstractDAO<T, UUID> dao();
+    /**
+     * El DAO de la entidad.
+     */
+    protected abstract AbstractDAO<Entidad, UUID> dao();
 
-    /** Lee la llave primaria del registro (por ejemplo r.getIdRol()). */
-    protected abstract UUID getId(T registro);
+    /**
+     * Lee la llave primaria del registro (por ejemplo r.getIdRol()).
+     */
+    protected abstract UUID getId(Entidad registro);
 
-    /** Escribe la llave primaria del registro (por ejemplo r.setIdRol(id)). */
-    protected abstract void setId(T registro, UUID id);
+    /**
+     * Escribe la llave primaria del registro (por ejemplo r.setIdRol(id)).
+     */
+    protected abstract void setId(Entidad registro, UUID id);
 
     // ===================== Ganchos opcionales (por defecto no hacen nada) =====================
     /**
@@ -90,19 +97,25 @@ public abstract class AbstractResource<T> {
      * {"idCaja":{"idCaja":"..."}}, por la entidad real de la base. Usar
      * {@link #referencia}.
      */
-    protected void resolverRelaciones(T registro) {
+    protected void resolverRelaciones(Entidad registro) {
     }
 
-    /** Valores por defecto al CREAR (estado inicial, fecha, activo...). */
-    protected void prepararNuevo(T registro) {
+    /**
+     * Valores por defecto al CREAR (estado inicial, fecha, activo...).
+     */
+    protected void prepararNuevo(Entidad registro) {
     }
 
-    /** Limpieza al crear Y al modificar (quitar espacios, valores vacios...). */
-    protected void normalizar(T registro) {
+    /**
+     * Limpieza al crear Y al modificar (quitar espacios, valores vacios...).
+     */
+    protected void normalizar(Entidad registro) {
     }
 
-    /** Reglas para crear. Devuelve el mensaje de error o null. */
-    protected String validarCrear(T nuevo) {
+    /**
+     * Reglas para crear. Devuelve el mensaje de error o null.
+     */
+    protected String validarCrear(Entidad nuevo) {
         return null;
     }
 
@@ -110,21 +123,28 @@ public abstract class AbstractResource<T> {
      * Reglas para modificar. "guardado" es como esta el registro en la base
      * ANTES del cambio (reemplaza al estadoOriginal de los models).
      */
-    protected String validarModificar(T nuevo, T guardado) {
+    protected String validarModificar(Entidad nuevo, Entidad guardado) {
         return null;
     }
 
-    /** Reglas para eliminar. Devuelve el mensaje de error o null. */
-    protected String validarEliminar(T guardado) {
+    /**
+     * Reglas para eliminar. Devuelve el mensaje de error o null.
+     */
+    protected String validarEliminar(Entidad guardado) {
         return null;
     }
 
-    /** Efectos despues de modificar (por ejemplo, Pago cambia el estado de la factura). */
-    protected void despuesDeModificar(T actualizado, T guardado) {
+    /**
+     * Efectos despues de modificar (por ejemplo, Pago cambia el estado de la
+     * factura).
+     */
+    protected void despuesDeModificar(Entidad actualizado, Entidad guardado) {
     }
 
-    /** Como se elimina. Por defecto delete del DAO; Empleado lo cambia. */
-    protected void eliminar(T guardado) {
+    /**
+     * Como se elimina. Por defecto delete del DAO; Empleado lo cambia.
+     */
+    protected void eliminar(Entidad guardado) {
         dao().delete(guardado);
     }
 
@@ -138,7 +158,7 @@ public abstract class AbstractResource<T> {
         }
         try {
             // OJO: el findRange de AbstractDAO recibe (inicio, fin), no (inicio, cantidad)
-            List<T> lista = dao().findRange(first, first + max);
+            List<Entidad> lista = dao().findRange(first, first + max);
             return Response.ok(lista, MediaType.APPLICATION_JSON)
                     .header("Total-Registros", dao().count())
                     .build();
@@ -156,7 +176,7 @@ public abstract class AbstractResource<T> {
             return error422("id", "El id no es un UUID valido.");
         }
         try {
-            T encontrado = dao().findById(uuid);
+            Entidad encontrado = dao().findById(uuid);
             if (encontrado == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -170,9 +190,9 @@ public abstract class AbstractResource<T> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response crear(String cuerpo, @Context UriInfo uriInfo) {
-        T registro = leer(cuerpo);
+        Entidad registro = leer(cuerpo);
         if (registro == null) {
-            return error422(nombreRecurso(), "El cuerpo no es un JSON valido de " + clase.getSimpleName() + ".");
+            return error422(nombreRecurso(), "El cuerpo no es un JSON valido de " + claseEntidad.getSimpleName() + ".");
         }
         try {
             if (getId(registro) == null) {
@@ -205,12 +225,12 @@ public abstract class AbstractResource<T> {
         if (uuid == null) {
             return error422("id", "El id no es un UUID valido.");
         }
-        T registro = leer(cuerpo);
+        Entidad registro = leer(cuerpo);
         if (registro == null) {
-            return error422(nombreRecurso(), "El cuerpo no es un JSON valido de " + clase.getSimpleName() + ".");
+            return error422(nombreRecurso(), "El cuerpo no es un JSON valido de " + claseEntidad.getSimpleName() + ".");
         }
         try {
-            T guardado = dao().findById(uuid);
+            Entidad guardado = dao().findById(uuid);
             if (guardado == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -222,7 +242,7 @@ public abstract class AbstractResource<T> {
             if (error != null) {
                 return error422(nombreRecurso(), error);
             }
-            T actualizado = dao().update(registro);
+            Entidad actualizado = dao().update(registro);
             despuesDeModificar(actualizado, guardado);
             return Response.ok(actualizado, MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
@@ -238,7 +258,7 @@ public abstract class AbstractResource<T> {
             return error422("id", "El id no es un UUID valido.");
         }
         try {
-            T guardado = dao().findById(uuid);
+            Entidad guardado = dao().findById(uuid);
             if (guardado == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -258,13 +278,13 @@ public abstract class AbstractResource<T> {
      * GET de una lista hija, por ejemplo /orden_producto/orden/{id}. Busca el
      * padre (404 si no existe) y le pasa la consulta del DAO.
      */
-    protected <P> Response listarPorPadre(String id, Class<P> tipoPadre, Function<P, List<?>> consulta) {
+    protected <Padre> Response listarPorPadre(String id, Class<Padre> tipoPadre, Function<Padre, List<?>> consulta) {
         UUID uuid = aUuid(id);
         if (uuid == null) {
             return error422("id", "El id no es un UUID valido.");
         }
         try {
-            P padre = dao().buscarReferencia(tipoPadre, uuid);
+            Padre padre = dao().buscarReferencia(tipoPadre, uuid);
             if (padre == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -279,19 +299,21 @@ public abstract class AbstractResource<T> {
      * su id. Si viene null, devuelve null (los validarXxx del DAO se encargan
      * de decir que es obligatoria). Si el id no existe, responde 422.
      */
-    protected <R> R referencia(Class<R> tipo, R recibido, Function<R, UUID> idDe, String campo) {
+    protected <Relacion> Relacion referencia(Class<Relacion> claseRelacion, Relacion recibido, Function<Relacion, UUID> idDe, String campo) {
         if (recibido == null) {
             return null;
         }
         UUID id = idDe.apply(recibido);
-        R real = (id == null) ? null : dao().buscarReferencia(tipo, id);
+        Relacion real = (id == null) ? null : dao().buscarReferencia(claseRelacion, id);
         if (real == null) {
             throw new DatoInvalidoException(campo, "No existe " + campo + " con id " + id + ".");
         }
         return real;
     }
 
-    /** El primer mensaje de error que no sea null, o null si todos pasaron. */
+    /**
+     * El primer mensaje de error que no sea null, o null si todos pasaron.
+     */
     protected static String primerError(String... errores) {
         for (String error : errores) {
             if (error != null) {
@@ -309,7 +331,9 @@ public abstract class AbstractResource<T> {
                 .build();
     }
 
-    /** Excepcion para cortar con un 422 desde los ganchos. */
+    /**
+     * Excepcion para cortar con un 422 desde los ganchos.
+     */
     protected static class DatoInvalidoException extends RuntimeException {
 
         private static final long serialVersionUID = 1L;
@@ -326,11 +350,13 @@ public abstract class AbstractResource<T> {
     }
 
     // ===================== Interno =====================
-    /** Revisa las anotaciones de la entidad (@NotNull, @Size...). */
-    private void validarAnotaciones(T registro) {
-        Set<ConstraintViolation<T>> errores = validator.validate(registro);
+    /**
+     * Revisa las anotaciones de la entidad (@NotNull, @Size...).
+     */
+    private void validarAnotaciones(Entidad registro) {
+        Set<ConstraintViolation<Entidad>> errores = validator.validate(registro);
         if (!errores.isEmpty()) {
-            ConstraintViolation<T> primero = errores.iterator().next();
+            ConstraintViolation<Entidad> primero = errores.iterator().next();
             String campo = primero.getPropertyPath().toString();
             throw new DatoInvalidoException(campo, campo + ": " + primero.getMessage());
         }
@@ -341,19 +367,19 @@ public abstract class AbstractResource<T> {
      * causas porque el contenedor envuelve lo que lanza un EJB (@Stateless) en
      * un EJBException.
      */
-    private Response manejar(Exception ex, String campo) {
-        for (Throwable t = ex; t != null; t = t.getCause()) {
-            if (t instanceof DatoInvalidoException) {
-                return error422(((DatoInvalidoException) t).getCampo(), t.getMessage());
+    protected Response manejar(Exception ex, String campo) {
+        for (Throwable causa = ex; causa != null; causa = causa.getCause()) {
+            if (causa instanceof DatoInvalidoException) {
+                return error422(((DatoInvalidoException) causa).getCampo(), causa.getMessage());
             }
-            if (t instanceof ConstraintViolationException) {
-                return error422(campo, t.getMessage());
+            if (causa instanceof ConstraintViolationException) {
+                return error422(campo, causa.getMessage());
             }
-            if (t instanceof IllegalArgumentException) {
-                return error422(campo, t.getMessage());
+            if (causa instanceof IllegalArgumentException) {
+                return error422(campo, causa.getMessage());
             }
-            if (t instanceof SQLException) {
-                String estado = ((SQLException) t).getSQLState();
+            if (causa instanceof SQLException) {
+                String estado = ((SQLException) causa).getSQLState();
                 if (estado != null && estado.startsWith("23")) { // 23xxx = violacion de integridad
                     return error422(campo, "El registro esta en uso por otros datos o ya existe.");
                 }
@@ -365,12 +391,12 @@ public abstract class AbstractResource<T> {
                 .build();
     }
 
-    private T leer(String cuerpo) {
+    private Entidad leer(String cuerpo) {
         if (cuerpo == null || cuerpo.isBlank()) {
             return null;
         }
         try {
-            return JSONB.fromJson(cuerpo, clase);
+            return JSONB.fromJson(cuerpo, claseEntidad);
         } catch (Exception ex) {
             return null;
         }
@@ -384,9 +410,11 @@ public abstract class AbstractResource<T> {
         }
     }
 
-    /** "Rol" -> "rol", para el header Wrong-Parameter. */
+    /**
+     * "Rol" -> "rol", para el header Wrong-Parameter.
+     */
     private String nombreRecurso() {
-        String nombre = clase.getSimpleName();
+        String nombre = claseEntidad.getSimpleName();
         return Character.toLowerCase(nombre.charAt(0)) + nombre.substring(1);
     }
 }

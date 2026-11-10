@@ -34,7 +34,7 @@ public class CaracteristicaDAO extends AbstractDAO<Caracteristica, UUID> {
             return Collections.emptyList();
         }
         return em.createQuery(
-                "SELECT x FROM Caracteristica x WHERE x.idTipoCaracteristica = :tipoCaracteristica",
+                "SELECT caracteristica FROM Caracteristica caracteristica WHERE caracteristica.idTipoCaracteristica = :tipoCaracteristica",
                 Caracteristica.class)
                 .setParameter("tipoCaracteristica", tipoCaracteristica)
                 .getResultList();

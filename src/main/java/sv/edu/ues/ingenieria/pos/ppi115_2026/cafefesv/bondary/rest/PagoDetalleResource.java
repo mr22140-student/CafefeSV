@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.PagoDetalle;
 public class PagoDetalleResource extends AbstractResource<PagoDetalle> {
 
     @Inject
-    PagoDetalleDAO dao;
+    PagoDetalleDAO pagoDetalleDAO;
 
     @Inject
     PagoDAO pagoDAO;
@@ -35,7 +35,7 @@ public class PagoDetalleResource extends AbstractResource<PagoDetalle> {
 
     @Override
     protected AbstractDAO<PagoDetalle, UUID> dao() {
-        return dao;
+        return pagoDetalleDAO;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class PagoDetalleResource extends AbstractResource<PagoDetalle> {
         BigDecimal saldo = (nuevo.getIdPago() != null)
                 ? pagoDAO.calcularSaldo(nuevo.getIdPago(), BigDecimal.ZERO)
                 : null;
-        return dao.validarDetalle(nuevo, saldo);
+        return pagoDetalleDAO.validarDetalle(nuevo, saldo);
     }
 
     /**
@@ -90,13 +90,13 @@ public class PagoDetalleResource extends AbstractResource<PagoDetalle> {
         BigDecimal saldo = (nuevo.getIdPago() != null)
                 ? pagoDAO.calcularSaldo(nuevo.getIdPago(), yaGuardado)
                 : null;
-        return primerError(dao.validarPagoEditable(guardado.getIdPago()), dao.validarDetalle(nuevo, saldo));
+        return primerError(pagoDetalleDAO.validarPagoEditable(guardado.getIdPago()), pagoDetalleDAO.validarDetalle(nuevo, saldo));
     }
 
     /** Solo se quitan montos de pagos PENDIENTES. */
     @Override
     protected String validarEliminar(PagoDetalle guardado) {
-        return dao.validarPagoEditable(guardado.getIdPago());
+        return pagoDetalleDAO.validarPagoEditable(guardado.getIdPago());
     }
 
     /** GET /pago_detalle/pago/{id}: los montos de un pago. */
@@ -104,6 +104,6 @@ public class PagoDetalleResource extends AbstractResource<PagoDetalle> {
     @Path("pago/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porPago(@PathParam("id") String id) {
-        return listarPorPadre(id, Pago.class, dao::findByPago);
+        return listarPorPadre(id, Pago.class, pagoDetalleDAO::findByPago);
     }
 }

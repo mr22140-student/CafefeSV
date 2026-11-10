@@ -22,7 +22,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 public class CaracteristicaResource extends AbstractResource<Caracteristica> {
 
     @Inject
-    CaracteristicaDAO dao;
+    CaracteristicaDAO caracteristicaDAO;
 
     public CaracteristicaResource() {
         super(Caracteristica.class);
@@ -30,7 +30,7 @@ public class CaracteristicaResource extends AbstractResource<Caracteristica> {
 
     @Override
     protected AbstractDAO<Caracteristica, UUID> dao() {
-        return dao;
+        return caracteristicaDAO;
     }
 
     @Override
@@ -59,18 +59,18 @@ public class CaracteristicaResource extends AbstractResource<Caracteristica> {
     /** Una característica activa no puede tener un tipo inactivo. */
     @Override
     protected String validarCrear(Caracteristica nuevo) {
-        return dao.validarTipoActivo(nuevo);
+        return caracteristicaDAO.validarTipoActivo(nuevo);
     }
 
     @Override
     protected String validarModificar(Caracteristica nuevo, Caracteristica guardado) {
-        return dao.validarTipoActivo(nuevo);
+        return caracteristicaDAO.validarTipoActivo(nuevo);
     }
 
     /** Una característica que usa algún producto no se puede eliminar. */
     @Override
     protected String validarEliminar(Caracteristica guardado) {
-        return dao.validarEliminar(guardado);
+        return caracteristicaDAO.validarEliminar(guardado);
     }
 
     /** GET /caracteristica/tipo_caracteristica/{id}: las características de un tipo. */
@@ -78,6 +78,6 @@ public class CaracteristicaResource extends AbstractResource<Caracteristica> {
     @Path("tipo_caracteristica/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porTipo(@PathParam("id") String id) {
-        return listarPorPadre(id, TipoCaracteristica.class, dao::findByTipoCaracteristica);
+        return listarPorPadre(id, TipoCaracteristica.class, caracteristicaDAO::findByTipoCaracteristica);
     }
 }

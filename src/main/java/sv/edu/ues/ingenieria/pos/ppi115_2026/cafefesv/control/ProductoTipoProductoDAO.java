@@ -30,8 +30,8 @@ public class ProductoTipoProductoDAO extends AbstractDAO<ProductoTipoProducto, U
 
     public List<ProductoTipoProducto> findByProducto(Producto producto) {
         return em.createQuery(
-                "SELECT x FROM ProductoTipoProducto x "
-                + "WHERE x.producto = :producto",
+                "SELECT asignacion FROM ProductoTipoProducto asignacion "
+                + "WHERE asignacion.producto = :producto",
                 ProductoTipoProducto.class
         )
                 .setParameter("producto", producto)

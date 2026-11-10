@@ -141,6 +141,13 @@ public class ProductoModel extends AbstractModel<Producto, UUID> {
     }
 
     @Override
+    public void btnEliminarHandler() {
+        if (sinError("No se puede eliminar", productoDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
+        }
+    }
+
+    @Override
     public void seleccionarRegistro(Producto entidad) {
         super.seleccionarRegistro(entidad);
         tabActiva = 0;

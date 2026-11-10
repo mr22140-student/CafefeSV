@@ -17,7 +17,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
 public class RolResource extends AbstractResource<Rol> {
 
     @Inject
-    RolDAO dao;
+    RolDAO rolDAO;
 
     public RolResource() {
         super(Rol.class);
@@ -25,7 +25,7 @@ public class RolResource extends AbstractResource<Rol> {
 
     @Override
     protected AbstractDAO<Rol, UUID> dao() {
-        return dao;
+        return rolDAO;
     }
 
     @Override
@@ -48,12 +48,12 @@ public class RolResource extends AbstractResource<Rol> {
     /** Un rol con empleados no se puede desactivar. */
     @Override
     protected String validarModificar(Rol nuevo, Rol guardado) {
-        return dao.validarInactivar(nuevo);
+        return rolDAO.validarInactivar(nuevo);
     }
 
     /** Un rol con empleados no se puede eliminar. */
     @Override
     protected String validarEliminar(Rol guardado) {
-        return dao.validarEliminar(guardado);
+        return rolDAO.validarEliminar(guardado);
     }
 }

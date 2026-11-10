@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.OrdenProducto;
 public class FacturaOrdenProductoResource extends AbstractResource<FacturaOrdenProducto> {
 
     @Inject
-    FacturaOrdenProductoDAO dao;
+    FacturaOrdenProductoDAO facturaOrdenProductoDAO;
 
     public FacturaOrdenProductoResource() {
         super(FacturaOrdenProducto.class);
@@ -32,7 +32,7 @@ public class FacturaOrdenProductoResource extends AbstractResource<FacturaOrdenP
 
     @Override
     protected AbstractDAO<FacturaOrdenProducto, UUID> dao() {
-        return dao;
+        return facturaOrdenProductoDAO;
     }
 
     @Override
@@ -52,7 +52,9 @@ public class FacturaOrdenProductoResource extends AbstractResource<FacturaOrdenP
                 OrdenProducto::getIdOrdenProducto, "idOrdenProducto"));
     }
 
-    /** Sin precio, copia el de la orden (ya con descuento, si lo tuvo). */
+    /**
+     * Sin precio, copia el de la orden (ya con descuento, si lo tuvo).
+     */
     @Override
     protected void prepararNuevo(FacturaOrdenProducto registro) {
         if (registro.getPrecio() == null && registro.getIdOrdenProducto() != null) {
@@ -60,42 +62,53 @@ public class FacturaOrdenProductoResource extends AbstractResource<FacturaOrdenP
         }
     }
 
-    /** Factura PENDIENTE, producto de orden, precio >= 0 y no facturado dos veces. */
+    /**
+     * Factura PENDIENTE, producto de orden, precio >= 0 y no facturado dos
+     * veces.
+     */
     @Override
     protected String validarCrear(FacturaOrdenProducto nuevo) {
-        return dao.validarDetalle(nuevo);
+        return facturaOrdenProductoDAO.validarDetalle(nuevo);
     }
 
-    /** La factura en la que estaba guardado también debe seguir PENDIENTE. */
+    /**
+     * La factura en la que estaba guardado también debe seguir PENDIENTE.
+     */
     @Override
     protected String validarModificar(FacturaOrdenProducto nuevo, FacturaOrdenProducto guardado) {
-        return primerError(dao.validarFacturaEditable(guardado.getIdFactura()), dao.validarDetalle(nuevo));
+        return primerError(facturaOrdenProductoDAO.validarFacturaEditable(guardado.getIdFactura()), facturaOrdenProductoDAO.validarDetalle(nuevo));
     }
 
-    /** Solo se quitan productos de facturas PENDIENTES. */
+    /**
+     * Solo se quitan productos de facturas PENDIENTES.
+     */
     @Override
     protected String validarEliminar(FacturaOrdenProducto guardado) {
-        return dao.validarFacturaEditable(guardado.getIdFactura());
+        return facturaOrdenProductoDAO.validarFacturaEditable(guardado.getIdFactura());
     }
 
-    /** GET /factura_orden_producto/factura/{id}: los productos de una factura. */
+    /**
+     * GET /factura_orden_producto/factura/{id}: los productos de una factura.
+     */
     @GET
     @Path("factura/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porFactura(@PathParam("id") String id) {
-        return listarPorPadre(id, Factura.class, dao::findByFactura);
+        return listarPorPadre(id, Factura.class, facturaOrdenProductoDAO::findByFactura);
     }
 
-    /** GET /factura_orden_producto/disponibles: productos de orden que aún no se facturan. */
+    /**
+     * GET /factura_orden_producto/disponibles: productos de orden que aún no se
+     * facturan.
+     */
     @GET
     @Path("disponibles")
     @Produces(MediaType.APPLICATION_JSON)
     public Response disponibles() {
         try {
-            return Response.ok(dao.findOrdenProductoDisponibles(), MediaType.APPLICATION_JSON).build();
+            return Response.ok(facturaOrdenProductoDAO.findOrdenProductoDisponibles(), MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .header("App-Error", "Error interno del servidor").build();
+            return manejar(ex, "disponibles");
         }
     }
 }

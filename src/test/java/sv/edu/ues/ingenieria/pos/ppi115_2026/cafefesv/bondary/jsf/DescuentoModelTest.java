@@ -87,4 +87,27 @@ public class DescuentoModelTest extends ModelTestBase {
 
         assertEquals("VIGENTE", model.vigencia(descuento));
     }
+
+    @Test
+    void noEliminaSiElDescuentoEstaAsignado() {
+        Descuento descuento = new Descuento(UUID.randomUUID());
+        when(descuentoDAO.validarEliminar(descuento)).thenReturn("Hay productos que tienen asignado este descuento.");
+        model.setRegistro(descuento);
+
+        model.btnEliminarHandler();
+
+        verify(descuentoDAO, never()).delete(any());
+        assertEquals("No se puede eliminar", ultimoMensaje().getSummary());
+    }
+
+    @Test
+    void eliminaSiElDescuentoNoEstaAsignado() {
+        Descuento descuento = new Descuento(UUID.randomUUID());
+        when(descuentoDAO.validarEliminar(descuento)).thenReturn(null);
+        model.setRegistro(descuento);
+
+        model.btnEliminarHandler();
+
+        verify(descuentoDAO).delete(descuento);
+    }
 }

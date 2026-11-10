@@ -39,8 +39,8 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
             return List.of();
         }
         return em.createQuery(
-                "SELECT d FROM Descuento d WHERE d.idTipoDescuento = :tipo "
-                + "AND (d.fechaHasta IS NULL OR d.fechaHasta >= :ahora) ORDER BY d.nombre", Descuento.class)
+                "SELECT descuento FROM Descuento descuento WHERE descuento.idTipoDescuento = :tipo "
+                + "AND (descuento.fechaHasta IS NULL OR descuento.fechaHasta >= :ahora) ORDER BY descuento.nombre", Descuento.class)
                 .setParameter("tipo", tipoDescuento)
                 .setParameter("ahora", new Date(), TemporalType.TIMESTAMP)
                 .getResultList();
@@ -109,5 +109,28 @@ public class DescuentoDAO extends AbstractDAO<Descuento, UUID> {
             }
         }
         return vigentes;
+    }
+
+    /**
+     * Cuántos productos tienen asignado este descuento.
+     */
+    public long countProductos(Descuento descuento) {
+        return em.createQuery(
+                "SELECT COUNT(asignacion) FROM DescuentoProducto asignacion WHERE asignacion.idDescuento = :descuento",
+                Long.class)
+                .setParameter("descuento", descuento)
+                .getSingleResult();
+    }
+
+    /**
+     * Un descuento no se puede eliminar si algún producto lo tiene asignado.
+     *
+     * @return el mensaje de error, o null si se puede eliminar
+     */
+    public String validarEliminar(Descuento descuento) {
+        if (descuento != null && countProductos(descuento) > 0) {
+            return "Hay productos que tienen asignado este descuento. Quíteselo primero.";
+        }
+        return null;
     }
 }

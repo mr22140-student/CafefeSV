@@ -30,7 +30,7 @@ public class AbstractModelTest extends ModelTestBase {
 
     @Mock
 
-    private GenericDAO<TipoProducto, UUID> dao;
+    private GenericDAO<TipoProducto, UUID> tipoProductoDAO;
 
     private AbstractModel<TipoProducto, UUID> model;
 
@@ -39,7 +39,7 @@ public class AbstractModelTest extends ModelTestBase {
         model = new AbstractModel<>() {
             @Override
             protected GenericDAO<TipoProducto, UUID> getDAO() {
-                return dao;
+                return tipoProductoDAO;
             }
 
             @Override
@@ -53,7 +53,7 @@ public class AbstractModelTest extends ModelTestBase {
     @Test
     void iniciar_cargaLosRegistrosYDejaElEstadoEnNinguno() {
         List<TipoProducto> lista = List.of(tipo());
-        when(dao.findRange(0, 1000)).thenReturn(lista);
+        when(tipoProductoDAO.findRange(0, 1000)).thenReturn(lista);
         model.setEstado(AbstractModel.ESTADO_CREAR);
 
         model.iniciar();
@@ -79,11 +79,11 @@ public class AbstractModelTest extends ModelTestBase {
 
     @Test
     void seleccionarRegistro_cambiaAEstadoModificar() {
-        TipoProducto t = tipo();
+        TipoProducto tipoProducto = tipo();
 
-        model.seleccionarRegistro(t);
+        model.seleccionarRegistro(tipoProducto);
 
-        assertSame(t, model.getRegistro());
+        assertSame(tipoProducto, model.getRegistro());
         assertEquals(AbstractModel.ESTADO_MODIFICAR, model.getEstado());
     }
 
@@ -103,7 +103,7 @@ public class AbstractModelTest extends ModelTestBase {
 
         assertNull(model.getRegistro());
         assertEquals(AbstractModel.ESTADO_NINGUNO, model.getEstado());
-        verify(dao).findRange(0, 1000);
+        verify(tipoProductoDAO).findRange(0, 1000);
     }
 
     // ===================== crear =====================
@@ -114,7 +114,7 @@ public class AbstractModelTest extends ModelTestBase {
 
         model.btnCrearHandler();
 
-        verify(dao).save(nuevo);
+        verify(tipoProductoDAO).save(nuevo);
         assertNull(model.getRegistro());
         assertEquals(AbstractModel.ESTADO_NINGUNO, model.getEstado());
         assertEquals(FacesMessage.SEVERITY_INFO, ultimoMensaje().getSeverity());
@@ -124,7 +124,7 @@ public class AbstractModelTest extends ModelTestBase {
     @Test
     void btnCrear_siElDaoFalla_muestraErrorYSeQuedaEnCrear() {
         model.btnNuevoHandler();
-        doThrow(new IllegalStateException("falla simulada")).when(dao).save(any());
+        doThrow(new IllegalStateException("falla simulada")).when(tipoProductoDAO).save(any());
 
         model.btnCrearHandler();
 
@@ -138,19 +138,19 @@ public class AbstractModelTest extends ModelTestBase {
     void btnCrear_sinRegistro_muestraAdvertenciaYNoGuarda() {
         model.btnCrearHandler();
 
-        verify(dao, never()).save(any());
+        verify(tipoProductoDAO, never()).save(any());
         assertEquals(FacesMessage.SEVERITY_WARN, ultimoMensaje().getSeverity());
     }
 
     // ===================== modificar =====================
     @Test
     void btnModificar_exitoso_actualizaYVuelveAEstadoNinguno() {
-        TipoProducto t = tipo();
-        model.seleccionarRegistro(t);
+        TipoProducto tipoProducto = tipo();
+        model.seleccionarRegistro(tipoProducto);
 
         model.btnModificarHandler();
 
-        verify(dao).update(t);
+        verify(tipoProductoDAO).update(tipoProducto);
         assertNull(model.getRegistro());
         assertEquals(AbstractModel.ESTADO_NINGUNO, model.getEstado());
         assertEquals("Registro modificado con éxito", ultimoMensaje().getSummary());
@@ -159,7 +159,7 @@ public class AbstractModelTest extends ModelTestBase {
     @Test
     void btnModificar_siElDaoFalla_muestraErrorYSeQuedaEnModificar() {
         model.seleccionarRegistro(tipo());
-        when(dao.update(any())).thenThrow(new IllegalStateException("falla simulada"));
+        when(tipoProductoDAO.update(any())).thenThrow(new IllegalStateException("falla simulada"));
 
         model.btnModificarHandler();
 
@@ -171,19 +171,19 @@ public class AbstractModelTest extends ModelTestBase {
     void btnModificar_sinRegistro_muestraAdvertenciaYNoActualiza() {
         model.btnModificarHandler();
 
-        verify(dao, never()).update(any());
+        verify(tipoProductoDAO, never()).update(any());
         assertEquals(FacesMessage.SEVERITY_WARN, ultimoMensaje().getSeverity());
     }
 
     // ===================== eliminar =====================
     @Test
     void btnEliminar_exitoso_eliminaYVuelveAEstadoNinguno() {
-        TipoProducto t = tipo();
-        model.seleccionarRegistro(t);
+        TipoProducto tipoProducto = tipo();
+        model.seleccionarRegistro(tipoProducto);
 
         model.btnEliminarHandler();
 
-        verify(dao).delete(t);
+        verify(tipoProductoDAO).delete(tipoProducto);
         assertNull(model.getRegistro());
         assertEquals(AbstractModel.ESTADO_NINGUNO, model.getEstado());
         assertEquals("Registro eliminado con éxito", ultimoMensaje().getSummary());
@@ -192,7 +192,7 @@ public class AbstractModelTest extends ModelTestBase {
     @Test
     void btnEliminar_siElDaoFalla_muestraError() {
         model.seleccionarRegistro(tipo());
-        doThrow(new IllegalStateException("falla simulada")).when(dao).delete(any());
+        doThrow(new IllegalStateException("falla simulada")).when(tipoProductoDAO).delete(any());
 
         model.btnEliminarHandler();
 
@@ -203,7 +203,7 @@ public class AbstractModelTest extends ModelTestBase {
     void btnEliminar_sinRegistro_muestraAdvertenciaYNoElimina() {
         model.btnEliminarHandler();
 
-        verify(dao, never()).delete(any());
+        verify(tipoProductoDAO, never()).delete(any());
         assertEquals(FacesMessage.SEVERITY_WARN, ultimoMensaje().getSeverity());
     }
     // ===================== sinError =====================
@@ -223,9 +223,9 @@ public class AbstractModelTest extends ModelTestBase {
     }
 
     private TipoProducto tipo() {
-        TipoProducto t = new TipoProducto(UUID.randomUUID());
-        t.setNombre("Bebidas");
-        return t;
+        TipoProducto tipoProducto = new TipoProducto(UUID.randomUUID());
+        tipoProducto.setNombre("Bebidas");
+        return tipoProducto;
     }
 
 }

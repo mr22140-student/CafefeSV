@@ -32,8 +32,8 @@ public class FacturaOrdenProductoDAO extends AbstractDAO<FacturaOrdenProducto, U
 
     public List<FacturaOrdenProducto> findByFactura(Factura factura) {
         return em.createQuery(
-                "SELECT x FROM FacturaOrdenProducto x "
-                + "WHERE x.idFactura = :factura",
+                "SELECT detalle FROM FacturaOrdenProducto detalle "
+                + "WHERE detalle.idFactura = :factura",
                 FacturaOrdenProducto.class
         )
                 .setParameter("factura", factura)
@@ -42,8 +42,8 @@ public class FacturaOrdenProductoDAO extends AbstractDAO<FacturaOrdenProducto, U
 
     public List<FacturaOrdenProducto> findByOrdenProducto(OrdenProducto ordenProducto) {
         return em.createQuery(
-                "SELECT x FROM FacturaOrdenProducto x "
-                + "WHERE x.idOrdenProducto = :ordenProducto",
+                "SELECT detalle FROM FacturaOrdenProducto detalle "
+                + "WHERE detalle.idOrdenProducto = :ordenProducto",
                 FacturaOrdenProducto.class
         )
                 .setParameter("ordenProducto", ordenProducto)
@@ -56,11 +56,11 @@ public class FacturaOrdenProductoDAO extends AbstractDAO<FacturaOrdenProducto, U
      */
     public List<OrdenProducto> findOrdenProductoDisponibles() {
         return em.createQuery(
-                "SELECT op FROM OrdenProducto op "
-                + "LEFT JOIN FETCH op.idProducto "
-                + "LEFT JOIN FETCH op.idOrden "
+                "SELECT detalleOrden FROM OrdenProducto detalleOrden "
+                + "LEFT JOIN FETCH detalleOrden.idProducto "
+                + "LEFT JOIN FETCH detalleOrden.idOrden "
                 + "WHERE NOT EXISTS ("
-                + "   SELECT f FROM FacturaOrdenProducto f WHERE f.idOrdenProducto = op)",
+                + "   SELECT facturado FROM FacturaOrdenProducto facturado WHERE facturado.idOrdenProducto = detalleOrden)",
                 OrdenProducto.class)
                 .getResultList();
     }

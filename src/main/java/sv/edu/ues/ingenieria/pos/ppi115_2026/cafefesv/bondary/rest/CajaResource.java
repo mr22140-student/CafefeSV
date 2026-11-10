@@ -17,7 +17,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caja;
 public class CajaResource extends AbstractResource<Caja> {
 
     @Inject
-    CajaDAO dao;
+    CajaDAO cajaDAO;
 
     public CajaResource() {
         super(Caja.class);
@@ -25,7 +25,7 @@ public class CajaResource extends AbstractResource<Caja> {
 
     @Override
     protected AbstractDAO<Caja, UUID> dao() {
-        return dao;
+        return cajaDAO;
     }
 
     @Override
@@ -48,6 +48,6 @@ public class CajaResource extends AbstractResource<Caja> {
     /** Una caja con facturas no se puede eliminar. */
     @Override
     protected String validarEliminar(Caja guardado) {
-        return dao.validarEliminar(guardado);
+        return cajaDAO.validarEliminar(guardado);
     }
 }

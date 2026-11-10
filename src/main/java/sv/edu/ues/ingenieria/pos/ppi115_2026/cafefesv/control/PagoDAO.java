@@ -35,7 +35,7 @@ public class PagoDAO extends AbstractDAO<Pago, UUID> {
      */
     public long countDetalles(Pago pago) {
         return em.createQuery(
-                "SELECT COUNT(d) FROM PagoDetalle d WHERE d.idPago = :pago", Long.class)
+                "SELECT COUNT(detalle) FROM PagoDetalle detalle WHERE detalle.idPago = :pago", Long.class)
                 .setParameter("pago", pago)
                 .getSingleResult();
     }
@@ -45,7 +45,7 @@ public class PagoDAO extends AbstractDAO<Pago, UUID> {
      */
     public BigDecimal sumaMontos(Pago pago) {
         BigDecimal suma = em.createQuery(
-                "SELECT SUM(d.monto) FROM PagoDetalle d WHERE d.idPago = :pago", BigDecimal.class)
+                "SELECT SUM(detalle.monto) FROM PagoDetalle detalle WHERE detalle.idPago = :pago", BigDecimal.class)
                 .setParameter("pago", pago)
                 .getSingleResult();
         return suma != null ? suma : BigDecimal.ZERO;
@@ -56,7 +56,7 @@ public class PagoDAO extends AbstractDAO<Pago, UUID> {
      */
     public BigDecimal totalFactura(Factura factura) {
         BigDecimal total = em.createQuery(
-                "SELECT SUM(x.precio) FROM FacturaOrdenProducto x WHERE x.idFactura = :factura", BigDecimal.class)
+                "SELECT SUM(detalle.precio) FROM FacturaOrdenProducto detalle WHERE detalle.idFactura = :factura", BigDecimal.class)
                 .setParameter("factura", factura)
                 .getSingleResult();
         return total != null ? total : BigDecimal.ZERO;
@@ -68,10 +68,10 @@ public class PagoDAO extends AbstractDAO<Pago, UUID> {
      */
     public boolean existePagoActivo(Factura factura, UUID idExcluir) {
         Long total = em.createQuery(
-                "SELECT COUNT(x) FROM Pago x "
-                + "WHERE x.idFactura = :factura "
-                + "AND (x.estado IS NULL OR x.estado <> 'ANULADO') "
-                + "AND x.idPago <> :excluir", Long.class)
+                "SELECT COUNT(pago) FROM Pago pago "
+                + "WHERE pago.idFactura = :factura "
+                + "AND (pago.estado IS NULL OR pago.estado <> 'ANULADO') "
+                + "AND pago.idPago <> :excluir", Long.class)
                 .setParameter("factura", factura)
                 .setParameter("excluir", idExcluir != null ? idExcluir : new UUID(0L, 0L))
                 .getSingleResult();

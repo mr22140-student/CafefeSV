@@ -22,7 +22,7 @@ public class FacturaResource extends AbstractResource<Factura> {
     private static final String CLIENTE_DEFECTO = "Consumidor final";
 
     @Inject
-    FacturaDAO dao;
+    FacturaDAO facturaDAO;
 
     public FacturaResource() {
         super(Factura.class);
@@ -30,7 +30,7 @@ public class FacturaResource extends AbstractResource<Factura> {
 
     @Override
     protected AbstractDAO<Factura, UUID> dao() {
-        return dao;
+        return facturaDAO;
     }
 
     @Override
@@ -69,18 +69,18 @@ public class FacturaResource extends AbstractResource<Factura> {
     /** Caja, cajero, cliente de máximo 155 caracteres y estado válido. */
     @Override
     protected String validarCrear(Factura nuevo) {
-        return dao.validarFactura(nuevo);
+        return facturaDAO.validarFactura(nuevo);
     }
 
     /** Una factura ANULADA (según la base) ya no se modifica. */
     @Override
     protected String validarModificar(Factura nuevo, Factura guardado) {
-        return primerError(dao.validarModificable(guardado.getEstado()), dao.validarFactura(nuevo));
+        return primerError(facturaDAO.validarModificable(guardado.getEstado()), facturaDAO.validarFactura(nuevo));
     }
 
     /** Una factura con productos o pagos no se puede eliminar. */
     @Override
     protected String validarEliminar(Factura guardado) {
-        return dao.validarEliminar(guardado);
+        return facturaDAO.validarEliminar(guardado);
     }
 }

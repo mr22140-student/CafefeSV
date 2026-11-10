@@ -36,23 +36,12 @@ public class OrdenProductoDAO extends AbstractDAO<OrdenProducto, UUID> {
      */
     public List<OrdenProducto> findByOrden(Orden orden) {
         return em.createQuery(
-                "SELECT x FROM OrdenProducto x "
-                + "LEFT JOIN FETCH x.idProducto "
-                + "WHERE x.idOrden = :orden",
+                "SELECT detalle FROM OrdenProducto detalle "
+                + "LEFT JOIN FETCH detalle.idProducto "
+                + "WHERE detalle.idOrden = :orden",
                 OrdenProducto.class)
                 .setParameter("orden", orden)
                 .getResultList();
-    }
-
-    /**
-     * Cuantos productos tiene una orden (para no eliminar ordenes con
-     * productos).
-     */
-    public long countByOrden(Orden orden) {
-        return em.createQuery(
-                "SELECT COUNT(x) FROM OrdenProducto x WHERE x.idOrden = :orden", Long.class)
-                .setParameter("orden", orden)
-                .getSingleResult();
     }
 
     /**
@@ -60,8 +49,8 @@ public class OrdenProductoDAO extends AbstractDAO<OrdenProducto, UUID> {
      */
     public long countFacturas(OrdenProducto ordenProducto) {
         return em.createQuery(
-                "SELECT COUNT(f) FROM FacturaOrdenProducto f WHERE f.idOrdenProducto = :op", Long.class)
-                .setParameter("op", ordenProducto)
+                "SELECT COUNT(facturado) FROM FacturaOrdenProducto facturado WHERE facturado.idOrdenProducto = :detalleOrden", Long.class)
+                .setParameter("detalleOrden", ordenProducto)
                 .getSingleResult();
     }
 

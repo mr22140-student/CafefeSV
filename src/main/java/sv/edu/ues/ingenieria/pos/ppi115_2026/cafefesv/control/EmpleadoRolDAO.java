@@ -29,8 +29,8 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
 
     public List<EmpleadoRol> findByRol(Rol rol) {
         return em.createQuery(
-                "SELECT x FROM EmpleadoRol x "
-                + "WHERE x.idRol = :rol",
+                "SELECT asignacion FROM EmpleadoRol asignacion "
+                + "WHERE asignacion.idRol = :rol",
                 EmpleadoRol.class
         )
                 .setParameter("rol", rol)
@@ -43,10 +43,10 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
      */
     public boolean existeAsignacion(UUID idEmpleado, Rol rol, UUID idExcluir) {
         Long total = em.createQuery(
-                "SELECT COUNT(x) FROM EmpleadoRol x "
-                + "WHERE x.idEmpleado = :emp AND x.idRol = :rol "
-                + "AND x.idEmpleadoRol <> :excluir", Long.class)
-                .setParameter("emp", idEmpleado)
+                "SELECT COUNT(asignacion) FROM EmpleadoRol asignacion "
+                + "WHERE asignacion.idEmpleado = :idEmpleado AND asignacion.idRol = :rol "
+                + "AND asignacion.idEmpleadoRol <> :excluir", Long.class)
+                .setParameter("idEmpleado", idEmpleado)
                 .setParameter("rol", rol)
                 .setParameter("excluir", idExcluir != null ? idExcluir : new UUID(0L, 0L))
                 .getSingleResult();
@@ -58,8 +58,8 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
      */
     public long countOrdenes(EmpleadoRol empleadoRol) {
         return em.createQuery(
-                "SELECT COUNT(o) FROM Orden o WHERE o.idEmpleadoRol = :er", Long.class)
-                .setParameter("er", empleadoRol)
+                "SELECT COUNT(orden) FROM Orden orden WHERE orden.idEmpleadoRol = :asignacion", Long.class)
+                .setParameter("asignacion", empleadoRol)
                 .getSingleResult();
     }
 
@@ -68,8 +68,8 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
      */
     public long countFacturas(EmpleadoRol empleadoRol) {
         return em.createQuery(
-                "SELECT COUNT(f) FROM Factura f WHERE f.idEmpleadoRol = :er", Long.class)
-                .setParameter("er", empleadoRol)
+                "SELECT COUNT(factura) FROM Factura factura WHERE factura.idEmpleadoRol = :asignacion", Long.class)
+                .setParameter("asignacion", empleadoRol)
                 .getSingleResult();
     }
 
@@ -78,10 +78,10 @@ public class EmpleadoRolDAO extends AbstractDAO<EmpleadoRol, UUID> {
      */
     public List<EmpleadoRol> findByEmpleado(UUID idEmpleado) {
         return em.createQuery(
-                "SELECT x FROM EmpleadoRol x "
-                + "LEFT JOIN FETCH x.idRol "
-                + "WHERE x.idEmpleado = :emp", EmpleadoRol.class)
-                .setParameter("emp", idEmpleado)
+                "SELECT asignacion FROM EmpleadoRol asignacion "
+                + "LEFT JOIN FETCH asignacion.idRol "
+                + "WHERE asignacion.idEmpleado = :idEmpleado", EmpleadoRol.class)
+                .setParameter("idEmpleado", idEmpleado)
                 .getResultList();
     }
 

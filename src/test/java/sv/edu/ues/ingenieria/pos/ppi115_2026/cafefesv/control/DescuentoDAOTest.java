@@ -90,6 +90,21 @@ class DescuentoDAOTest extends AbstractDAOTestBase<Descuento, DescuentoDAO> {
         assertEquals(List.of(abierto), dao.buscarVigentesEn(new Date()));
     }
 
+    // ===================== validarEliminar =====================
+    @Test
+    void validarEliminar_asignadoAProductos_devuelveError() {
+        simularConteo(1);
+
+        assertNotNull(dao.validarEliminar(descuento(tipoDescuento(true), enDias(0), null)));
+    }
+
+    @Test
+    void validarEliminar_sinProductos_devuelveNull() {
+        simularConteo(0);
+
+        assertNull(dao.validarEliminar(descuento(tipoDescuento(true), enDias(0), null)));
+    }
+
     // ===================== ayudantes =====================
     private TipoDescuento tipoDescuento(boolean activo) {
         TipoDescuento tipoDescuento = new TipoDescuento(UUID.randomUUID());

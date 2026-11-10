@@ -16,7 +16,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 public class TipoDescuentoResource extends AbstractResource<TipoDescuento> {
 
     @Inject
-    TipoDescuentoDAO dao;
+    TipoDescuentoDAO tipoDescuentoDAO;
 
     public TipoDescuentoResource() {
         super(TipoDescuento.class);
@@ -24,7 +24,7 @@ public class TipoDescuentoResource extends AbstractResource<TipoDescuento> {
 
     @Override
     protected AbstractDAO<TipoDescuento, UUID> dao() {
-        return dao;
+        return tipoDescuentoDAO;
     }
 
     @Override
@@ -51,12 +51,12 @@ public class TipoDescuentoResource extends AbstractResource<TipoDescuento> {
     /** Un tipo con descuentos vigentes no se puede desactivar. */
     @Override
     protected String validarModificar(TipoDescuento nuevo, TipoDescuento guardado) {
-        return dao.validarInactivar(nuevo);
+        return tipoDescuentoDAO.validarInactivar(nuevo);
     }
 
     /** Un tipo con descuentos no se puede eliminar. */
     @Override
     protected String validarEliminar(TipoDescuento guardado) {
-        return dao.validarEliminar(guardado);
+        return tipoDescuentoDAO.validarEliminar(guardado);
     }
 }

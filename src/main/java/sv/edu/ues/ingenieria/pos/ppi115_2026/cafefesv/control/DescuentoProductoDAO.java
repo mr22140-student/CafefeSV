@@ -34,8 +34,8 @@ public class DescuentoProductoDAO extends AbstractDAO<DescuentoProducto, UUID> {
 
     public List<DescuentoProducto> findByDescuento(Descuento descuento) {
         return em.createQuery(
-                "SELECT x FROM DescuentoProducto x "
-                + "WHERE x.idDescuento = :descuento",
+                "SELECT asignacion FROM DescuentoProducto asignacion "
+                + "WHERE asignacion.idDescuento = :descuento",
                 DescuentoProducto.class
         )
                 .setParameter("descuento", descuento)
@@ -44,8 +44,8 @@ public class DescuentoProductoDAO extends AbstractDAO<DescuentoProducto, UUID> {
 
     public List<DescuentoProducto> findByProducto(Producto producto) {
         return em.createQuery(
-                "SELECT x FROM DescuentoProducto x "
-                + "WHERE x.idProducto = :producto",
+                "SELECT asignacion FROM DescuentoProducto asignacion "
+                + "WHERE asignacion.idProducto = :producto",
                 DescuentoProducto.class
         )
                 .setParameter("producto", producto)

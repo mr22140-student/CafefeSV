@@ -65,6 +65,13 @@ public class DescuentoModel extends AbstractModel<Descuento, UUID> {
         }
     }
 
+    @Override
+    public void btnEliminarHandler() {
+        if (sinError("No se puede eliminar", descuentoDAO.validarEliminar(registro))) {
+            super.btnEliminarHandler();
+        }
+    }
+
     /**
      * Estado del descuento para la columna de vigencia de la tabla.
      */

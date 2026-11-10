@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control;
 
 import jakarta.persistence.EntityManager;
@@ -122,19 +118,19 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
         }
     }
     
-        /**
+    /**
      * Busca una entidad de CUALQUIER tipo por su id. La usan los recursos
      * REST para cambiar una relación que llega solo con su id por la entidad
      * real de la base.
      *
      * @return la entidad, o null si no existe
      */
-    public <R> R buscarReferencia(Class<R> tipo, Object id) {
-        if (tipo == null || id == null) {
+    public <Relacion> Relacion buscarReferencia(Class<Relacion> claseRelacion, Object id) {
+        if (claseRelacion == null || id == null) {
             throw new IllegalArgumentException("El tipo y el id no pueden ser nulos");
         }
         try {
-            return getEntityManager().find(tipo, id);
+            return getEntityManager().find(claseRelacion, id);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error al buscar la referencia", e);
             throw new IllegalStateException("Error al buscar la referencia", e);
@@ -144,10 +140,10 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
     @Override
     public List<Entidad> findAll() {
         try {
-            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-            CriteriaQuery<Entidad> cq = cb.createQuery(entityClass);
-            cq.select(cq.from(entityClass));
-            return getEntityManager().createQuery(cq).getResultList();
+            CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<Entidad> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+            criteriaQuery.select(criteriaQuery.from(entityClass));
+            return getEntityManager().createQuery(criteriaQuery).getResultList();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error al listar los registros", e);
             throw new IllegalStateException("Error al listar los registros", e);
@@ -160,10 +156,10 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
             throw new IllegalArgumentException("Rango inválido: start=" + start + ", end=" + end);
         }
         try {
-            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-            CriteriaQuery<Entidad> cq = cb.createQuery(entityClass);
-            cq.select(cq.from(entityClass));
-            TypedQuery<Entidad> query = getEntityManager().createQuery(cq);
+            CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<Entidad> criteriaQuery = criteriaBuilder.createQuery(entityClass);
+            criteriaQuery.select(criteriaQuery.from(entityClass));
+            TypedQuery<Entidad> query = getEntityManager().createQuery(criteriaQuery);
             query.setFirstResult(start);
             query.setMaxResults(end - start);
             return query.getResultList();
@@ -176,11 +172,11 @@ public abstract class AbstractDAO<Entidad, ID> implements GenericDAO<Entidad, ID
     @Override
     public long count() {
         try {
-            CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
-            CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-            Root<Entidad> root = cq.from(entityClass);
-            cq.select(cb.count(root));
-            return getEntityManager().createQuery(cq).getSingleResult();
+            CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+            CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+            Root<Entidad> root = criteriaQuery.from(entityClass);
+            criteriaQuery.select(criteriaBuilder.count(root));
+            return getEntityManager().createQuery(criteriaQuery).getSingleResult();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error al contar los registros", e);
             throw new IllegalStateException("Error al contar los registros", e);

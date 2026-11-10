@@ -205,7 +205,7 @@ public abstract class AbstractDAOTestBase<Entidad, Dao extends AbstractDAO<Entid
 
     // ===================== consultas propias de cada DAO =====================
     // Recorre todos los métodos públicos propios del DAO (findByNombre,
-    // countByOrden, etc.) y verifica que usan JPA y devuelven el resultado de la consulta.
+    // countProductos, etc.) y verifica que usan JPA y devuelven el resultado de la consulta.
     @Test
     void consultasPropias_usanJpaYDevuelvenSuResultado() throws Exception {
         @SuppressWarnings("unchecked")
@@ -291,12 +291,12 @@ public abstract class AbstractDAOTestBase<Entidad, Dao extends AbstractDAO<Entid
     //los métodos públicos propios que devuelven un resultado
     private List<Method> consultasPropias() {
         List<Method> metodos = new ArrayList<>();
-        for (Method m : dao.getClass().getDeclaredMethods()) {
-            int mod = m.getModifiers();
-            if (Modifier.isPublic(mod) && !Modifier.isStatic(mod) && !m.isSynthetic()
-                    && !esMetodoDeReglas(m)
-                    && m.getReturnType() != void.class) {   // ← agregar esta línea
-                metodos.add(m);
+        for (Method metodo : dao.getClass().getDeclaredMethods()) {
+            int modificadores = metodo.getModifiers();
+            if (Modifier.isPublic(modificadores) && !Modifier.isStatic(modificadores) && !metodo.isSynthetic()
+                    && !esMetodoDeReglas(metodo)
+                    && metodo.getReturnType() != void.class) {
+                metodos.add(metodo);
             }
         }
         return metodos;

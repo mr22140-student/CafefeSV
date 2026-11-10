@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 public class OrdenProductoResource extends AbstractResource<OrdenProducto> {
 
     @Inject
-    OrdenProductoDAO dao;
+    OrdenProductoDAO ordenProductoDAO;
 
     public OrdenProductoResource() {
         super(OrdenProducto.class);
@@ -32,7 +32,7 @@ public class OrdenProductoResource extends AbstractResource<OrdenProducto> {
 
     @Override
     protected AbstractDAO<OrdenProducto, UUID> dao() {
-        return dao;
+        return ordenProductoDAO;
     }
 
     @Override
@@ -62,19 +62,19 @@ public class OrdenProductoResource extends AbstractResource<OrdenProducto> {
     /** Orden, producto y precio obligatorios; el producto debe estar activo. */
     @Override
     protected String validarCrear(OrdenProducto nuevo) {
-        return primerError(dao.validarDetalle(nuevo), dao.validarProductoElegido(nuevo.getIdProducto()));
+        return primerError(ordenProductoDAO.validarDetalle(nuevo), ordenProductoDAO.validarProductoElegido(nuevo.getIdProducto()));
     }
 
     /** Un producto ya facturado no se modifica. */
     @Override
     protected String validarModificar(OrdenProducto nuevo, OrdenProducto guardado) {
-        return primerError(dao.validarNoFacturado(guardado), dao.validarDetalle(nuevo));
+        return primerError(ordenProductoDAO.validarNoFacturado(guardado), ordenProductoDAO.validarDetalle(nuevo));
     }
 
     /** Un producto ya facturado no se elimina. */
     @Override
     protected String validarEliminar(OrdenProducto guardado) {
-        return dao.validarNoFacturado(guardado);
+        return ordenProductoDAO.validarNoFacturado(guardado);
     }
 
     /** GET /orden_producto/orden/{id}: los productos de una orden. */
@@ -82,6 +82,6 @@ public class OrdenProductoResource extends AbstractResource<OrdenProducto> {
     @Path("orden/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porOrden(@PathParam("id") String id) {
-        return listarPorPadre(id, Orden.class, dao::findByOrden);
+        return listarPorPadre(id, Orden.class, ordenProductoDAO::findByOrden);
     }
 }

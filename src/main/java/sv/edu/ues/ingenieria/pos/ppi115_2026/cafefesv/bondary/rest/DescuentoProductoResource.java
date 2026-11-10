@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 public class DescuentoProductoResource extends AbstractResource<DescuentoProducto> {
 
     @Inject
-    DescuentoProductoDAO dao;
+    DescuentoProductoDAO descuentoProductoDAO;
 
     public DescuentoProductoResource() {
         super(DescuentoProducto.class);
@@ -32,7 +32,7 @@ public class DescuentoProductoResource extends AbstractResource<DescuentoProduct
 
     @Override
     protected AbstractDAO<DescuentoProducto, UUID> dao() {
-        return dao;
+        return descuentoProductoDAO;
     }
 
     @Override
@@ -62,14 +62,14 @@ public class DescuentoProductoResource extends AbstractResource<DescuentoProduct
     /** Descuento vigente, porcentaje dentro del máximo, fechas válidas y sin duplicados. */
     @Override
     protected String validarCrear(DescuentoProducto nuevo) {
-        return primerError(dao.validarDescuento(nuevo), dao.validarValor(nuevo),
-                dao.validarFechas(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(descuentoProductoDAO.validarDescuento(nuevo), descuentoProductoDAO.validarValor(nuevo),
+                descuentoProductoDAO.validarFechas(nuevo), descuentoProductoDAO.validarDuplicado(nuevo));
     }
 
     @Override
     protected String validarModificar(DescuentoProducto nuevo, DescuentoProducto guardado) {
-        return primerError(dao.validarDescuento(nuevo), dao.validarValor(nuevo),
-                dao.validarFechas(nuevo), dao.validarDuplicado(nuevo));
+        return primerError(descuentoProductoDAO.validarDescuento(nuevo), descuentoProductoDAO.validarValor(nuevo),
+                descuentoProductoDAO.validarFechas(nuevo), descuentoProductoDAO.validarDuplicado(nuevo));
     }
 
     /** GET /descuento_producto/descuento/{id}: los productos de un descuento. */
@@ -77,7 +77,7 @@ public class DescuentoProductoResource extends AbstractResource<DescuentoProduct
     @Path("descuento/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porDescuento(@PathParam("id") String id) {
-        return listarPorPadre(id, Descuento.class, dao::findByDescuento);
+        return listarPorPadre(id, Descuento.class, descuentoProductoDAO::findByDescuento);
     }
 
     /** GET /descuento_producto/producto/{id}: los descuentos de un producto. */
@@ -85,6 +85,6 @@ public class DescuentoProductoResource extends AbstractResource<DescuentoProduct
     @Path("producto/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porProducto(@PathParam("id") String id) {
-        return listarPorPadre(id, Producto.class, dao::findByProducto);
+        return listarPorPadre(id, Producto.class, descuentoProductoDAO::findByProducto);
     }
 }

@@ -6,18 +6,14 @@ import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.ext.Provider;
 
-
-/**
- *
- * @author daniel
- */
-
 /**
  * Agrega a todas las respuestas los headers CORS, para que el frontend (que
  * corre en otro puerto, por ejemplo localhost:3000) pueda llamar a la API.
  *
  * No se envía Access-Control-Allow-Credentials: el navegador no acepta esa
  * opción junto con Allow-Origin "*", y la API no usa sesión ni login.
+ * 
+ * @author daniel
  */
 @Provider
 public class CorsResponseFilter implements ContainerResponseFilter {

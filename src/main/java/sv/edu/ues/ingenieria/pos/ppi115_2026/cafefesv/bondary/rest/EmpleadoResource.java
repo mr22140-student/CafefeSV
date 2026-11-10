@@ -18,7 +18,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Empleado;
 public class EmpleadoResource extends AbstractResource<Empleado> {
 
     @Inject
-    EmpleadoDAO dao;
+    EmpleadoDAO empleadoDAO;
 
     public EmpleadoResource() {
         super(Empleado.class);
@@ -26,7 +26,7 @@ public class EmpleadoResource extends AbstractResource<Empleado> {
 
     @Override
     protected AbstractDAO<Empleado, UUID> dao() {
-        return dao;
+        return empleadoDAO;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class EmpleadoResource extends AbstractResource<Empleado> {
     /** Un empleado con órdenes o facturas no se puede eliminar. */
     @Override
     protected String validarEliminar(Empleado guardado) {
-        return dao.validarEliminar(guardado);
+        return empleadoDAO.validarEliminar(guardado);
     }
 
     /**
@@ -58,6 +58,6 @@ public class EmpleadoResource extends AbstractResource<Empleado> {
      */
     @Override
     protected void eliminar(Empleado guardado) {
-        dao.eliminarConRoles(guardado);
+        empleadoDAO.eliminarConRoles(guardado);
     }
 }

@@ -24,7 +24,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
 public class EmpleadoRolResource extends AbstractResource<EmpleadoRol> {
 
     @Inject
-    EmpleadoRolDAO dao;
+    EmpleadoRolDAO empleadoRolDAO;
 
     public EmpleadoRolResource() {
         super(EmpleadoRol.class);
@@ -32,7 +32,7 @@ public class EmpleadoRolResource extends AbstractResource<EmpleadoRol> {
 
     @Override
     protected AbstractDAO<EmpleadoRol, UUID> dao() {
-        return dao;
+        return empleadoRolDAO;
     }
 
     @Override
@@ -46,14 +46,14 @@ public class EmpleadoRolResource extends AbstractResource<EmpleadoRol> {
     }
 
     /**
-     * idRol es una relación (@ManyToOne). idEmpleado es un UUID suelto (la
-     * base no tiene FK hacia empleado), así que solo se revisa que exista.
+     * idRol es una relación (@ManyToOne). idEmpleado es un UUID suelto (la base
+     * no tiene FK hacia empleado), así que solo se revisa que exista.
      */
     @Override
     protected void resolverRelaciones(EmpleadoRol registro) {
         registro.setIdRol(referencia(Rol.class, registro.getIdRol(), Rol::getIdRol, "idRol"));
         if (registro.getIdEmpleado() != null
-                && dao.buscarReferencia(Empleado.class, registro.getIdEmpleado()) == null) {
+                && empleadoRolDAO.buscarReferencia(Empleado.class, registro.getIdEmpleado()) == null) {
             throw new DatoInvalidoException("idEmpleado", "No existe idEmpleado con id " + registro.getIdEmpleado() + ".");
         }
     }
@@ -65,28 +65,38 @@ public class EmpleadoRolResource extends AbstractResource<EmpleadoRol> {
         }
     }
 
-    /** Empleado y rol obligatorios, sin repetir el par, y el rol debe estar activo. */
+    /**
+     * Empleado y rol obligatorios, sin repetir el par, y el rol debe estar
+     * activo.
+     */
     @Override
     protected String validarCrear(EmpleadoRol nuevo) {
-        return primerError(dao.validarAsignacion(nuevo), dao.validarRolElegido(nuevo.getIdRol()));
+        return primerError(empleadoRolDAO.validarAsignacion(nuevo), empleadoRolDAO.validarRolElegido(nuevo.getIdRol()));
     }
 
     @Override
     protected String validarModificar(EmpleadoRol nuevo, EmpleadoRol guardado) {
-        return primerError(dao.validarAsignacion(nuevo), dao.validarRolElegido(nuevo.getIdRol()));
+        String rolNoValido = nuevo.getIdRol() != null && !nuevo.getIdRol().equals(guardado.getIdRol())
+                ? empleadoRolDAO.validarRolElegido(nuevo.getIdRol())
+                : null;
+        return primerError(empleadoRolDAO.validarAsignacion(nuevo), rolNoValido);
     }
 
-    /** Una asignación con órdenes o facturas no se puede eliminar. */
+    /**
+     * Una asignación con órdenes o facturas no se puede eliminar.
+     */
     @Override
     protected String validarEliminar(EmpleadoRol guardado) {
-        return dao.validarEliminar(guardado);
+        return empleadoRolDAO.validarEliminar(guardado);
     }
 
-    /** GET /empleado_rol/empleado/{id}: los roles de un empleado. */
+    /**
+     * GET /empleado_rol/empleado/{id}: los roles de un empleado.
+     */
     @GET
     @Path("empleado/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response porEmpleado(@PathParam("id") String id) {
-        return listarPorPadre(id, Empleado.class, empleado -> dao.findByEmpleado(empleado.getIdEmpleado()));
+        return listarPorPadre(id, Empleado.class, empleado -> empleadoRolDAO.findByEmpleado(empleado.getIdEmpleado()));
     }
 }

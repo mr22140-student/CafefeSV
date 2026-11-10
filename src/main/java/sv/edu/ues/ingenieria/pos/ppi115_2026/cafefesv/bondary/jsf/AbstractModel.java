@@ -37,7 +37,7 @@ public abstract class AbstractModel<Entidad, ID> implements Serializable {
         this.estado = ESTADO_CREAR;
     }
 
-    public void btnNuevoHandler(ActionEvent ae) {
+    public void btnNuevoHandler(ActionEvent evento) {
         btnNuevoHandler();
     }
 
@@ -46,7 +46,7 @@ public abstract class AbstractModel<Entidad, ID> implements Serializable {
         iniciar();
     }
 
-    public void btnCancelarHandler(ActionEvent ae) {
+    public void btnCancelarHandler(ActionEvent evento) {
         btnCancelarHandler();
     }
 
@@ -67,7 +67,7 @@ public abstract class AbstractModel<Entidad, ID> implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, mensaje);
     }
 
-    public void btnCrearHandler(ActionEvent ae) {
+    public void btnCrearHandler(ActionEvent evento) {
         btnCrearHandler();
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractModel<Entidad, ID> implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, mensaje);
     }
 
-    public void btnModificarHandler(ActionEvent ae) {
+    public void btnModificarHandler(ActionEvent evento) {
         btnModificarHandler();
     }
 
@@ -109,7 +109,7 @@ public abstract class AbstractModel<Entidad, ID> implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, mensaje);
     }
 
-    public void btnEliminarHandler(ActionEvent ae) {
+    public void btnEliminarHandler(ActionEvent evento) {
         btnEliminarHandler();
     }
 

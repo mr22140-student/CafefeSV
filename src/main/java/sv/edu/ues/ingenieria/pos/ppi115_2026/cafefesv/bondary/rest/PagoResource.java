@@ -18,7 +18,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Pago;
 public class PagoResource extends AbstractResource<Pago> {
 
     @Inject
-    PagoDAO dao;
+    PagoDAO pagoDAO;
 
     @Inject
     FacturaDAO facturaDAO;
@@ -29,7 +29,7 @@ public class PagoResource extends AbstractResource<Pago> {
 
     @Override
     protected AbstractDAO<Pago, UUID> dao() {
-        return dao;
+        return pagoDAO;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class PagoResource extends AbstractResource<Pago> {
     /** Factura, estado válido y un solo pago no anulado por factura. */
     @Override
     protected String validarCrear(Pago nuevo) {
-        return dao.validarPago(nuevo);
+        return pagoDAO.validarPago(nuevo);
     }
 
     /**
@@ -67,15 +67,15 @@ public class PagoResource extends AbstractResource<Pago> {
     protected String validarModificar(Pago nuevo, Pago guardado) {
         String estadoGuardado = guardado.getEstado();
         return primerError(
-                dao.validarCambioDeEstado(estadoGuardado, nuevo.getEstado()),
-                dao.validarPago(nuevo),
-                dao.validarCompletar(nuevo, estadoGuardado));
+                pagoDAO.validarCambioDeEstado(estadoGuardado, nuevo.getEstado()),
+                pagoDAO.validarPago(nuevo),
+                pagoDAO.validarCompletar(nuevo, estadoGuardado));
     }
 
     /** Al COMPLETAR, la factura queda PAGADA; al anular un COMPLETADO, vuelve a PENDIENTE. */
     @Override
     protected void despuesDeModificar(Pago actualizado, Pago guardado) {
-        String estadoFactura = dao.calcularEstadoFactura(guardado.getEstado(), actualizado.getEstado());
+        String estadoFactura = pagoDAO.calcularEstadoFactura(guardado.getEstado(), actualizado.getEstado());
         if (estadoFactura != null && actualizado.getIdFactura() != null) {
             Factura factura = facturaDAO.findById(actualizado.getIdFactura().getIdFactura());
             if (factura != null) {
@@ -88,6 +88,6 @@ public class PagoResource extends AbstractResource<Pago> {
     /** Un pago COMPLETADO o con montos no se puede eliminar. */
     @Override
     protected String validarEliminar(Pago guardado) {
-        return dao.validarEliminar(guardado, guardado.getEstado());
+        return pagoDAO.validarEliminar(guardado, guardado.getEstado());
     }
 }

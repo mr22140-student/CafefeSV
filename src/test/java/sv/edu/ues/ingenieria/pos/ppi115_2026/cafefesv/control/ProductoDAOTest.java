@@ -39,7 +39,26 @@ public class ProductoDAOTest extends AbstractDAOTestBase<Producto, ProductoDAO> 
     void validarPrecio_mayorQueCero_devuelveNull() {
         assertNull(dao.validarPrecio(producto(new BigDecimal("2.50"))));
     }
+// ===================== validarEliminar =====================
 
+    @Test
+    void validarEliminar_conOrdenesOAsignaciones_devuelveError() {
+        simularConteo(2);
+
+        assertNotNull(dao.validarEliminar(producto(new BigDecimal("2.50"))));
+    }
+
+    @Test
+    void validarEliminar_sinOrdenesNiAsignaciones_devuelveNull() {
+        simularConteo(0);
+
+        assertNull(dao.validarEliminar(producto(new BigDecimal("2.50"))));
+    }
+
+    @Test
+    void validarEliminar_conNull_devuelveNull() {
+        assertNull(dao.validarEliminar(null));
+    }
     // ===================== ayudantes =====================
     private Producto producto(BigDecimal precioSugerido) {
         Producto producto = new Producto(UUID.randomUUID());
@@ -49,4 +68,5 @@ public class ProductoDAOTest extends AbstractDAOTestBase<Producto, ProductoDAO> 
         return producto;
     }
 
+    
 }

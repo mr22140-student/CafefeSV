@@ -16,7 +16,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoProducto;
 public class TipoProductoResource extends AbstractResource<TipoProducto> {
 
     @Inject
-    TipoProductoDAO dao;
+    TipoProductoDAO tipoProductoDAO;
 
     public TipoProductoResource() {
         super(TipoProducto.class);
@@ -24,7 +24,7 @@ public class TipoProductoResource extends AbstractResource<TipoProducto> {
 
     @Override
     protected AbstractDAO<TipoProducto, UUID> dao() {
-        return dao;
+        return tipoProductoDAO;
     }
 
     @Override
@@ -47,12 +47,12 @@ public class TipoProductoResource extends AbstractResource<TipoProducto> {
     /** Un tipo con productos activos no se puede desactivar. */
     @Override
     protected String validarModificar(TipoProducto nuevo, TipoProducto guardado) {
-        return dao.validarInactivar(nuevo);
+        return tipoProductoDAO.validarInactivar(nuevo);
     }
 
     /** Un tipo con productos no se puede eliminar. */
     @Override
     protected String validarEliminar(TipoProducto guardado) {
-        return dao.validarEliminar(guardado);
+        return tipoProductoDAO.validarEliminar(guardado);
     }
 }

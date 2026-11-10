@@ -3,7 +3,6 @@ package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.rest;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
-import java.math.BigDecimal;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.AbstractDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoDAO;
@@ -17,7 +16,7 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 public class ProductoResource extends AbstractResource<Producto> {
 
     @Inject
-    ProductoDAO dao;
+    ProductoDAO productoDAO;
 
     public ProductoResource() {
         super(Producto.class);
@@ -25,7 +24,7 @@ public class ProductoResource extends AbstractResource<Producto> {
 
     @Override
     protected AbstractDAO<Producto, UUID> dao() {
-        return dao;
+        return productoDAO;
     }
 
     @Override
@@ -38,25 +37,34 @@ public class ProductoResource extends AbstractResource<Producto> {
         registro.setIdProducto(id);
     }
 
-    /** Igual que ProductoModel: activo y precio sugerido 0 si no vienen. */
+    /**
+     * Si no viene, el producto se crea activo.
+     */
     @Override
     protected void prepararNuevo(Producto registro) {
         if (registro.getActivo() == null) {
             registro.setActivo(Boolean.TRUE);
         }
-        if (registro.getPrecioSugerido() == null) {
-            registro.setPrecioSugerido(BigDecimal.ZERO);
-        }
     }
 
-    /** El precio sugerido debe ser válido. */
+    /**
+     * El precio sugerido debe ser válido.
+     */
     @Override
     protected String validarCrear(Producto nuevo) {
-        return dao.validarPrecio(nuevo);
+        return productoDAO.validarPrecio(nuevo);
     }
 
     @Override
     protected String validarModificar(Producto nuevo, Producto guardado) {
-        return dao.validarPrecio(nuevo);
+        return productoDAO.validarPrecio(nuevo);
+    }
+
+    /**
+     * Con órdenes, características o descuentos no se puede eliminar.
+     */
+    @Override
+    protected String validarEliminar(Producto guardado) {
+        return productoDAO.validarEliminar(guardado);
     }
 }
