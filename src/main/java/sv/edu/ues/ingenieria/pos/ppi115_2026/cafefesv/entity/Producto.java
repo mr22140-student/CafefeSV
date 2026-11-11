@@ -10,7 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToMany;
@@ -113,6 +113,7 @@ public class Producto implements Serializable {
         this.comentarios = comentarios;
     }
 
+    @JsonbTransient
     public List<ProductoCaracteristica> getProductoCaracteristicaList() {
         return productoCaracteristicaList;
     }
@@ -121,6 +122,7 @@ public class Producto implements Serializable {
         this.productoCaracteristicaList = productoCaracteristicaList;
     }
 
+    @JsonbTransient
     public List<OrdenProducto> getOrdenProductoList() {
         return ordenProductoList;
     }
@@ -129,6 +131,7 @@ public class Producto implements Serializable {
         this.ordenProductoList = ordenProductoList;
     }
 
+    @JsonbTransient
     public List<DescuentoProducto> getDescuentoProductoList() {
         return descuentoProductoList;
     }
@@ -137,6 +140,7 @@ public class Producto implements Serializable {
         this.descuentoProductoList = descuentoProductoList;
     }
 
+    @JsonbTransient
     public List<ProductoTipoProducto> getProductoTipoProductoList() {
         return productoTipoProductoList;
     }

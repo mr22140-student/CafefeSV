@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -118,6 +119,7 @@ public class Descuento implements Serializable {
         this.observaciones = observaciones;
     }
 
+    @JsonbTransient
     public List<DescuentoProducto> getDescuentoProductoList() {
         return descuentoProductoList;
     }

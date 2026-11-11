@@ -288,13 +288,14 @@ public abstract class AbstractDAOTestBase<Entidad, Dao extends AbstractDAO<Entid
         }
         fail("El DAO " + dao.getClass().getSimpleName() + " no tiene un campo EntityManager");
     }
-
+    //los métodos públicos propios que devuelven un resultado
     private List<Method> consultasPropias() {
         List<Method> metodos = new ArrayList<>();
         for (Method m : dao.getClass().getDeclaredMethods()) {
             int mod = m.getModifiers();
             if (Modifier.isPublic(mod) && !Modifier.isStatic(mod) && !m.isSynthetic()
-                    && !esMetodoDeReglas(m)) {
+                    && !esMetodoDeReglas(m)
+                    && m.getReturnType() != void.class) {   // ← agregar esta línea
                 metodos.add(m);
             }
         }

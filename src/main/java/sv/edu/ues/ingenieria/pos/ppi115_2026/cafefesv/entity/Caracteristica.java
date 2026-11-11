@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
+import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -102,6 +103,7 @@ public class Caracteristica implements Serializable {
         this.idTipoCaracteristica = idTipoCaracteristica;
     }
 
+    @JsonbTransient
     public List<ProductoCaracteristica> getProductoCaracteristicaList() {
         return productoCaracteristicaList;
     }
@@ -134,5 +136,5 @@ public class Caracteristica implements Serializable {
     public String toString() {
         return "sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica[ idCaracteristica=" + idCaracteristica + " ]";
     }
-    
+
 }
