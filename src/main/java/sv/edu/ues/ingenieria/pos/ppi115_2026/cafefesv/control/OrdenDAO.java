@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
@@ -44,6 +45,27 @@ public class OrdenDAO extends AbstractDAO<Orden, UUID> {
                 Long.class)
                 .setParameter("orden", orden)
                 .getSingleResult();
+    }
+
+    /**
+     * Órdenes pendientes: las que tienen al menos un producto que todavía no
+     * está en una factura PAGADA (no facturado, o en una factura PENDIENTE).
+     * Las más antiguas primero, para que el barista las prepare en orden.
+     */
+    public List<Orden> findPendientes() {
+        return em.createQuery(
+                "SELECT orden FROM Orden orden "
+                + "WHERE EXISTS ("
+                + "   SELECT detalle FROM OrdenProducto detalle "
+                + "   WHERE detalle.idOrden = orden "
+                + "   AND NOT EXISTS ("
+                + "      SELECT facturado FROM FacturaOrdenProducto facturado "
+                + "      WHERE facturado.idOrdenProducto = detalle "
+                + "      AND facturado.idFactura.estado = :pagada)) "
+                + "ORDER BY orden.fechaCreacion",
+                Orden.class)
+                .setParameter("pagada", FacturaDAO.PAGADA)
+                .getResultList();
     }
 
     /**

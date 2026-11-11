@@ -39,6 +39,21 @@ public class ProductoTipoProductoDAO extends AbstractDAO<ProductoTipoProducto, U
     }
 
     /**
+     * Los productos de una categoría (tipo de producto), con el producto
+     * cargado en la misma consulta para que el JSON lo traiga completo.
+     */
+    public List<ProductoTipoProducto> findByTipoProducto(TipoProducto tipoProducto) {
+        return em.createQuery(
+                "SELECT asignacion FROM ProductoTipoProducto asignacion "
+                + "LEFT JOIN FETCH asignacion.producto "
+                + "WHERE asignacion.idTipoProducto = :tipoProducto",
+                ProductoTipoProducto.class
+        )
+                .setParameter("tipoProducto", tipoProducto)
+                .getResultList();
+    }
+
+    /**
      * La asignación debe tener un tipo y ese tipo debe estar activo. El tipo se
      * lee de la base para revisar su estado actual.
      *
