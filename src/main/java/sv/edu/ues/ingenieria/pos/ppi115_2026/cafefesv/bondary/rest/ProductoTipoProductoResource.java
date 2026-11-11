@@ -78,4 +78,12 @@ public class ProductoTipoProductoResource extends AbstractResource<ProductoTipoP
     public Response porProducto(@PathParam("id") String id) {
         return listarPorPadre(id, Producto.class, productoTipoProductoDAO::findByProducto);
     }
+
+    /** GET /producto_tipo_producto/tipo_producto/{id}: los productos de una categoría. */
+    @GET
+    @Path("tipo_producto/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response porTipoProducto(@PathParam("id") String id) {
+        return listarPorPadre(id, TipoProducto.class, productoTipoProductoDAO::findByTipoProducto);
+    }
 }

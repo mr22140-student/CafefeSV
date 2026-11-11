@@ -2,7 +2,11 @@ package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.bondary.rest;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.UUID;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.AbstractDAO;
@@ -69,5 +73,21 @@ public class OrdenResource extends AbstractResource<Orden> {
     @Override
     protected String validarEliminar(Orden guardado) {
         return ordenDAO.validarEliminar(guardado);
+    }
+
+    /**
+     * GET /orden/pendientes: órdenes que todavía no han sido pagadas (para el
+     * barista y el cajero). JAX-RS prefiere la ruta literal "pendientes" sobre
+     * la plantilla "{id}", así que no choca con GET /orden/{id}.
+     */
+    @GET
+    @Path("pendientes")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response pendientes() {
+        try {
+            return Response.ok(ordenDAO.findPendientes(), MediaType.APPLICATION_JSON).build();
+        } catch (Exception ex) {
+            return manejar(ex, "pendientes");
+        }
     }
 }
