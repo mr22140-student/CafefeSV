@@ -4,6 +4,7 @@
  */
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
+import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,9 +46,11 @@ public class DescuentoProducto implements Serializable {
     private UUID idDescuentoProducto;
     @Column(name = "fecha_desde")
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX")
     private Date fechaDesde;
     @Column(name = "fecha_hasta")
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX")
     private Date fechaHasta;
     @Column(name = "valor")
     private Integer valor;

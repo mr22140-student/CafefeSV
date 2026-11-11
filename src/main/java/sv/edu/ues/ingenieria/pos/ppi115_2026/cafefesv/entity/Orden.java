@@ -5,6 +5,7 @@
 package sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity;
 
 import jakarta.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -43,6 +44,7 @@ public class Orden implements Serializable {
     private UUID idOrden;
     @Column(name = "fecha_creacion")
     @Temporal(TemporalType.TIMESTAMP)
+    @JsonbDateFormat("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX")
     private Date fechaCreacion;
     @OneToMany(mappedBy = "idOrden", fetch = FetchType.LAZY)
     private List<OrdenProducto> ordenProductoList;
