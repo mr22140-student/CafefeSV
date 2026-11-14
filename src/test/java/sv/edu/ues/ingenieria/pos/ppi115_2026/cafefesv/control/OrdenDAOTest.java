@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.Date;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Rol;
@@ -103,6 +104,44 @@ public class OrdenDAOTest extends AbstractDAOTestBase<Orden, OrdenDAO> {
     @Test
     void validarDescuentoEnFecha_descuentoAbierto_devuelveNull() {
         assertNull(dao.validarDescuentoEnFecha(orden(new Date()), descuento(enDias(-1), null)));
+    }
+    // ===================== estado de preparacion =====================
+
+    @Test
+    void buscarEstado_ordenSinCambios_devuelveRecibida() {
+        assertEquals("RECIBIDA", dao.buscarEstado(UUID.randomUUID()));
+    }
+
+    @Test
+    void cambiarEstado_guardaElEstadoDeEsaOrden() {
+        UUID idOrden = UUID.randomUUID();
+        dao.cambiarEstado(idOrden, "PREPARANDO");
+
+        assertEquals("PREPARANDO", dao.buscarEstado(idOrden));
+        assertEquals("RECIBIDA", dao.buscarEstado(UUID.randomUUID()));
+    }
+
+    @Test
+    void validarEstado_estadoQueNoExiste_devuelveError() {
+        assertNotNull(dao.validarEstado(UUID.randomUUID(), "COCINANDO"));
+        assertNotNull(dao.validarEstado(UUID.randomUUID(), null));
+    }
+
+    @Test
+    void validarEstado_avanzarOMantener_devuelveNull() {
+        UUID idOrden = UUID.randomUUID();
+        dao.cambiarEstado(idOrden, "PREPARANDO");
+
+        assertNull(dao.validarEstado(idOrden, "EN_CAMINO"));
+        assertNull(dao.validarEstado(idOrden, "PREPARANDO"));
+    }
+
+    @Test
+    void validarEstado_regresarAUnEstadoAnterior_devuelveError() {
+        UUID idOrden = UUID.randomUUID();
+        dao.cambiarEstado(idOrden, "ENTREGADA");
+
+        assertNotNull(dao.validarEstado(idOrden, "PREPARANDO"));
     }
 
     // ===================== ayudantes =====================

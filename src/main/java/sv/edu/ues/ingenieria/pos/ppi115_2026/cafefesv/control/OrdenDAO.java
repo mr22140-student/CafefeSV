@@ -8,6 +8,8 @@ import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.EmpleadoRol;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Orden;
@@ -23,6 +25,21 @@ public class OrdenDAO extends AbstractDAO<Orden, UUID> {
      * Único rol que puede tomar órdenes (según la rúbrica).
      */
     private static final String ROL_PERMITIDO = "camarero";
+
+    /**
+     * Estados de preparación de una orden en el local, en el orden en que
+     * avanzan. El barista los cambia y el cliente los ve en la app.
+     */
+    public static final List<String> ESTADOS_PREPARACION = List.of("RECIBIDA", "PREPARANDO", "EN_CAMINO", "ENTREGADA");
+
+    /**
+     * El estado de preparación se guarda en memoria (no hay columna en la tabla
+     * orden y la base no se modifica). Es static porque el DAO es
+     *
+     * @Stateless y el contenedor usa varias instancias. Si el servidor se
+     * reinicia, las órdenes vuelven a RECIBIDA.
+     */
+    private static final Map<UUID, String> ESTADO_POR_ORDEN = new ConcurrentHashMap<>();
 
     @PersistenceContext(unitName = "CafefePU")
     private EntityManager em;
@@ -125,6 +142,37 @@ public class OrdenDAO extends AbstractDAO<Orden, UUID> {
                     + formatoFecha(fechaOrden) + ") está fuera de su rango. No se aplicó a ningún producto.";
         }
         return null;
+    }
+
+    /**
+     * Estado de preparación de la orden; RECIBIDA si nadie lo ha cambiado.
+     */
+    public String buscarEstado(UUID idOrden) {
+        return ESTADO_POR_ORDEN.getOrDefault(idOrden, ESTADOS_PREPARACION.get(0));
+    }
+
+    /**
+     * El estado debe ser uno de ESTADOS_PREPARACION y no puede regresar a uno
+     * anterior (una orden entregada no vuelve a preparación).
+     *
+     * @return el mensaje de error, o null si el cambio es válido
+     */
+    public String validarEstado(UUID idOrden, String estadoNuevo) {
+        int nuevo = (estadoNuevo == null) ? -1 : ESTADOS_PREPARACION.indexOf(estadoNuevo);
+        if (nuevo < 0) {
+            return "El estado debe ser uno de " + String.join(", ", ESTADOS_PREPARACION) + ".";
+        }
+        if (nuevo < ESTADOS_PREPARACION.indexOf(buscarEstado(idOrden))) {
+            return "La orden ya está " + buscarEstado(idOrden) + " y no puede regresar a " + estadoNuevo + ".";
+        }
+        return null;
+    }
+
+    /**
+     * Guarda el estado (llamar antes a validarEstado).
+     */
+    public void cambiarEstado(UUID idOrden, String estadoNuevo) {
+        ESTADO_POR_ORDEN.put(idOrden, estadoNuevo);
     }
 
     // Quita tildes, pasa a minúsculas y quita espacios de los extremos.

@@ -402,7 +402,7 @@ public abstract class AbstractResource<Entidad> {
         }
     }
 
-    private static UUID aUuid(String texto) {
+        protected static UUID aUuid(String texto) {
         try {
             return UUID.fromString(texto);
         } catch (Exception ex) {
