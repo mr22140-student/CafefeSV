@@ -11,7 +11,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 
 /**
- * /resources/v1/descuento
+ *
+ * @author daniel
  */
 @Path("descuento")
 @RequestScoped

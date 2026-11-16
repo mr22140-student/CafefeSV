@@ -9,7 +9,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.ProductoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 
 /**
- * /resources/v1/producto
+ *
+ * @author daniel
  */
 @Path("producto")
 @RequestScoped

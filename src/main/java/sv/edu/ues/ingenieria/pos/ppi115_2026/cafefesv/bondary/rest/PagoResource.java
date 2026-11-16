@@ -11,7 +11,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Factura;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Pago;
 
 /**
- * /resources/v1/pago
+ *
+ * @author daniel
  */
 @Path("pago")
 @RequestScoped

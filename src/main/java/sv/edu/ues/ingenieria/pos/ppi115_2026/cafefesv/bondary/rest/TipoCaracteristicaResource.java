@@ -9,7 +9,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoCaracteristica
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoCaracteristica;
 
 /**
- * /resources/v1/tipo_caracteristica
+ *
+ * @author daniel
  */
 @Path("tipo_caracteristica")
 @RequestScoped

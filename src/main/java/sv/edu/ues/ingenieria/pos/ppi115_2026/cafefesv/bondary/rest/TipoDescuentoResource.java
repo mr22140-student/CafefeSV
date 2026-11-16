@@ -9,7 +9,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.TipoDescuentoDAO;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.TipoDescuento;
 
 /**
- * /resources/v1/tipo_descuento
+ *
+ * @author daniel
  */
 @Path("tipo_descuento")
 @RequestScoped

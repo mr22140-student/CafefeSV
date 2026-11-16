@@ -17,7 +17,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Descuento;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 
 /**
- * /resources/v1/descuento_producto
+ *
+ * @author daniel
  */
 @Path("descuento_producto")
 @RequestScoped

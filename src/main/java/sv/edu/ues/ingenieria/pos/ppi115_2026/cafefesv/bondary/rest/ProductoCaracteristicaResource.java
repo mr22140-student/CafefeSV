@@ -16,7 +16,8 @@ import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Caracteristica;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.entity.Producto;
 
 /**
- * /resources/v1/producto_caracteristica
+ *
+ * @author daniel
  */
 @Path("producto_caracteristica")
 @RequestScoped

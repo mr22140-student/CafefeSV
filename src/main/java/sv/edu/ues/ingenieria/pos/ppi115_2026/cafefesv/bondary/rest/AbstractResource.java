@@ -31,34 +31,17 @@ import java.util.logging.Logger;
 import sv.edu.ues.ingenieria.pos.ppi115_2026.cafefesv.control.AbstractDAO;
 
 /**
- * CRUD REST generico. Cada recurso (RolResource, CajaResource...) hereda de
- * esta clase y solo agrega lo propio de su entidad, igual que los models
- * heredan de AbstractModel.
- *
- * <pre>
- * GET    /recurso?first=0&amp;max=50  lista paginada (header Total-Registros)
- * GET    /recurso/{id}              un registro
- * POST   /recurso                   crea (201 + header Location)
- * PUT    /recurso/{id}              modifica (hay que mandar el objeto completo)
- * DELETE /recurso/{id}              elimina (204)
- * </pre>
  *
  * Codigos: 200 ok, 201 creado, 204 eliminado, 404 no existe, 422 dato invalido
  * o regla de negocio (header Wrong-Parameter con el campo y el mensaje en el
  * cuerpo), 500 error del servidor (header App-Error).
- *
- * Las reglas de negocio NO se escriben aqui: los recursos llaman a los
- * validarXxx de sus DAOs, los mismos que usan los models de JSF.
- *
+ * 
  * @author daniel
  */
 public abstract class AbstractResource<Entidad> {
 
     private static final Logger LOGGER = Logger.getLogger(AbstractResource.class.getName());
 
-    /**
-     * Maximo de registros por pagina en el GET de la lista.
-     */
     protected static final int MAX_POR_PAGINA = 100;
 
     /**
@@ -75,23 +58,12 @@ public abstract class AbstractResource<Entidad> {
         this.claseEntidad = claseEntidad;
     }
 
-    // ===================== Lo que cada recurso debe implementar =====================
-    /**
-     * El DAO de la entidad.
-     */
     protected abstract AbstractDAO<Entidad, UUID> dao();
 
-    /**
-     * Lee la llave primaria del registro (por ejemplo r.getIdRol()).
-     */
     protected abstract UUID getId(Entidad registro);
 
-    /**
-     * Escribe la llave primaria del registro (por ejemplo r.setIdRol(id)).
-     */
     protected abstract void setId(Entidad registro, UUID id);
 
-    // ===================== Ganchos opcionales (por defecto no hacen nada) =====================
     /**
      * Cambia cada relacion que llega solo con su id, por ejemplo
      * {"idCaja":{"idCaja":"..."}}, por la entidad real de la base. Usar
@@ -100,50 +72,27 @@ public abstract class AbstractResource<Entidad> {
     protected void resolverRelaciones(Entidad registro) {
     }
 
-    /**
-     * Valores por defecto al CREAR (estado inicial, fecha, activo...).
-     */
     protected void prepararNuevo(Entidad registro) {
     }
 
-    /**
-     * Limpieza al crear Y al modificar (quitar espacios, valores vacios...).
-     */
     protected void normalizar(Entidad registro) {
     }
 
-    /**
-     * Reglas para crear. Devuelve el mensaje de error o null.
-     */
     protected String validarCrear(Entidad nuevo) {
         return null;
     }
 
-    /**
-     * Reglas para modificar. "guardado" es como esta el registro en la base
-     * ANTES del cambio (reemplaza al estadoOriginal de los models).
-     */
     protected String validarModificar(Entidad nuevo, Entidad guardado) {
         return null;
     }
 
-    /**
-     * Reglas para eliminar. Devuelve el mensaje de error o null.
-     */
     protected String validarEliminar(Entidad guardado) {
         return null;
     }
 
-    /**
-     * Efectos despues de modificar (por ejemplo, Pago cambia el estado de la
-     * factura).
-     */
     protected void despuesDeModificar(Entidad actualizado, Entidad guardado) {
     }
 
-    /**
-     * Como se elimina. Por defecto delete del DAO; Empleado lo cambia.
-     */
     protected void eliminar(Entidad guardado) {
         dao().delete(guardado);
     }
@@ -157,7 +106,7 @@ public abstract class AbstractResource<Entidad> {
             return error422("first,max", "first debe ser >= 0 y max debe estar entre 1 y " + MAX_POR_PAGINA + ".");
         }
         try {
-            // OJO: el findRange de AbstractDAO recibe (inicio, fin), no (inicio, cantidad)
+            //el findRange de AbstractDAO recibe (inicio, fin), no (inicio, cantidad)
             List<Entidad> lista = dao().findRange(first, first + max);
             return Response.ok(lista, MediaType.APPLICATION_JSON)
                     .header("Total-Registros", dao().count())
@@ -273,7 +222,6 @@ public abstract class AbstractResource<Entidad> {
         }
     }
 
-    // ===================== Ayudas para los recursos =====================
     /**
      * GET de una lista hija, por ejemplo /orden_producto/orden/{id}. Busca el
      * padre (404 si no existe) y le pasa la consulta del DAO.
@@ -349,7 +297,6 @@ public abstract class AbstractResource<Entidad> {
         }
     }
 
-    // ===================== Interno =====================
     /**
      * Revisa las anotaciones de la entidad (@NotNull, @Size...).
      */

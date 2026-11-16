@@ -46,8 +46,7 @@ public class EmpleadoRolResource extends AbstractResource<EmpleadoRol> {
     }
 
     /**
-     * idRol es una relación (@ManyToOne). idEmpleado es un UUID suelto (la base
-     * no tiene FK hacia empleado), así que solo se revisa que exista.
+     * idRol es una relación (@ManyToOne). idEmpleado es un UUID suelto, así que solo se revisa que exista.
      */
     @Override
     protected void resolverRelaciones(EmpleadoRol registro) {
