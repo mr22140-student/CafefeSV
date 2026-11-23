@@ -56,6 +56,7 @@
             <classifier>jakarta</classifier>
             <scope>provided</scope>
         </dependency>
+        
         <!-- Driver de PostgreSQL (suministrado por el servidor) -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -63,7 +64,6 @@
             <version>42.7.4</version>
             <scope>provided</scope>
         </dependency>
-
         <!-- Dependencias de Pruebas Unitaris -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
