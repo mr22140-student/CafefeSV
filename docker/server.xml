@@ -1,0 +1,43 @@
+<server description="Cafefe backend (Docker)">
+
+    <featureManager>
+        <feature>webProfile-11.0</feature>
+        <feature>persistence-3.2</feature>
+        <feature>jdbc-4.3</feature>
+    </featureManager>
+
+    <!-- Acepta conexiones desde fuera del contenedor -->
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443"/>
+
+    <!-- PrimeFaces -->
+    <library id="global">
+        <fileset dir="${shared.config.dir}/lib" includes="primefaces-15.0.17-jakarta.jar"/>
+    </library>
+
+    <!-- Driver de PostgreSQL -->
+    <library id="postgresJDBCLib">
+        <fileset dir="${shared.config.dir}/lib" includes="postgresql-42.7.4.jar"/>
+    </library>
+
+    <!-- Pool de conexiones con las variables de entorno -->
+    <dataSource id="pgdb" jndiName="jdbc/pgdb">
+        <jdbcDriver libraryRef="postgresJDBCLib"/>
+        <properties.postgresql
+            serverName="${env.PG_HOST}"
+            portNumber="${env.PG_PORT}"
+            databaseName="${env.PG_DB}"
+            user="${env.PG_USER}"
+            password="${env.PG_PASS}"/>
+    </dataSource>
+
+    <applicationManager autoExpand="true"/>
+
+    <!-- No publicar automáticamente lo que llegue a dropins... -->
+    <applicationMonitor dropinsEnabled="false"/>
+
+    <!-- ...sino publicar el war montado en dropins con la misma configuración que en la PC -->
+    <webApplication id="cafefe" location="${server.config.dir}/dropins/cafefe.war" contextRoot="/cafefe">
+        <classloader commonLibraryRef="global"/>
+    </webApplication>
+
+</server>
