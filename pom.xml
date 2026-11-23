@@ -56,6 +56,13 @@
             <classifier>jakarta</classifier>
             <scope>provided</scope>
         </dependency>
+        <!-- Driver de PostgreSQL (suministrado por el servidor) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.4</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Dependencias de Pruebas Unitaris -->
         <dependency>
